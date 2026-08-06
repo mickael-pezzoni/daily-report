@@ -1,0 +1,18 @@
+/* Le peu de global propre à l'application, en aval des trois couches du
+   design system. Tout est exprimé en rôles de semantic.css. */
+
+body {
+  background: var(--app-page-bg);
+  color: var(--app-text);
+}
+
+a {
+  color: var(--app-link);
+}
+a:hover {
+  color: var(--app-link-hover);
+}
+
+#root {
+  min-height: 100dvh;
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.direnv/
+*.log
+*.tsbuildinfo
+
+# Environnement local — voir apps/api/.env.example
+.env
+.env.local
+
+# Pièces jointes déposées en dev (UPLOADS_DIR)
+uploads/

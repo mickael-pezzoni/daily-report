@@ -1,0 +1,26 @@
+{
+  "name": "@daily-report/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@daily-report/types": "workspace:*",
+    "@hono/node-server": "^2.1.0",
+    "better-auth": "^1.6.26",
+    "dotenv": "^17.2.4",
+    "hono": "^4.13.0",
+    "kysely": "^0.29.4",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "tsx": "^4.23.7",
+    "typescript": "^7.0.2"
+  }
+}

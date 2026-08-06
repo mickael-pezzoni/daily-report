@@ -1,0 +1,105 @@
+/* Cadre partagé par les écrans 2d (connexion) et 2e (premier lancement).
+   Un seul arbre : le bandeau et l'en-tête de carte s'échangent au point de
+   rupture, plutôt que deux composants à maintenir en parallèle. */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--app-panel-bg);
+}
+
+.card {
+  width: 460px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 36px 38px;
+  background: var(--app-paper-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--app-elevation-panel);
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  flex: none;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 26px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 12.5px;
+  color: var(--app-text-subtle);
+  margin: 0;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Le bandeau mobile — masqué sur bureau, où le titre vit dans la carte. */
+.band {
+  display: none;
+}
+
+.footnote {
+  font-size: 11.5px;
+  color: var(--app-text-muted);
+  margin: 0;
+}
+
+/* ── Mobile : bandeau coloré, puis feuille aux coins hauts arrondis ── */
+@media (max-width: 640px) {
+  .page {
+    display: block;
+    padding: 0;
+  }
+
+  .band {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 34px 22px 22px;
+  }
+
+  .band .logo {
+    width: 46px;
+    height: 46px;
+  }
+
+  .band .title {
+    font-size: 24px;
+  }
+
+  .card {
+    width: 100%;
+    min-height: calc(100dvh - 150px);
+    padding: 24px 22px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: none;
+    background: var(--app-sheet-bg);
+  }
+
+  /* Sur mobile, l'identité est dans le bandeau : la carte va droit au formulaire. */
+  .card > .head {
+    display: none;
+  }
+
+  .footnote {
+    text-align: center;
+  }
+}

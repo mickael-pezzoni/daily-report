@@ -1,0 +1,51 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Couche 2 — RÔLES APPLICATIFS.
+
+   Renomme les tokens de la couche 1 en rôles qui parlent du produit. Les
+   *.module.css consomment ces noms-là, jamais un palier de rampe brut : un
+   futur thème n'a ainsi qu'à réaffecter des rôles ici, sans qu'on ait à
+   traquer des `--color-neutral-300` disséminés dans dix composants.
+
+   RÈGLE : chaque valeur de ce fichier est un `var(--…)` de tokens.css.
+   Aucun hex, aucune police, aucun px en dur.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* — surfaces — */
+  --app-page-bg: var(--color-neutral-200); /* fond général de l'application */
+  --app-panel-bg: var(--color-bg); /* barre latérale, en-têtes, pieds */
+  --app-paper-bg: var(--color-neutral-100); /* la « feuille » de note, les cartes */
+  --app-sheet-bg: var(--color-neutral-100); /* feuille mobile des écrans d'auth */
+
+  /* — texte — */
+  --app-text: var(--color-text);
+  --app-text-muted: var(--color-neutral-700);
+  --app-text-subtle: var(--color-neutral-800);
+  --app-text-placeholder: var(--color-neutral-400);
+  --app-text-on-accent: var(--color-bg);
+  --app-link: var(--color-accent-700);
+  --app-link-hover: var(--color-accent-800);
+
+  /* — bordures et élévation — */
+  --app-border: var(--color-divider);
+  --app-border-strong: var(--color-neutral-400); /* zones de dépôt en pointillés */
+  --app-elevation-card: var(--shadow-sm);
+  --app-elevation-panel: var(--shadow-md);
+  --app-elevation-modal: var(--shadow-lg);
+
+  /* — états — */
+  --app-focus-ring: var(--color-accent);
+  /* Organic n'a pas de rôle d'erreur : on prend le palier le plus sombre et le
+     plus saturé de la rampe accent plutôt qu'un rouge hors palette. */
+  --app-danger: var(--color-accent-700);
+  --app-danger-bg: var(--color-accent-100);
+
+  /* — marqueurs du produit (calendrier, recherche) — */
+  --app-day-selected: var(--color-accent); /* pastille pleine du jour ouvert */
+  --app-day-has-note: var(--color-accent-2); /* point sauge sous un jour rédigé */
+  --app-search-highlight: var(--color-accent-200);
+
+  /* — jauge de robustesse du mot de passe — */
+  --app-meter-filled: var(--color-accent-2);
+  --app-meter-empty: var(--color-neutral-300);
+}

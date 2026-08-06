@@ -1,0 +1,19 @@
+{
+  "name": "daily-report",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm db:up && pnpm migrate && pnpm dev:apps",
+    "dev:apps": "pnpm --parallel -r dev",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && pnpm db:up && pnpm migrate",
+    "migrate": "pnpm --filter @daily-report/api migrate",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
