@@ -1,0 +1,32 @@
+/* Masqué visuellement, mais toujours dans l'ordre de tabulation : c'est lui qui
+   reçoit le focus, et le label ci-dessous qui en montre l'anneau. */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.zone {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 52px;
+  flex: none;
+  cursor: pointer;
+  border: 2px dashed var(--app-dropzone-border);
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  color: var(--app-text-muted);
+}
+
+.zone:hover {
+  border-color: var(--app-day-selected);
+  color: var(--app-text);
+}
+
+.input:focus-visible + .zone {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}

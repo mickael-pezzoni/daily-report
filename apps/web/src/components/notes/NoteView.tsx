@@ -1,7 +1,11 @@
 import type { DailyNote } from '@daily-report/types'
+import { useCallback, useRef, useState } from 'react'
+import { Link } from 'react-router'
+import { api } from '../../api/client'
+import { useAttachments } from '../../hooks/useAttachments'
 import { useNote } from '../../hooks/useNote'
 import { formatDayLong } from '../../lib/dates'
-import { SignOutButton } from '../auth/SignOutButton'
+import { AttachmentBar } from '../attachments/AttachmentBar'
 import { DayNav } from './DayNav'
 import { NoteEditor } from './NoteEditor'
 import { SaveStatus } from './SaveStatus'
@@ -13,44 +17,141 @@ interface NoteViewProps {
   onNoteSaved: (note: DailyNote) => void
 }
 
+/** Ne réagir qu'aux fichiers — pas à une sélection de texte déplacée. */
+function carriesFiles(event: React.DragEvent): boolean {
+  return Array.from(event.dataTransfer.types).includes('Files')
+}
+
 /** L'écran 2a : la journée ouverte, sa feuille et sa navigation. */
 export function NoteView({ date, onNoteSaved }: NoteViewProps) {
-  const { draft, state, error, edit } = useNote(date, onNoteSaved)
+  const { note, draft, state, error, edit, ensureNoteId } = useNote(date, onNoteSaved)
+  const attachments = useAttachments(note?.id ?? null, ensureNoteId)
+
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  /**
+   * `dragenter` et `dragleave` se déclenchent pour chaque enfant survolé : se
+   * fier au premier `dragleave` ferait clignoter le tiroir dès que le curseur
+   * passe d'un élément à l'autre. On compte les entrées.
+   */
+  const dragDepth = useRef(0)
+
+  function handleDragEnter(event: React.DragEvent) {
+    if (!carriesFiles(event)) return
+    dragDepth.current += 1
+    if (dragDepth.current === 1) {
+      setDragging(true)
+      // Le geste demandé : survoler un fichier ouvre le tiroir.
+      setDrawerOpen(true)
+    }
+  }
+
+  function handleDragLeave(event: React.DragEvent) {
+    if (!carriesFiles(event)) return
+    dragDepth.current = Math.max(0, dragDepth.current - 1)
+    if (dragDepth.current === 0) setDragging(false)
+  }
+
+  function handleDragOver(event: React.DragEvent) {
+    if (!carriesFiles(event)) return
+    // Sans ce preventDefault, l'événement `drop` n'arrive jamais.
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+  }
+
+  function handleDrop(event: React.DragEvent) {
+    if (!carriesFiles(event)) return
+    // Sinon le navigateur remplace la page par le fichier lâché.
+    event.preventDefault()
+    dragDepth.current = 0
+    setDragging(false)
+
+    const files = Array.from(event.dataTransfer.files)
+    if (files.length > 0) void attachments.upload(files)
+  }
+
+  /**
+   * Envoi depuis l'éditeur : le fichier est joint, puis rendu à l'appelant pour
+   * qu'il l'insère dans le document.
+   */
+  const uploadFromEditor = useCallback(
+    async (files: File[]) => {
+      const created = await attachments.upload(files)
+      setDrawerOpen(true)
+      return created.map((item) => ({
+        src: api.attachments.contentUrl(item.id),
+        alt: item.filename,
+      }))
+    },
+    [attachments],
+  )
 
   return (
-    <div className={styles.view}>
+    <div
+      className={styles.view}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <header className={styles.header}>
-        <span className={styles.datePill}>{formatDayLong(date)}</span>
+        <span className={styles.datePill}>
+          {formatDayLong(date)}
+          {/* Referme la journée et ramène à l'écran « aucune note ouverte ».
+              Ce qui est en attente d'enregistrement part au démontage. */}
+          <Link
+            to="/"
+            className={styles.close}
+            title="Fermer cette journée"
+            aria-label="Fermer cette journée"
+          >
+            ✕
+          </Link>
+        </span>
         <SaveStatus state={state} error={error} />
         <span className={styles.spacer} />
-        <SignOutButton />
       </header>
 
-      <div className={styles.desk}>
+      <div className={`${styles.desk} ${dragging ? styles.deskDragging : ''}`}>
         <article className={styles.paper}>
-          <input
-            className={styles.title}
-            value={draft.title}
-            onChange={(event) => edit({ title: event.target.value })}
-            placeholder="Titre de la journée…"
-            aria-label="Titre de la journée"
-          />
-          <NoteEditor
-            documentKey={date}
-            content={draft.content}
-            onChange={(content) => edit({ content })}
-          />
+          {/* On attend la réponse avant de monter l'éditeur. TipTap prend son
+              document au montage : le monter sur un brouillon vide puis laisser
+              arriver le contenu ne l'atteindrait jamais — contrairement au
+              titre, qui est un champ contrôlé et suit la donnée. */}
+          {state === 'loading' ? (
+            <p className={styles.loading}>Chargement…</p>
+          ) : (
+            <>
+              <input
+                className={styles.title}
+                value={draft.title}
+                onChange={(event) => edit({ title: event.target.value })}
+                placeholder="Titre de la journée…"
+                aria-label="Titre de la journée"
+              />
+              <NoteEditor
+                documentKey={date}
+                content={draft.content}
+                onChange={(content) => edit({ content })}
+                onUploadImages={uploadFromEditor}
+              />
+            </>
+          )}
         </article>
       </div>
 
       <DayNav date={date} />
 
-      {/* Bande de la maquette 2a, sans le chantier des pièces jointes derrière. */}
-      <div className={styles.attachments}>
-        <span>📎</span>
-        <span className={styles.attachmentsLabel}>Pièces jointes</span>
-        <span className={styles.attachmentsHint}>bientôt</span>
-      </div>
+      <AttachmentBar
+        items={attachments.items}
+        open={drawerOpen}
+        onToggle={() => setDrawerOpen((open) => !open)}
+        uploading={attachments.uploading}
+        error={attachments.error}
+        onUpload={(files) => void attachments.upload(files)}
+        onRemove={(id) => void attachments.remove(id)}
+        dragging={dragging}
+      />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import type { DailyNote } from '@daily-report/types'
 import { Link, useNavigate } from 'react-router'
 import { MonthCalendar } from '../calendar/MonthCalendar'
+import { SignOutButton } from '../auth/SignOutButton'
 import { formatDayShort, todayISO } from '../../lib/dates'
 import styles from './Sidebar.module.css'
 
@@ -24,9 +25,12 @@ export function Sidebar({
 
   return (
     <aside className={styles.sidebar}>
-      <Link to="/" className={styles.brand}>
-        Mon journal
-      </Link>
+      <div className={styles.brandRow}>
+        <Link to="/" className={styles.brand}>
+          Mon journal
+        </Link>
+        <SignOutButton />
+      </div>
 
       <MonthCalendar
         month={month}

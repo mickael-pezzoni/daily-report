@@ -1,0 +1,84 @@
+.bar {
+  flex: none;
+  border-top: 1px solid var(--app-border);
+  background: var(--app-panel-bg);
+}
+
+/* Un fichier survole la journée : la bande se signale comme cible. */
+.barDragging {
+  background: var(--app-drop-active-bg);
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  padding: var(--space-2) var(--space-6);
+  color: var(--app-text);
+}
+
+.header:hover {
+  background: color-mix(in srgb, var(--app-text) 4%, transparent);
+}
+
+.header:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: -2px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.toggle {
+  font-size: 12px;
+  color: var(--app-link);
+  white-space: nowrap;
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-6) var(--space-4);
+}
+
+.items {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.error {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--app-danger-bg);
+  color: var(--app-danger);
+  font-size: 12.5px;
+}

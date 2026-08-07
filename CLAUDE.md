@@ -85,6 +85,46 @@ sur le fil, pas les lignes de base.
 - `content_text` est **toujours recalculé au serveur** (`src/lib/rich-text.ts`),
   jamais accepté du client : il doit rester le reflet exact de `content`, sinon les
   extraits — et demain la recherche — mentiraient sur le contenu des notes.
+- `src/routes/attachments.ts` expose deux routeurs : les routes portées par une
+  note (`/api/notes/:noteId/attachments`, dépôt et listing) et celles portées par
+  la pièce jointe (`/api/attachments/:id`, métadonnées, contenu, suppression).
+  **Le premier est monté avant `/api/notes`**, sinon le `/:id` des notes capterait
+  la requête.
+
+#### Le stockage des fichiers
+
+`src/storage/` isole complètement le stockage : aucune route, aucune requête SQL
+ne contient de `fs` ni de `S3Client`.
+
+- `driver.ts` — le contrat. L'application ne manipule que des **clés opaques**
+  qu'elle fabrique elle-même (`src/lib/attachments.ts`) ; le driver seul sait ce
+  qu'elles deviennent.
+- `local.ts` — disque, pour l'on-premise. Refuse toute clé qui sortirait du
+  répertoire racine.
+- `s3.ts` — un seul driver pour S3, R2, MinIO, Backblaze, Scaleway… : ils parlent
+  le même protocole, seuls `S3_ENDPOINT` et `S3_FORCE_PATH_STYLE` changent.
+- `index.ts` — choisit le driver d'après `STORAGE_DRIVER`. Seul endroit du dépôt
+  qui sait quels drivers existent.
+
+`getSignedUrl` est **optionnel** dans l'interface : quand un driver sait signer
+(S3), `GET /api/attachments/:id/content` redirige et la bande passante ne traverse
+pas l'API ; sinon elle relaie le flux. Le contrôle d'accès a lieu avant, dans les
+deux cas.
+
+Deux règles à ne pas inverser :
+
+- **On écrit l'objet avant la ligne, on supprime la ligne avant l'objet.** Un objet
+  sans ligne est un déchet silencieux, rattrapable ; une ligne sans objet est un
+  lien mort visible de l'utilisateur.
+- **`DELETE /api/notes/:id` relève les clés de stockage AVANT de supprimer.** Le
+  `ON DELETE CASCADE` emporte les lignes `attachments`, et avec elles la seule
+  trace des fichiers. Sans cette précaution, chaque note supprimée laisse des
+  orphelins introuvables.
+
+Seuls les types inertes (`image/png|jpeg|gif|webp|avif`, `application/pdf`) sont
+servis en `inline` ; tout le reste part en `attachment`, avec `nosniff`. `image/svg+xml`
+est volontairement exclu : un SVG déposé par un tiers exécuterait son script dans
+l'origine de l'application.
 - Migrations : fichiers SQL numérotés dans `src/db/migrations/`, appliqués dans
   l'ordre alphabétique par `src/db/migrate.ts`, chacun dans une transaction et
   tracé dans `_migrations`. **Ne jamais rééditer un fichier déjà appliqué** — en
@@ -130,6 +170,18 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   `Date`.** Les calculs passent par un `Date` à midi UTC, ce qui met les
   changements d'heure hors de portée ; seul `todayISO()` lit l'heure locale. Les
   libellés français viennent d'`Intl`, sans dépendance de date.
+- `src/hooks/useNote.ts` expose **`ensureNoteId()`**, qui crée la note si le jour
+  est vierge — joindre un fichier à une journée blanche est un geste légitime, et
+  l'API rattache les pièces jointes à une note. Il partage `creatingRef` avec
+  l'enregistrement : un dépôt et une frappe simultanés ne produisent qu'un `POST`.
+- `src/api/client.ts` — `request()` **omet `Content-Type` quand le corps est un
+  `FormData`**. Le navigateur doit l'écrire lui-même pour y placer la frontière
+  multipart ; l'imposer casserait tout envoi de fichier.
+- Le glisser-déposer de `NoteView` compte les `dragenter`/`dragleave` au lieu de
+  se fier au premier `dragleave` : ces événements se déclenchent pour chaque
+  enfant survolé, et le tiroir clignoterait. L'éditeur intercepte à part les
+  images (`handleDrop`/`handlePaste` de TipTap) pour les insérer dans le texte, et
+  appelle `stopPropagation()` — sinon le fichier partirait deux fois.
 - `src/hooks/useNote.ts` — chargement et enregistrement automatique d'une journée.
   L'écriture est en deux temps (`POST` puis `PATCH`), puisque la note n'existe pas
   tant que rien n'a été écrit. Trois garde-fous à ne pas casser : une seule
@@ -163,11 +215,23 @@ jamais un hex, jamais un px que le scale porte déjà. Test de non-régression :
 réassigner `--color-accent` et `--color-bg` sur `:root` dans le devtools doit
 repeindre toute l'interface, sans résidu.
 
+⚠️ **Dans `main.tsx`, ces quatre imports doivent rester avant celui de `App`.**
+Le bundler émet le CSS dans l'ordre où il rencontre les modules ; importer `App`
+d'abord ferait sortir tous les `*.module.css` avant la couche 3. Comme `.card`,
+`.btn` et les classes de modules ont toutes la même spécificité (une classe),
+c'est l'ordre qui tranche : le design system écraserait alors les surcharges des
+composants au lieu de leur servir de socle. Symptôme typique — un `.card` auquel
+un module impose `flex-direction: row` reste en colonne.
+
 ## Environnement
 
 `apps/api/.env` — `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
-`WEB_URL`, `PORT`. Voir `.env.example`. Le web n'a besoin d'aucune variable
-(requêtes relatives).
+`WEB_URL`, `PORT`, plus la configuration du stockage (`STORAGE_DRIVER`,
+`STORAGE_LOCAL_DIR` ou les `S3_*`, `MAX_UPLOAD_BYTES`). Voir `.env.example`, qui
+donne les réglages de R2 et MinIO. Les variables `S3_*` ne sont exigées que si
+`STORAGE_DRIVER=s3` : un déploiement on-premise n'a pas à les renseigner.
+
+Le web n'a besoin d'aucune variable (requêtes relatives).
 
 ## Source de la maquette
 
@@ -180,9 +244,17 @@ ouverte).
 
 ## Ce qui n'existe pas encore
 
-- **Pièces jointes** : ni table, ni stockage, ni route. La bande 📎 du pied de 2a
-  est rendue mais inerte ; le panneau déplié (2a-open) n'existe pas. L'extension
-  `Image` de l'éditeur affiche une image, mais rien ne dépose de fichier.
+- **Ramasse-miettes du stockage** : un objet peut survivre à sa ligne si la
+  suppression échoue après coup (réseau, S3 indisponible). Rien ne les balaie
+  aujourd'hui ; une tâche comparant les clés du stockage à la table `attachments`
+  reste à écrire.
+- **Image insérée orpheline** : supprimer une pièce jointe laisse dans le document
+  un `<img>` vers une URL en 404. La confirmation le signale, mais rien ne nettoie
+  le texte. Le lien inverse n'existe pas non plus, volontairement : retirer une
+  image du texte ne détache pas le fichier de la journée.
+- **Directions non retenues de la maquette** : la galerie horizontale (3a), la
+  liste compacte (3b), la grille (3c) et le panneau latéral rétractable (4a/4b)
+  sont des explorations. C'est le tiroir de pied 2a-open qui est implémenté.
 - **Recherche globale ⌘K** (2c) et **export** PDF/.md : les boutons `⌕` et
   « Exporter ▾ » de l'en-tête 2a ne sont volontairement pas rendus, pour ne pas
   livrer de commande morte. La colonne `content_text` prépare déjà le terrain de

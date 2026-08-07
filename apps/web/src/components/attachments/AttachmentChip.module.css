@@ -1,0 +1,97 @@
+.chip {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  max-width: 260px;
+}
+
+.preview,
+.badge {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+
+.preview {
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--app-desk-bg);
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  font-size: 9.5px;
+  padding: 0;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--app-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.name:hover {
+  color: var(--app-link);
+}
+
+.menuButton {
+  flex: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  color: var(--app-link);
+}
+.menuButton:hover {
+  background: var(--app-day-hover);
+}
+.menuButton:focus-visible,
+.name:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.menu {
+  position: absolute;
+  right: 6px;
+  /* Au-dessus : la vignette est déjà en bas de l'écran. */
+  bottom: calc(100% + 4px);
+  z-index: 10;
+  padding: var(--space-1);
+  gap: 0;
+  min-width: 150px;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--app-text);
+  text-decoration: none;
+}
+.menuItem:hover {
+  background: var(--app-day-hover);
+}
+.menuItem:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: -2px;
+}

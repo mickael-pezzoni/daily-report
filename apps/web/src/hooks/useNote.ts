@@ -38,6 +38,32 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     onSavedRef.current = onSaved
   })
 
+  /**
+   * Crée la note du jour, une seule fois.
+   *
+   * Deux appels rapprochés sur un jour vierge — typiquement une frappe et un
+   * dépôt de fichier — partagent la même promesse au lieu de partir en deux
+   * `POST` concurrents.
+   */
+  const createOnce = useCallback(
+    (payload: Draft): Promise<DailyNote> => {
+      const currentDate = date
+      creatingRef.current ??= api.notes
+        .create({ date: currentDate, ...payload })
+        .catch(async (cause) => {
+          // 409 : la note existe déjà (autre onglet, requête rejouée). Ce n'est
+          // pas une erreur à montrer — on récupère et on continue.
+          if (cause instanceof ApiError && cause.status === 409) {
+            const existing = await api.notes.byDate(currentDate)
+            if (existing) return api.notes.update(existing.id, payload)
+          }
+          throw cause
+        })
+      return creatingRef.current
+    },
+    [date],
+  )
+
   const flush = useCallback(async (): Promise<void> => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
@@ -46,32 +72,14 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     if (!dirtyRef.current) return
 
     const payload = draftRef.current
-    const currentDate = date
     dirtyRef.current = false
     setState('saving')
 
     try {
-      let saved: DailyNote
-
-      if (noteIdRef.current) {
-        saved = await api.notes.update(noteIdRef.current, payload)
-      } else {
-        // Une seule création par jour, même si deux sauvegardes se déclenchent
-        // coup sur coup : la seconde attend la promesse de la première.
-        creatingRef.current ??= api.notes
-          .create({ date: currentDate, ...payload })
-          .catch(async (cause) => {
-            // 409 : la note existe déjà (autre onglet, requête rejouée). Ce
-            // n'est pas une erreur à montrer — on récupère et on continue.
-            if (cause instanceof ApiError && cause.status === 409) {
-              const existing = await api.notes.byDate(currentDate)
-              if (existing) return api.notes.update(existing.id, payload)
-            }
-            throw cause
-          })
-        saved = await creatingRef.current
-        creatingRef.current = null
-      }
+      const saved = noteIdRef.current
+        ? await api.notes.update(noteIdRef.current, payload)
+        : await createOnce(payload)
+      creatingRef.current = null
 
       noteIdRef.current = saved.id
       setNote(saved)
@@ -84,7 +92,27 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
       setState('error')
       setError(cause instanceof Error ? cause.message : "L'enregistrement a échoué.")
     }
-  }, [date])
+  }, [createOnce])
+
+  /**
+   * L'identifiant de la note, en la créant si le jour est encore vierge.
+   *
+   * Nécessaire pour joindre un fichier : l'API rattache les pièces jointes à
+   * une note, or déposer un fichier sur une journée blanche est un geste
+   * parfaitement légitime.
+   */
+  const ensureNoteId = useCallback(async (): Promise<string> => {
+    if (noteIdRef.current) return noteIdRef.current
+
+    const saved = await createOnce(draftRef.current)
+    creatingRef.current = null
+    noteIdRef.current = saved.id
+    setNote(saved)
+    // La journée existe désormais : la pastille du calendrier doit s'allumer,
+    // même si c'est un fichier et non du texte qui l'a fait naître.
+    onSavedRef.current?.(saved)
+    return saved.id
+  }, [createOnce])
 
   // Garde une référence stable vers le dernier `flush` pour les nettoyages.
   const flushRef = useRef(flush)
@@ -157,5 +185,5 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     [],
   )
 
-  return { note, draft, state, error, edit, save: flush }
+  return { note, draft, state, error, edit, save: flush, ensureNoteId }
 }

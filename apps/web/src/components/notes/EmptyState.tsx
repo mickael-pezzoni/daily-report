@@ -1,7 +1,6 @@
 import type { DailyNote } from '@daily-report/types'
 import { Link } from 'react-router'
 import { todayISO } from '../../lib/dates'
-import { SignOutButton } from '../auth/SignOutButton'
 import { RecentNoteCard } from './RecentNoteCard'
 import styles from './EmptyState.module.css'
 
@@ -15,7 +14,6 @@ export function EmptyState({ recent }: { recent: DailyNote[] }) {
         <Link to={`/notes/${todayISO()}`} className="btn btn-primary">
           ＋ Note
         </Link>
-        <SignOutButton />
       </header>
 
       <div className={styles.body}>

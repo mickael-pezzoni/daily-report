@@ -35,6 +35,17 @@
   --app-elevation-panel: var(--shadow-md);
   --app-elevation-modal: var(--shadow-lg);
 
+  /* — petits contrôles ronds (déconnexion, fermeture) — */
+  --app-control-bg: var(--color-neutral-300);
+  /* Un cran plus soutenu : le ✕ est posé sur une pastille déjà en
+     --app-control-bg, il lui faut ça pour s'en détacher. */
+  --app-control-strong-bg: var(--color-neutral-400);
+
+  /* — dépôt de fichiers — */
+  --app-dropzone-border: var(--color-neutral-400);
+  /* Le voile qui signale la cible pendant qu'un fichier survole. */
+  --app-drop-active-bg: var(--color-accent-100);
+
   /* — états — */
   --app-focus-ring: var(--color-accent);
   /* Organic n'a pas de rôle d'erreur : on prend le palier le plus sombre et le

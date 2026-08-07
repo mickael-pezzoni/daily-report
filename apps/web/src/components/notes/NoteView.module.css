@@ -16,6 +16,10 @@
 }
 
 .datePill {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
   flex-shrink: 0;
   white-space: nowrap;
   font-family: var(--font-heading);
@@ -23,7 +27,35 @@
   font-size: 18px;
   background: var(--app-desk-bg);
   border-radius: 999px;
-  padding: 6px 14px;
+  /* Moins de marge à droite : la croix apporte la sienne. */
+  padding: 6px 8px 6px 14px;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-left: 2px;
+  border-radius: 999px;
+  /* La croix est du chrome : elle ne doit pas peser autant que la date. */
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1;
+  text-decoration: none;
+  background: var(--app-control-strong-bg);
+  color: var(--app-text-subtle);
+}
+
+.close:hover {
+  background: var(--app-day-selected);
+  color: var(--app-text-on-accent);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 1px;
 }
 
 .spacer {
@@ -37,6 +69,11 @@
   overflow-y: auto;
   background: var(--app-desk-bg);
   padding: var(--space-6);
+}
+
+/* Un fichier survole : le sous-main se teinte pour dire qu'on peut lâcher. */
+.deskDragging {
+  background: var(--app-drop-active-bg);
 }
 
 .paper {
@@ -71,6 +108,12 @@
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 4px;
   border-radius: var(--radius-sm);
+}
+
+.loading {
+  margin: 0;
+  font-size: 13px;
+  color: var(--app-text-muted);
 }
 
 .attachments {

@@ -10,7 +10,15 @@
   overflow-y: auto;
 }
 
+.brandRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .brand {
+  flex: 1;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
   font-size: 20px;

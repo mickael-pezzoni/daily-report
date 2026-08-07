@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { signOut } from '../../api/auth-client'
+import styles from './SignOutButton.module.css'
 
 /**
- * Ajout hors maquette : celle-ci ne prévoit aucune sortie de session, ni dans
- * l'en-tête bureau (2a) ni derrière le menu « ⋯ » mobile (2b).
+ * Le bouton ⏻ de la barre latérale, à droite de « Mon journal ».
  *
- * Composant autonome exprès, pour pouvoir être déplacé tel quel dans l'en-tête
- * réel quand l'écran 2a arrivera, sans rien réécrire.
+ * La maquette n'a longtemps prévu aucune sortie de session ; elle en spécifie
+ * une depuis sa révision du 7 août, à cet emplacement précis.
  */
 export function SignOutButton() {
   const navigate = useNavigate()
@@ -23,11 +23,13 @@ export function SignOutButton() {
   return (
     <button
       type="button"
-      className="btn btn-secondary"
+      className={styles.button}
       onClick={handleSignOut}
       disabled={pending}
+      title="Se déconnecter"
+      aria-label="Se déconnecter"
     >
-      {pending ? 'Déconnexion…' : 'Se déconnecter'}
+      ⏻
     </button>
   )
 }
