@@ -57,6 +57,18 @@ export interface NotePatch {
   content?: RichTextDoc
 }
 
+/** Une pièce jointe d'une note. Le contenu se récupère à part. */
+export interface Attachment {
+  id: string
+  noteId: string
+  /** Nom d'origine du fichier, tel que déposé. */
+  filename: string
+  mimeType: string
+  /** Taille en octets. */
+  size: number
+  createdAt: string
+}
+
 /** Réponse de `GET /api/calendar/:month` — quels jours du mois sont rédigés. */
 export interface CalendarMonth {
   /** `YYYY-MM`. */

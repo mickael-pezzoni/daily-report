@@ -9,6 +9,8 @@
     "migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1104.0",
+    "@aws-sdk/s3-request-presigner": "^3.1104.0",
     "@daily-report/types": "workspace:*",
     "@hono/node-server": "^2.1.0",
     "better-auth": "^1.6.26",

@@ -4,6 +4,7 @@ import { db } from '../db/index.js'
 import { excerptOf, flattenRichText } from '../lib/rich-text.js'
 import { isRichTextDoc, isUuid, isValidDate } from '../lib/validate.js'
 import type { AuthedEnv } from '../middleware/require-auth.js'
+import { storage } from '../storage/index.js'
 
 const notes = new Hono<AuthedEnv>()
 
@@ -145,10 +146,20 @@ notes.patch('/:id', async (c) => {
   return c.json(toDailyNote(row))
 })
 
-/** `DELETE /api/notes/:id` */
+/** `DELETE /api/notes/:id` — emporte les pièces jointes avec la note. */
 notes.delete('/:id', async (c) => {
   const id = c.req.param('id')
   if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+
+  // Relever les clés AVANT la suppression : le `ON DELETE CASCADE` emporte les
+  // lignes `attachments`, et avec elles la seule trace des objets stockés. Sans
+  // ça, chaque note supprimée laisserait des fichiers orphelins que plus rien
+  // ne référence — donc impossibles à retrouver.
+  const keys = await db
+    .selectFrom('attachments')
+    .select('storageKey')
+    .where('noteId', '=', id)
+    .execute()
 
   const result = await db
     .deleteFrom('dailyNotes')
@@ -157,6 +168,11 @@ notes.delete('/:id', async (c) => {
     .executeTakeFirst()
 
   if (result.numDeletedRows === 0n) return c.json({ error: 'note introuvable' }, 404)
+
+  // Après la base : un objet qui survit est du déchet silencieux, une ligne qui
+  // survit serait un lien mort. On préfère le premier.
+  await Promise.allSettled(keys.map((row) => storage.delete(row.storageKey)))
+
   return c.body(null, 204)
 })
 

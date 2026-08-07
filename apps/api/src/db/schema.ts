@@ -17,6 +17,7 @@ import type { RichTextDoc } from '@daily-report/types'
  */
 export interface Database {
   dailyNotes: DailyNotesTable
+  attachments: AttachmentsTable
 }
 
 export interface DailyNotesTable {
@@ -32,4 +33,19 @@ export interface DailyNotesTable {
   contentText: string
   createdAt: Generated<Date>
   updatedAt: Generated<Date>
+}
+
+export interface AttachmentsTable {
+  id: Generated<string>
+  noteId: string
+  /** Clé opaque dans le stockage — voir `src/storage/driver.ts`. */
+  storageKey: string
+  filename: string
+  mimeType: string
+  /**
+   * `BIGINT` côté Postgres : `pg` le rend en chaîne pour ne pas perdre de
+   * précision. On le reconvertit à la frontière HTTP.
+   */
+  sizeBytes: ColumnType<string, number, number>
+  createdAt: Generated<Date>
 }
