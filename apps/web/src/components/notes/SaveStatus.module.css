@@ -1,0 +1,15 @@
+.tag {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.error {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--app-danger-bg);
+  color: var(--app-danger);
+  cursor: help;
+}

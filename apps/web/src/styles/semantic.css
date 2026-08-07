@@ -16,6 +16,8 @@
   --app-panel-bg: var(--color-bg); /* barre latérale, en-têtes, pieds */
   --app-paper-bg: var(--color-neutral-100); /* la « feuille » de note, les cartes */
   --app-sheet-bg: var(--color-neutral-100); /* feuille mobile des écrans d'auth */
+  --app-desk-bg: var(--color-neutral-300); /* le sous-main sur lequel repose la feuille */
+  --app-paper-shadow: var(--shadow-lg); /* la feuille décolle du sous-main */
 
   /* — texte — */
   --app-text: var(--color-text);
@@ -43,7 +45,12 @@
   /* — marqueurs du produit (calendrier, recherche) — */
   --app-day-selected: var(--color-accent); /* pastille pleine du jour ouvert */
   --app-day-has-note: var(--color-accent-2); /* point sauge sous un jour rédigé */
+  --app-day-hover: var(--color-accent-100); /* survol d'une case de calendrier */
   --app-search-highlight: var(--color-accent-200);
+
+  /* — texte riche — */
+  --app-quote-bg: var(--color-accent-100);
+  --app-code-bg: var(--color-neutral-200);
 
   /* — jauge de robustesse du mot de passe — */
   --app-meter-filled: var(--color-accent-2);

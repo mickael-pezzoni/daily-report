@@ -1,0 +1,43 @@
+.bar {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  width: max-content;
+}
+
+.item,
+.itemActive {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--app-text-subtle);
+}
+
+.item:hover {
+  background: var(--app-day-hover);
+}
+
+.itemActive {
+  background: var(--app-day-selected);
+  color: var(--app-text-on-accent);
+}
+
+.item:focus-visible,
+.itemActive:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.separator {
+  width: 1px;
+  height: 16px;
+  background: var(--app-border);
+  margin: 0 2px;
+}

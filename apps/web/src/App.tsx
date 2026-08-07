@@ -51,9 +51,14 @@ export function App() {
         }
       />
       <Route
-        path="/*"
+        path="/"
         element={session ? <AppShell /> : <Navigate to={signedOutHome} replace />}
       />
+      <Route
+        path="/notes/:date"
+        element={session ? <AppShell /> : <Navigate to={signedOutHome} replace />}
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

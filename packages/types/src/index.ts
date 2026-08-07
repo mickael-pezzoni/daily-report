@@ -19,3 +19,48 @@ export interface SessionUser {
   name: string
   email: string
 }
+
+/**
+ * Un document de texte riche, décrit structurellement.
+ *
+ * Volontairement pas le `JSONContent` de TipTap : ce paquet est partagé avec
+ * l'API, qui n'a aucune raison de traîner l'éditeur dans ses dépendances. Le
+ * web fait le pont à la frontière de l'éditeur.
+ */
+export interface RichTextDoc {
+  type: 'doc'
+  content?: unknown[]
+}
+
+/** Une note du journal — un jour rédigé. */
+export interface DailyNote {
+  id: string
+  /** Date calendaire au format `YYYY-MM-DD`. */
+  date: string
+  title: string
+  content: RichTextDoc
+  /** Début du texte aplati, pour les listes et les cartes. */
+  excerpt: string
+  updatedAt: string
+}
+
+/** Corps de `POST /api/notes`. */
+export interface NoteDraft {
+  date: string
+  title: string
+  content: RichTextDoc
+}
+
+/** Corps de `PATCH /api/notes/:id` — modification partielle. */
+export interface NotePatch {
+  title?: string
+  content?: RichTextDoc
+}
+
+/** Réponse de `GET /api/calendar/:month` — quels jours du mois sont rédigés. */
+export interface CalendarMonth {
+  /** `YYYY-MM`. */
+  month: string
+  /** Dates `YYYY-MM-DD` portant une note. */
+  daysWithNotes: string[]
+}

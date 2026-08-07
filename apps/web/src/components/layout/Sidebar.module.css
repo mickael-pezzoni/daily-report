@@ -1,0 +1,68 @@
+.sidebar {
+  width: 266px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-4);
+  background: var(--app-panel-bg);
+  border-right: 1px solid var(--app-border);
+  overflow-y: auto;
+}
+
+.brand {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 20px;
+  color: var(--app-text);
+  text-decoration: none;
+}
+.brand:hover {
+  color: var(--app-link);
+}
+
+.recent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.recentTitle {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.recentItem {
+  font-size: 12px;
+  color: var(--app-text-subtle);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recentItem:hover {
+  color: var(--app-link);
+}
+
+.recentEmpty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+
+.spacer {
+  flex: 1;
+  min-height: var(--space-4);
+}
+
+/* Sous 900 px, la colonne passe au-dessus du contenu plutôt que de l'écraser.
+   Le vrai écran mobile (2b) viendra dans une passe dédiée. */
+@media (max-width: 900px) {
+  .sidebar {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--app-border);
+  }
+}

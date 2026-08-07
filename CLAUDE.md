@@ -8,9 +8,9 @@ Guide pour Claude Code (claude.ai/code) sur ce dépôt.
 date**, texte riche, pièces jointes, recherche plein texte, et un calendrier qui
 montre les jours rédigés.
 
-État actuel : **socle + authentification uniquement**. Les notes, le calendrier,
-la recherche et les pièces jointes ne sont pas encore écrits — voir « Ce qui
-n'existe pas encore » en bas.
+État actuel : **socle, authentification, notes et calendrier**. La recherche, les
+pièces jointes et l'export ne sont pas encore écrits — voir « Ce qui n'existe pas
+encore » en bas.
 
 ## ⚠️ Toolchain — à lire avant toute commande
 
@@ -72,6 +72,19 @@ sur le fil, pas les lignes de base.
   l'écran de premier lancement.
 - `src/env.ts` lit l'environnement et échoue tout de suite si `DATABASE_URL` ou
   `BETTER_AUTH_SECRET` manque.
+- `src/routes/notes.ts` et `src/routes/calendar.ts` sont **du REST classique** :
+  la ressource est la note, identifiée par son UUID. La date n'est qu'un attribut
+  — `GET /api/notes?date=…` filtre la collection, elle n'identifie jamais une URL.
+  Côté web c'est l'inverse : `/notes/2026-08-03` est une **vue**, qui doit
+  s'ouvrir avant qu'aucune note (donc aucun identifiant) n'existe.
+- Une ressource appartenant à quelqu'un d'autre répond **404, jamais 403** : on ne
+  divulgue pas son existence.
+- `POST /api/notes` sur une date déjà prise répond **409**. On laisse la contrainte
+  `UNIQUE (user_id, note_date)` trancher plutôt que de faire un `SELECT` préalable,
+  qui laisserait une fenêtre de concurrence.
+- `content_text` est **toujours recalculé au serveur** (`src/lib/rich-text.ts`),
+  jamais accepté du client : il doit rester le reflet exact de `content`, sinon les
+  extraits — et demain la recherche — mentiraient sur le contenu des notes.
 - Migrations : fichiers SQL numérotés dans `src/db/migrations/`, appliqués dans
   l'ordre alphabétique par `src/db/migrate.ts`, chacun dans une transaction et
   tracé dans `_migrations`. **Ne jamais rééditer un fichier déjà appliqué** — en
@@ -80,17 +93,26 @@ sur le fil, pas les lignes de base.
   `pnpm dlx @better-auth/cli generate --config src/auth.ts`. Après tout ajout de
   plugin better-auth, régénérer dans un **nouveau** fichier de migration.
 
-#### ⚠️ Le piège Kysely / better-auth
+#### ⚠️ Trois pièges de la couche base
 
 `src/db/index.ts` expose un `pool` pg **et** une instance Kysely montée dessus
 avec le `CamelCasePlugin` (base en snake_case, code en camelCase).
 
-Les tables de better-auth (`user`, `session`, `account`, `verification`) ont
-leurs colonnes en **camelCase entre guillemets** (`"emailVerified"`, `"userId"`).
-Le plugin les réécrirait en `email_verified` et casserait la requête. Ces tables
-ne passent donc **jamais** par Kysely — utiliser `pool.query()`, comme le fait
+**1. Les tables de better-auth ne passent jamais par Kysely.** `user`, `session`,
+`account` et `verification` ont leurs colonnes en **camelCase entre guillemets**
+(`"emailVerified"`, `"userId"`). Le plugin les réécrirait en `email_verified` et
+casserait la requête. Pour les interroger, utiliser `pool.query()`, comme le fait
 `hasAccount()`. L'interface `Database` de `src/db/schema.ts` ne décrit que les
-futures tables applicatives, en snake_case.
+tables applicatives.
+
+**2. Le `CamelCasePlugin` renomme aussi les tables.** Dans `src/db/schema.ts`, la
+clé s'écrit `dailyNotes` et vise la table `daily_notes` ; `noteDate` vise
+`note_date`. Écrire les clés en snake_case produirait du `daily__notes` en SQL.
+
+**3. `pg` transforme le type `DATE` en objet `Date` JS**, ce qui décale la journée
+d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
+`pg.types.setTypeParser(1082, (v) => v)` : une date de note reste la chaîne
+`YYYY-MM-DD` du SQL jusqu'à l'URL du navigateur. Ne pas retirer cette ligne.
 
 ### `apps/web` — React 19 + Vite + react-router
 
@@ -102,6 +124,18 @@ futures tables applicatives, en snake_case.
 - `src/App.tsx` — deux informations pilotent la navigation : la session
   (better-auth) et `hasAccount` (`GET /api/auth-state`). Tant que l'une des deux
   manque, on affiche un écran d'attente plutôt que de rediriger puis se corriger.
+  Routes : `/` = écran vide 2f, `/notes/:date` = écran 2a. Connexion et création
+  de compte atterrissent sur la note du jour.
+- `src/lib/dates.ts` — **une date de note est une chaîne `YYYY-MM-DD`, jamais un
+  `Date`.** Les calculs passent par un `Date` à midi UTC, ce qui met les
+  changements d'heure hors de portée ; seul `todayISO()` lit l'heure locale. Les
+  libellés français viennent d'`Intl`, sans dépendance de date.
+- `src/hooks/useNote.ts` — chargement et enregistrement automatique d'une journée.
+  L'écriture est en deux temps (`POST` puis `PATCH`), puisque la note n'existe pas
+  tant que rien n'a été écrit. Trois garde-fous à ne pas casser : une seule
+  création en vol par jour, un `409` traité comme « elle existe déjà » et non
+  comme une erreur, et un vidage de la file d'attente au changement de date comme
+  au démontage.
 - `src/hooks/useAuthState.ts` — prend une `revalidateKey` liée à l'identité de
   session. Sans elle, après la création du premier compte puis une déconnexion,
   on garderait un `hasAccount: false` périmé et on renverrait vers un écran
@@ -140,18 +174,24 @@ repeindre toute l'interface, sans résidu.
 Projet Claude Design « Maquette rapport journalier »
 (`45188f2b-abab-4750-83d1-d460aef1a5a6`), fichier `Rapport journalier.dc.html`,
 lisible via l'outil `DesignSync`. Direction retenue : **1b / 2a** — calendrier
-permanent à gauche, éditeur à droite. Les écrans implémentés sont **2d**
-(connexion) et **2e** (premier lancement).
+permanent à gauche, éditeur à droite. Écrans implémentés : **2d** (connexion),
+**2e** (premier lancement), **2a** (journée ouverte) et **2f** (aucune note
+ouverte).
 
 ## Ce qui n'existe pas encore
 
-- Écran principal 2a (calendrier + éditeur), 2f (aucune note ouverte), 2c
-  (recherche globale ⌘K) — `components/layout/AppShell.tsx` n'est qu'un
-  emplacement.
-- Notes, pièces jointes, calendrier, recherche : ni tables, ni routes, ni types.
+- **Pièces jointes** : ni table, ni stockage, ni route. La bande 📎 du pied de 2a
+  est rendue mais inerte ; le panneau déplié (2a-open) n'existe pas. L'extension
+  `Image` de l'éditeur affiche une image, mais rien ne dépose de fichier.
+- **Recherche globale ⌘K** (2c) et **export** PDF/.md : les boutons `⌕` et
+  « Exporter ▾ » de l'en-tête 2a ne sont volontairement pas rendus, pour ne pas
+  livrer de commande morte. La colonne `content_text` prépare déjà le terrain de
+  la recherche plein texte française.
+- **Écran mobile 2b** : barre d'onglets Aujourd'hui/Calendrier/Exporter, calendrier
+  plein écran. Il n'y a pour l'instant qu'un repli responsive sous 900 px, où la
+  barre latérale passe au-dessus du contenu.
 - **Passkey** et **lien magique** : présents dans la maquette 2d/2e, pas rendus —
   ils demandent les plugins better-auth correspondants, et le lien magique un
   fournisseur SMTP. « Mot de passe oublié ? » est retiré pour la même raison.
 - `SignOutButton` est un **ajout hors maquette** : celle-ci ne prévoit aucune
-  sortie de session. Il est autonome pour pouvoir migrer tel quel dans l'en-tête
-  de 2a le moment venu.
+  sortie de session. Il vit dans l'en-tête de 2a et de 2f.

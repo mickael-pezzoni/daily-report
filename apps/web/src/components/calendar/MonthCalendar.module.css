@@ -1,0 +1,191 @@
+.calendar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.arrow {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--app-text);
+}
+.arrow:hover {
+  background: var(--app-day-hover);
+}
+.arrow:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.monthLabel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  color: var(--app-text);
+  background: var(--app-desk-bg);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.monthLabel:hover {
+  background: var(--app-day-hover);
+}
+.monthLabel:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.caret {
+  font-size: 11px;
+  color: var(--app-link);
+}
+
+/* ── Sélecteur mois / année ── */
+.picker {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: var(--space-3);
+  gap: var(--space-2);
+}
+
+.pickerHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.pickerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.pickerMonth,
+.pickerMonthActive {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  padding: 6px 0;
+  border-radius: 999px;
+  text-align: center;
+  background: transparent;
+  color: var(--app-text-subtle);
+}
+.pickerMonth:hover {
+  background: var(--app-day-hover);
+}
+.pickerMonthActive {
+  background: var(--app-day-selected);
+  color: var(--app-text-on-accent);
+  font-weight: 700;
+}
+.pickerMonth:focus-visible,
+.pickerMonthActive:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.pickerHint {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--app-text-muted);
+}
+
+/* ── Grille des jours ── */
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekdays {
+  font-size: 11px;
+  color: var(--app-text-muted);
+  text-align: center;
+}
+
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  border-radius: 999px;
+  color: var(--app-text-subtle);
+}
+.day:hover {
+  background: var(--app-day-hover);
+}
+.day:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.dayOutside {
+  color: var(--app-text-placeholder);
+}
+
+/* Aujourd'hui, quand ce n'est pas le jour ouvert : cerclé, pas rempli. */
+.dayToday {
+  border-color: var(--app-day-selected);
+  font-weight: 700;
+}
+
+.daySelected {
+  background: var(--app-day-selected);
+  color: var(--app-text-on-accent);
+  font-weight: 700;
+}
+.daySelected:hover {
+  background: var(--app-day-selected);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--app-day-has-note);
+}
+
+/* Sur la pastille pleine, le point sauge disparaîtrait dans le terracotta. */
+.daySelected .dot {
+  background: var(--app-text-on-accent);
+}
+
+.legend {
+  margin: 0;
+  font-size: 11px;
+  color: var(--app-text-muted);
+}

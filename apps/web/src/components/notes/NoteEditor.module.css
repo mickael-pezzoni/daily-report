@@ -1,0 +1,129 @@
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* La zone d'édition elle-même. Le rendu est du HTML produit par TipTap : on
+   style donc des balises, pas des classes. */
+.surface {
+  flex: 1;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--app-text);
+}
+
+.surface > :first-child {
+  margin-top: 0;
+}
+
+.surface :global(h1),
+.surface :global(h2),
+.surface :global(h3) {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  line-height: 1.15;
+  margin: var(--space-4) 0 var(--space-2);
+}
+.surface :global(h1) { font-size: 24px; }
+.surface :global(h2) { font-size: 19px; }
+.surface :global(h3) { font-size: 16px; }
+
+.surface :global(p) {
+  margin: 0 0 var(--space-2);
+}
+
+.surface :global(ul),
+.surface :global(ol) {
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-6);
+}
+
+.surface :global(li) {
+  margin-bottom: var(--space-1);
+}
+
+/* Les puces reprennent l'accent, comme dans la maquette. */
+.surface :global(ul:not([data-type='taskList']) li)::marker {
+  color: var(--app-day-selected);
+}
+
+.surface :global(ul[data-type='taskList']) {
+  list-style: none;
+  padding-left: var(--space-2);
+}
+
+.surface :global(ul[data-type='taskList'] li) {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.surface :global(ul[data-type='taskList'] li > div) {
+  flex: 1;
+}
+
+.surface :global(ul[data-type='taskList'] input[type='checkbox']) {
+  margin-top: 5px;
+  accent-color: var(--app-day-has-note);
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+.surface :global(blockquote) {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 5px solid var(--app-day-selected);
+  border-radius: var(--radius-sm);
+  background: var(--app-quote-bg);
+  color: var(--app-text-subtle);
+}
+
+.surface :global(code) {
+  font-size: 0.92em;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--app-code-bg);
+}
+
+.surface :global(pre) {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--app-code-bg);
+  overflow-x: auto;
+}
+.surface :global(pre code) {
+  padding: 0;
+  background: transparent;
+}
+
+.surface :global(img) {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  margin: var(--space-2) 0;
+}
+
+.surface :global(a) {
+  color: var(--app-link);
+}
+
+.surface :global(hr) {
+  border: 0;
+  height: 1px;
+  background: var(--app-border);
+  margin: var(--space-4) 0;
+}
+
+/* Le texte fantôme du document vide, posé par l'extension Placeholder. */
+.surface :global(p.is-editor-empty:first-child)::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--app-text-placeholder);
+}

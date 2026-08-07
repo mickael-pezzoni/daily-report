@@ -1,0 +1,94 @@
+.view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.datePill {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 18px;
+  background: var(--app-desk-bg);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Le sous-main sur lequel repose la feuille. */
+.desk {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--app-desk-bg);
+  padding: var(--space-6);
+}
+
+.paper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-8);
+  background: var(--app-paper-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--app-paper-shadow);
+  /* Le très léger désalignement de la maquette : la feuille est posée, pas
+     encastrée. Assez faible pour ne pas gêner le curseur dans l'éditeur. */
+  transform: rotate(-0.3deg);
+}
+
+.title {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--app-text);
+}
+.title::placeholder {
+  color: var(--app-text-placeholder);
+}
+.title:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.attachments {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-6);
+  border-top: 1px solid var(--app-border);
+  background: var(--app-panel-bg);
+}
+
+.attachmentsLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.attachmentsHint {
+  font-size: 12px;
+  color: var(--app-text-muted);
+}

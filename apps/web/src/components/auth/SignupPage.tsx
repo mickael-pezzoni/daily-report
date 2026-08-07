@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { signUp } from '../../api/auth-client'
+import { todayISO } from '../../lib/dates'
 import { AuthShell } from './AuthShell'
 import { PasswordField } from './PasswordField'
 import { PasswordStrength } from './PasswordStrength'
@@ -32,7 +33,8 @@ export function SignupPage() {
       setError(signUpError.message ?? 'La création du compte a échoué.')
       return
     }
-    void navigate('/', { replace: true })
+    // « Ensuite, l'application ouvre directement la note du jour. » — maquette 2e.
+    void navigate(`/notes/${todayISO()}`, { replace: true })
   }
 
   return (

@@ -1,3 +1,6 @@
+import type { ColumnType, Generated } from 'kysely'
+import type { RichTextDoc } from '@daily-report/types'
+
 /**
  * Interface Kysely des tables *applicatives*.
  *
@@ -7,6 +10,26 @@
  * l'instance Kysely les réécrirait en snake_case. Pour les interroger, passer
  * par `pool.query()` (voir `src/db/index.ts`).
  *
- * Les tables des notes, pièces jointes, etc. viendront ici, en snake_case.
+ * ⚠️ Le CamelCasePlugin traduit aussi les **noms de tables** : la clé
+ * `dailyNotes` ci-dessous vise bien la table `daily_notes`, et `noteDate` la
+ * colonne `note_date`. Écrire les clés en snake_case ici produirait du
+ * `daily__notes` en SQL.
  */
-export interface Database {}
+export interface Database {
+  dailyNotes: DailyNotesTable
+}
+
+export interface DailyNotesTable {
+  id: Generated<string>
+  userId: string
+  /**
+   * `DATE` côté Postgres, chaîne `YYYY-MM-DD` côté TypeScript — le parseur posé
+   * dans `src/db/index.ts` empêche `pg` d'en faire un objet `Date`.
+   */
+  noteDate: string
+  title: string
+  content: ColumnType<RichTextDoc, RichTextDoc, RichTextDoc>
+  contentText: string
+  createdAt: Generated<Date>
+  updatedAt: Generated<Date>
+}

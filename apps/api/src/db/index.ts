@@ -6,6 +6,14 @@ import type { Database } from './schema.js'
 const { Pool } = pg
 
 /**
+ * `pg` désérialise par défaut le type `DATE` (OID 1082) en objet `Date` JS, ce
+ * qui décale la journée d'un cran dès que le fuseau du serveur n'est pas UTC.
+ * On garde la chaîne `YYYY-MM-DD` telle que Postgres l'écrit : c'est la même
+ * valeur du SQL jusqu'à l'URL du navigateur.
+ */
+pg.types.setTypeParser(1082, (value) => value)
+
+/**
  * Le pool partagé. Trois consommateurs :
  *   - better-auth, à qui on le passe directement (`src/auth.ts`)
  *   - Kysely, via le dialecte ci-dessous

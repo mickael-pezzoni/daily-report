@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { signIn } from '../../api/auth-client'
+import { todayISO } from '../../lib/dates'
 import { AuthShell } from './AuthShell'
 import { PasswordField } from './PasswordField'
 import styles from './AuthForm.module.css'
@@ -28,7 +29,8 @@ export function LoginPage() {
       )
       return
     }
-    void navigate('/', { replace: true })
+    // L'application ouvre directement sur la note du jour.
+    void navigate(`/notes/${todayISO()}`, { replace: true })
   }
 
   return (

@@ -1,32 +1,79 @@
-import { useSession } from '../../api/auth-client'
-import { SignOutButton } from '../auth/SignOutButton'
+import type { DailyNote } from '@daily-report/types'
+import { useCallback, useEffect, useState } from 'react'
+import { Navigate, useParams } from 'react-router'
+import { api } from '../../api/client'
+import { isValidISODate, monthOf, todayISO } from '../../lib/dates'
+import { EmptyState } from '../notes/EmptyState'
+import { NoteView } from '../notes/NoteView'
+import { Sidebar } from './Sidebar'
 import styles from './AppShell.module.css'
 
+const RECENT_LIMIT = 3
+
 /**
- * Emplacement du futur écran principal (2a : calendrier permanent à gauche,
- * éditeur à droite). Pour l'instant, il ne prouve qu'une chose — la session
- * tient — et porte la sortie de session.
+ * La coquille de l'écran principal : barre latérale permanente à gauche,
+ * journée ouverte ou état vide à droite.
+ *
+ * C'est ici que vivent les données partagées par les deux colonnes — le
+ * calendrier du mois affiché et les derniers jours — pour qu'un enregistrement
+ * dans l'éditeur allume la pastille du calendrier sans rechargement.
  */
 export function AppShell() {
-  const { data: session } = useSession()
+  const { date } = useParams<{ date?: string }>()
+  const [month, setMonth] = useState(() => monthOf(date ?? todayISO()))
+  const [daysWithNotes, setDaysWithNotes] = useState<string[]>([])
+  const [recent, setRecent] = useState<DailyNote[]>([])
+
+  // Le mois affiché suit la journée ouverte.
+  useEffect(() => {
+    if (date) setMonth(monthOf(date))
+  }, [date])
+
+  const loadMonth = useCallback((target: string) => {
+    api.calendar
+      .month(target)
+      .then((calendar) => setDaysWithNotes(calendar.daysWithNotes))
+      .catch(() => setDaysWithNotes([]))
+  }, [])
+
+  const loadRecent = useCallback(() => {
+    api.notes
+      .recent(RECENT_LIMIT)
+      .then(setRecent)
+      .catch(() => setRecent([]))
+  }, [])
+
+  useEffect(() => loadMonth(month), [month, loadMonth])
+  useEffect(() => loadRecent(), [loadRecent])
+
+  /** Un enregistrement peut créer un jour rédigé : les deux vues se rafraîchissent. */
+  const handleNoteSaved = useCallback(
+    (note: DailyNote) => {
+      setDaysWithNotes((days) => (days.includes(note.date) ? days : [...days, note.date]))
+      loadRecent()
+    },
+    [loadRecent],
+  )
+
+  // Une date bricolée dans l'URL ramène à aujourd'hui plutôt qu'à un écran cassé.
+  if (date !== undefined && !isValidISODate(date)) {
+    return <Navigate to={`/notes/${todayISO()}`} replace />
+  }
 
   return (
     <div className={styles.shell}>
-      <header className={styles.header}>
-        <span className={styles.brand}>Mon journal</span>
-        <span className={styles.spacer} />
-        <span className={styles.user}>{session?.user.name}</span>
-        <SignOutButton />
-      </header>
-
-      <main className={styles.main}>
-        <p className={styles.placeholder}>
-          Connecté en tant que <strong>{session?.user.email}</strong>.
-        </p>
-        <p className={styles.hint}>
-          L'écran du journal — calendrier et éditeur — vient s'installer ici.
-        </p>
-      </main>
+      <Sidebar
+        month={month}
+        onMonthChange={setMonth}
+        selected={date ?? null}
+        daysWithNotes={daysWithNotes}
+        recent={recent}
+      />
+      {date ? (
+        <NoteView key={date} date={date} onNoteSaved={handleNoteSaved} />
+      ) : (
+        <EmptyState recent={recent} />
+      )}
     </div>
   )
 }
