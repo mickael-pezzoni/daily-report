@@ -15,7 +15,7 @@ const calendar = new Hono<AuthedEnv>()
  */
 calendar.get('/:month', async (c) => {
   const month = c.req.param('month')
-  if (!isValidMonth(month)) return c.json({ error: 'mois invalide, attendu YYYY-MM' }, 400)
+  if (!isValidMonth(month)) return c.json({ error: 'invalid month, expected YYYY-MM' }, 400)
 
   const rows = await db
     .selectFrom('dailyNotes')

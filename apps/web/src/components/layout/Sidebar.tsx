@@ -1,8 +1,9 @@
 import type { DailyNote } from '@daily-report/types'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
+import { useDateFormat } from '../../hooks/useDateFormat'
+import { todayISO } from '../../lib/dates'
 import { MonthCalendar } from '../calendar/MonthCalendar'
-import { SignOutButton } from '../auth/SignOutButton'
-import { formatDayShort, todayISO } from '../../lib/dates'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
@@ -21,15 +22,18 @@ export function Sidebar({
   daysWithNotes,
   recent,
 }: SidebarProps) {
+  const { t } = useTranslation()
+  const format = useDateFormat()
   const navigate = useNavigate()
 
   return (
     <aside className={styles.sidebar}>
+      {/* Le menu utilisateur vivait ici ; la maquette l'a déplacé dans
+          l'en-tête de droite. La barre latérale ne porte plus que le titre. */}
       <div className={styles.brandRow}>
         <Link to="/" className={styles.brand}>
-          Mon journal
+          {t('app.name')}
         </Link>
-        <SignOutButton />
       </div>
 
       <MonthCalendar
@@ -41,13 +45,13 @@ export function Sidebar({
       />
 
       <section className={styles.recent}>
-        <h2 className={styles.recentTitle}>Derniers jours</h2>
+        <h2 className={styles.recentTitle}>{t('sidebar.recentTitle')}</h2>
         {recent.length === 0 ? (
-          <p className={styles.recentEmpty}>Aucune note pour l'instant.</p>
+          <p className={styles.recentEmpty}>{t('sidebar.recentEmpty')}</p>
         ) : (
           recent.map((note) => (
             <Link key={note.id} to={`/notes/${note.date}`} className={styles.recentItem}>
-              {formatDayShort(note.date)}
+              {format.dayShort(note.date)}
               {note.title ? ` — ${note.title}` : ''}
             </Link>
           ))
@@ -57,7 +61,7 @@ export function Sidebar({
       <span className={styles.spacer} />
 
       <Link to={`/notes/${todayISO()}`} className="btn btn-primary btn-block">
-        ＋ Note
+        {t('sidebar.newNote')}
       </Link>
     </aside>
   )

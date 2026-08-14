@@ -1,6 +1,7 @@
 import type { DailyNote, RichTextDoc } from '@daily-report/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ApiError } from '../api/client'
+import { apiErrorKey } from '../i18n/api-errors'
 
 export type SaveState = 'idle' | 'loading' | 'dirty' | 'saving' | 'saved' | 'error'
 
@@ -17,12 +18,16 @@ interface Draft {
  *
  * L'écriture est en deux temps, puisque la note n'existe pas tant que rien n'a
  * été écrit : `POST` à la première sauvegarde d'un jour vierge, `PATCH` ensuite.
+ *
+ * En cas d'échec, le hook expose une **clé de traduction** et non un message :
+ * l'API répond en anglais technique, et un message figé ne suivrait pas un
+ * changement de langue.
  */
 export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
   const [note, setNote] = useState<DailyNote | null>(null)
   const [draft, setDraft] = useState<Draft>({ title: '', content: EMPTY_DOC })
   const [state, setState] = useState<SaveState>('loading')
-  const [error, setError] = useState<string | null>(null)
+  const [errorKey, setErrorKey] = useState<string | null>(null)
 
   // Refs, et non state : le minuteur d'enregistrement doit lire les valeurs
   // courantes sans se relancer à chaque frappe.
@@ -84,13 +89,13 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
       noteIdRef.current = saved.id
       setNote(saved)
       setState(dirtyRef.current ? 'dirty' : 'saved')
-      setError(null)
+      setErrorKey(null)
       onSavedRef.current?.(saved)
     } catch (cause) {
       creatingRef.current = null
       dirtyRef.current = true
       setState('error')
-      setError(cause instanceof Error ? cause.message : "L'enregistrement a échoué.")
+      setErrorKey(apiErrorKey(cause, 'errors.saveFailed'))
     }
   }, [createOnce])
 
@@ -128,7 +133,7 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     void previousFlush()
 
     setState('loading')
-    setError(null)
+    setErrorKey(null)
     noteIdRef.current = null
     creatingRef.current = null
     dirtyRef.current = false
@@ -147,7 +152,7 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
       .catch((cause: unknown) => {
         if (cancelled) return
         setState('error')
-        setError(cause instanceof Error ? cause.message : 'Chargement impossible.')
+        setErrorKey(apiErrorKey(cause, 'errors.loadFailed'))
       })
 
     return () => {
@@ -185,5 +190,5 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     [],
   )
 
-  return { note, draft, state, error, edit, save: flush, ensureNoteId }
+  return { note, draft, state, errorKey, edit, save: flush, ensureNoteId }
 }

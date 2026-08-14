@@ -1,12 +1,7 @@
 import { useState } from 'react'
-import {
-  addMonths,
-  formatMonth,
-  monthGrid,
-  monthNames,
-  todayISO,
-  WEEKDAY_INITIALS,
-} from '../../lib/dates'
+import { useTranslation } from 'react-i18next'
+import { useDateFormat } from '../../hooks/useDateFormat'
+import { addMonths, monthGrid, todayISO } from '../../lib/dates'
 import styles from './MonthCalendar.module.css'
 
 interface MonthCalendarProps {
@@ -34,6 +29,8 @@ export function MonthCalendar({
   onSelect,
   daysWithNotes,
 }: MonthCalendarProps) {
+  const { t } = useTranslation()
+  const format = useDateFormat()
   const [pickerOpen, setPickerOpen] = useState(false)
   const written = new Set(daysWithNotes)
   const today = todayISO()
@@ -46,7 +43,7 @@ export function MonthCalendar({
           type="button"
           className={styles.arrow}
           onClick={() => onMonthChange(addMonths(month, -1))}
-          aria-label="Mois précédent"
+          aria-label={t('calendar.previousMonth')}
         >
           ‹
         </button>
@@ -57,7 +54,7 @@ export function MonthCalendar({
           onClick={() => setPickerOpen((open) => !open)}
           aria-expanded={pickerOpen}
         >
-          <span>{formatMonth(month)}</span>
+          <span>{format.month(month)}</span>
           <span className={styles.caret}>▾</span>
         </button>
 
@@ -65,7 +62,7 @@ export function MonthCalendar({
           type="button"
           className={styles.arrow}
           onClick={() => onMonthChange(addMonths(month, 1))}
-          aria-label="Mois suivant"
+          aria-label={t('calendar.nextMonth')}
         >
           ›
         </button>
@@ -78,7 +75,7 @@ export function MonthCalendar({
               type="button"
               className={styles.arrow}
               onClick={() => onMonthChange(addMonths(month, -12))}
-              aria-label="Année précédente"
+              aria-label={t('calendar.previousYear')}
             >
               ‹
             </button>
@@ -87,13 +84,13 @@ export function MonthCalendar({
               type="button"
               className={styles.arrow}
               onClick={() => onMonthChange(addMonths(month, 12))}
-              aria-label="Année suivante"
+              aria-label={t('calendar.nextYear')}
             >
               ›
             </button>
           </div>
           <div className={styles.pickerGrid}>
-            {monthNames().map((label, index) => {
+            {format.monthNames().map((label, index) => {
               const value = `${year}-${String(index + 1).padStart(2, '0')}`
               return (
                 <button
@@ -110,12 +107,12 @@ export function MonthCalendar({
               )
             })}
           </div>
-          <p className={styles.pickerHint}>choisir le mois · ‹ › pour l'année</p>
+          <p className={styles.pickerHint}>{t('calendar.pickerHint')}</p>
         </div>
       ) : null}
 
       <div className={styles.weekdays}>
-        {WEEKDAY_INITIALS.map((initial, index) => (
+        {format.weekdayInitials().map((initial, index) => (
           <span key={index}>{initial}</span>
         ))}
       </div>
@@ -142,7 +139,7 @@ export function MonthCalendar({
         })}
       </div>
 
-      <p className={styles.legend}>pastilles sauge = jour rédigé</p>
+      <p className={styles.legend}>{t('calendar.legend')}</p>
     </div>
   )
 }

@@ -69,6 +69,18 @@ export interface Attachment {
   createdAt: string
 }
 
+/**
+ * Une note telle que la **collection** la renvoie (`GET /api/notes`).
+ *
+ * La liste porte ses pièces jointes, là où `GET /api/notes/:id` ne les donne
+ * pas : les cartes de l'écran « aucune note ouverte » les affichent, et aller
+ * les chercher carte par carte ferait une requête par jour affiché.
+ */
+export interface NoteListItem extends DailyNote {
+  /** Dans l'ordre de dépôt. Tableau vide si le jour n'en porte aucune. */
+  attachments: Attachment[]
+}
+
 /** Réponse de `GET /api/calendar/:month` — quels jours du mois sont rédigés. */
 export interface CalendarMonth {
   /** `YYYY-MM`. */

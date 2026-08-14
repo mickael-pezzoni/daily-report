@@ -1,11 +1,13 @@
 import type { DailyNote } from '@daily-report/types'
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { api } from '../../api/client'
 import { useAttachments } from '../../hooks/useAttachments'
+import { useDateFormat } from '../../hooks/useDateFormat'
 import { useNote } from '../../hooks/useNote'
-import { formatDayLong } from '../../lib/dates'
 import { AttachmentBar } from '../attachments/AttachmentBar'
+import { UserMenu } from '../auth/UserMenu'
 import { DayNav } from './DayNav'
 import { NoteEditor } from './NoteEditor'
 import { SaveStatus } from './SaveStatus'
@@ -24,7 +26,9 @@ function carriesFiles(event: React.DragEvent): boolean {
 
 /** L'écran 2a : la journée ouverte, sa feuille et sa navigation. */
 export function NoteView({ date, onNoteSaved }: NoteViewProps) {
-  const { note, draft, state, error, edit, ensureNoteId } = useNote(date, onNoteSaved)
+  const { t } = useTranslation()
+  const format = useDateFormat()
+  const { note, draft, state, errorKey, edit, ensureNoteId } = useNote(date, onNoteSaved)
   const attachments = useAttachments(note?.id ?? null, ensureNoteId)
 
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -96,20 +100,16 @@ export function NoteView({ date, onNoteSaved }: NoteViewProps) {
     >
       <header className={styles.header}>
         <span className={styles.datePill}>
-          {formatDayLong(date)}
+          {format.dayLong(date)}
           {/* Referme la journée et ramène à l'écran « aucune note ouverte ».
               Ce qui est en attente d'enregistrement part au démontage. */}
-          <Link
-            to="/"
-            className={styles.close}
-            title="Fermer cette journée"
-            aria-label="Fermer cette journée"
-          >
+          <Link to="/" className={styles.close} title={t('note.close')} aria-label={t('note.close')}>
             ✕
           </Link>
         </span>
-        <SaveStatus state={state} error={error} />
+        <SaveStatus state={state} errorKey={errorKey} />
         <span className={styles.spacer} />
+        <UserMenu />
       </header>
 
       <div className={`${styles.desk} ${dragging ? styles.deskDragging : ''}`}>
@@ -119,15 +119,15 @@ export function NoteView({ date, onNoteSaved }: NoteViewProps) {
               arriver le contenu ne l'atteindrait jamais — contrairement au
               titre, qui est un champ contrôlé et suit la donnée. */}
           {state === 'loading' ? (
-            <p className={styles.loading}>Chargement…</p>
+            <p className={styles.loading}>{t('app.loading')}</p>
           ) : (
             <>
               <input
                 className={styles.title}
                 value={draft.title}
                 onChange={(event) => edit({ title: event.target.value })}
-                placeholder="Titre de la journée…"
-                aria-label="Titre de la journée"
+                placeholder={t('note.titlePlaceholder')}
+                aria-label={t('note.titleLabel')}
               />
               <NoteEditor
                 documentKey={date}
@@ -147,7 +147,7 @@ export function NoteView({ date, onNoteSaved }: NoteViewProps) {
         open={drawerOpen}
         onToggle={() => setDrawerOpen((open) => !open)}
         uploading={attachments.uploading}
-        error={attachments.error}
+        errorKey={attachments.errorKey}
         onUpload={(files) => void attachments.upload(files)}
         onRemove={(id) => void attachments.remove(id)}
         dragging={dragging}

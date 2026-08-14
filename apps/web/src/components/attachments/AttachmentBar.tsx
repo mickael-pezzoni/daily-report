@@ -1,4 +1,5 @@
 import type { Attachment } from '@daily-report/types'
+import { useTranslation } from 'react-i18next'
 import { AttachmentChip } from './AttachmentChip'
 import { DropZone } from './DropZone'
 import styles from './AttachmentBar.module.css'
@@ -8,7 +9,8 @@ interface AttachmentBarProps {
   open: boolean
   onToggle: () => void
   uploading: boolean
-  error: string | null
+  /** Clé de traduction, pas un message : elle doit suivre la langue. */
+  errorKey: string | null
   onUpload: (files: File[]) => void
   onRemove: (id: string) => void
   /** Un fichier survole la journée : la bande le signale même repliée. */
@@ -26,11 +28,12 @@ export function AttachmentBar({
   open,
   onToggle,
   uploading,
-  error,
+  errorKey,
   onUpload,
   onRemove,
   dragging,
 }: AttachmentBarProps) {
+  const { t } = useTranslation()
   const count = items.length
 
   return (
@@ -44,28 +47,26 @@ export function AttachmentBar({
         <span>📎</span>
         {open ? (
           <>
-            <span className={styles.title}>Pièces jointes</span>
-            <span className={styles.hint}>
-              {count} · glissez un fichier ici pour l'ajouter
-            </span>
+            <span className={styles.title}>{t('attachments.title')}</span>
+            <span className={styles.hint}>{t('attachments.drawerHint', { count })}</span>
           </>
         ) : (
           <span className={styles.label}>
-            {count === 0
-              ? 'Aucune pièce jointe'
-              : `${count} pièce${count > 1 ? 's' : ''} jointe${count > 1 ? 's' : ''}`}
+            {count === 0 ? t('attachments.none') : t('attachments.count', { count })}
           </span>
         )}
         <span className={styles.spacer} />
-        {uploading ? <span className={styles.hint}>envoi…</span> : null}
-        <span className={styles.toggle}>{open ? 'replier ▴' : 'voir / ajouter ▾'}</span>
+        {uploading ? <span className={styles.hint}>{t('attachments.uploading')}</span> : null}
+        <span className={styles.toggle}>
+          {open ? t('attachments.collapse') : t('attachments.expand')}
+        </span>
       </button>
 
       {open ? (
         <div className={styles.drawer}>
-          {error ? (
+          {errorKey ? (
             <p className={styles.error} role="alert">
-              {error}
+              {t(errorKey)}
             </p>
           ) : null}
           <div className={styles.items}>

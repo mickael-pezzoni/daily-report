@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './PasswordField.module.css'
 
 interface PasswordFieldProps {
@@ -20,6 +21,7 @@ export function PasswordField({
   autoComplete,
   children,
 }: PasswordFieldProps) {
+  const { t } = useTranslation()
   const id = useId()
   const [visible, setVisible] = useState(false)
 
@@ -42,7 +44,7 @@ export function PasswordField({
           onClick={() => setVisible((v) => !v)}
           aria-pressed={visible}
         >
-          {visible ? 'masquer' : 'afficher'}
+          {visible ? t('auth.fields.hide') : t('auth.fields.show')}
         </button>
       </div>
       {children}

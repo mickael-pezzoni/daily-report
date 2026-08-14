@@ -79,6 +79,15 @@ sur le fil, pas les lignes de base.
   s'ouvrir avant qu'aucune note (donc aucun identifiant) n'existe.
 - Une ressource appartenant à quelqu'un d'autre répond **404, jamais 403** : on ne
   divulgue pas son existence.
+- **Les messages d'erreur de l'API sont en anglais**, et ne sont jamais affichés
+  tels quels. Ils s'adressent à un journal de serveur, pas à l'utilisateur : le
+  web traduit le `code` — ou, à défaut, le statut — via
+  `apps/web/src/i18n/api-errors.ts`. Une nouvelle erreur destinée à être montrée
+  doit donc porter un `code`, sinon elle retombera sur un message générique.
+- `GET /api/notes` renvoie des `NoteListItem` — la note **plus ses pièces
+  jointes**, là où `GET /api/notes/:id` n'en donne pas. Les cartes de l'écran 2f
+  les affichent ; aller les chercher carte par carte ferait un N+1. Une seule
+  requête `WHERE note_id IN (…)` les ramène toutes, groupées en mémoire.
 - `POST /api/notes` sur une date déjà prise répond **409**. On laisse la contrainte
   `UNIQUE (user_id, note_date)` trancher plutôt que de faire un `SELECT` préalable,
   qui laisserait une fenêtre de concurrence.
@@ -168,8 +177,9 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   de compte atterrissent sur la note du jour.
 - `src/lib/dates.ts` — **une date de note est une chaîne `YYYY-MM-DD`, jamais un
   `Date`.** Les calculs passent par un `Date` à midi UTC, ce qui met les
-  changements d'heure hors de portée ; seul `todayISO()` lit l'heure locale. Les
-  libellés français viennent d'`Intl`, sans dépendance de date.
+  changements d'heure hors de portée ; seul `todayISO()` lit l'heure locale. Ce
+  module ne fait plus **que** du calcul : tout ce qui produit du texte lisible
+  est passé dans `src/lib/date-format.ts`, qui dépend de la langue.
 - `src/hooks/useNote.ts` expose **`ensureNoteId()`**, qui crée la note si le jour
   est vierge — joindre un fichier à une journée blanche est un geste légitime, et
   l'API rattache les pièces jointes à une note. Il partage `creatingRef` avec
@@ -192,8 +202,46 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   session. Sans elle, après la création du premier compte puis une déconnexion,
   on garderait un `hasAccount: false` périmé et on renverrait vers un écran
   d'inscription que le serveur refuse.
+- `RecentNoteCard` (écran 2f) : la maquette n'y laisse qu'une action explicite,
+  « supprimer ». C'est donc la **carte entière qui ouvre la journée**, par un
+  lien étiré en `::after` sur toute la carte, le bouton de suppression repassant
+  au-dessus en `z-index`. Un bouton ne peut pas être imbriqué dans un lien —
+  c'est ce qui interdit la solution évidente. Les aperçus de pièces jointes sont
+  en `pointer-events: none` pour que le clic les traverse.
+- La suppression depuis une carte est **optimiste** : `AppShell` retire la carte
+  et la pastille du calendrier avant la réponse (un `204` n'a rien à apprendre à
+  la vue), recharge la liste derrière — une quatrième note peut remonter — et
+  recharge le mois si l'appel a échoué.
+- `UserMenu` (écran 6a) vit dans **l'en-tête de droite**, en 2a comme en 2f, pas
+  dans la barre latérale : la maquette l'y a déplacé. Il porte le choix de la
+  langue et la déconnexion. Les deux en-têtes qui l'accueillent ont un
+  `position: relative` — c'est leur bord droit qui ancre le menu.
 - Composants par domaine sous `src/components/<domaine>/`, chacun avec son
   `*.module.css`.
+
+#### Les langues
+
+`src/i18n/` — i18next + react-i18next, **français et anglais**, catalogues dans
+le bundle (`locales/*.json`) : pas de chargement réseau, donc rien à attendre au
+premier rendu. La langue choisie est retenue en `localStorage`, sinon déduite du
+navigateur.
+
+- `LANGUAGES` est la **seule liste** à compléter pour ajouter une langue : le
+  code, son `locale` Intl et son libellé. Le sélecteur et `Intl` s'y alimentent.
+- On y attache un `locale` et pas seulement un code : `en-GB` et non `en-US`,
+  parce que la grille du calendrier commence le lundi (maquette 2a) et qu'`en-US`
+  afficherait des initiales de jours contredisant cette grille.
+- **Les vues gardent une clé de traduction, jamais un message.** `useNote` et
+  `useAttachments` exposent `errorKey`, pas `error` : un texte figé au moment de
+  l'échec ne suivrait pas un changement de langue.
+- `useDateFormat()` passe par `useTranslation()` plutôt que de lire
+  `i18next.language` : c'est cet abonnement qui fait re-rendre une vue n'affichant
+  que des dates quand la langue change.
+- Le texte fantôme de TipTap est une **fonction** (`() => tRef.current(…)`), pas
+  une chaîne : `Placeholder` la lit à chaque calcul des décorations, ce qui lui
+  permet de changer de langue sans remonter l'éditeur.
+- `<html lang>` suit la langue — césure, guillemets et voix du lecteur d'écran en
+  dépendent.
 
 #### Les trois couches CSS
 
@@ -239,8 +287,13 @@ Projet Claude Design « Maquette rapport journalier »
 (`45188f2b-abab-4750-83d1-d460aef1a5a6`), fichier `Rapport journalier.dc.html`,
 lisible via l'outil `DesignSync`. Direction retenue : **1b / 2a** — calendrier
 permanent à gauche, éditeur à droite. Écrans implémentés : **2d** (connexion),
-**2e** (premier lancement), **2a** (journée ouverte) et **2f** (aucune note
-ouverte).
+**2e** (premier lancement), **2a** (journée ouverte), **2f** (aucune note
+ouverte) et **6a** (menu utilisateur).
+
+⚠️ **La maquette bouge.** Relire le fichier avant de toucher un écran plutôt que
+de se fier à ce document. Révisions déjà encaissées : le menu utilisateur est
+passé de la barre latérale à l'en-tête de droite, et les cartes de 2f ont perdu
+leur action « ouvrir ».
 
 ## Ce qui n'existe pas encore
 
@@ -256,14 +309,21 @@ ouverte).
   liste compacte (3b), la grille (3c) et le panneau latéral rétractable (4a/4b)
   sont des explorations. C'est le tiroir de pied 2a-open qui est implémenté.
 - **Recherche globale ⌘K** (2c) et **export** PDF/.md : les boutons `⌕` et
-  « Exporter ▾ » de l'en-tête 2a ne sont volontairement pas rendus, pour ne pas
-  livrer de commande morte. La colonne `content_text` prépare déjà le terrain de
-  la recherche plein texte française.
+  « Exporter ▾ » de l'en-tête 2a, comme la barre « Rechercher dans toutes mes
+  notes… » de 2f, ne sont volontairement pas rendus, pour ne pas livrer de
+  commande morte. La colonne `content_text` prépare déjà le terrain de la
+  recherche plein texte française.
+- **Étiquette « brouillon »** : la maquette 2f la pose sur une des trois cartes.
+  Rien dans le modèle ne distingue un brouillon d'une note finie — il n'y a ni
+  colonne d'état ni geste de publication. L'étiquette attend qu'on décide ce
+  qu'elle veut dire ; les cartes rendent les seules qui ont un référent réel,
+  « N fichiers ».
 - **Écran mobile 2b** : barre d'onglets Aujourd'hui/Calendrier/Exporter, calendrier
   plein écran. Il n'y a pour l'instant qu'un repli responsive sous 900 px, où la
   barre latérale passe au-dessus du contenu.
 - **Passkey** et **lien magique** : présents dans la maquette 2d/2e, pas rendus —
   ils demandent les plugins better-auth correspondants, et le lien magique un
   fournisseur SMTP. « Mot de passe oublié ? » est retiré pour la même raison.
-- `SignOutButton` est un **ajout hors maquette** : celle-ci ne prévoit aucune
-  sortie de session. Il vit dans l'en-tête de 2a et de 2f.
+- **La langue n'est pas rattachée au compte** : elle vit en `localStorage`, donc
+  par navigateur et non par utilisateur. Suffisant pour un espace mono-compte ;
+  une colonne de préférence serait à ajouter le jour où ça change.

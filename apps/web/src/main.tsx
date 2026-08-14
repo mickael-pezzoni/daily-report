@@ -15,6 +15,11 @@ import './styles/semantic.css'
 import './styles/organic.css'
 import './styles/app.css'
 
+// Avant `App` également, mais pour une autre raison : l'initialisation
+// d'i18next est synchrone, et les composants lisent leurs libellés dès leur
+// premier rendu. Les catalogues sont dans le bundle, il n'y a rien à attendre.
+import './i18n'
+
 import { App } from './App'
 
 createRoot(document.getElementById('root')!).render(

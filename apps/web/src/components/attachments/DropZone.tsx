@@ -1,4 +1,5 @@
 import { useId, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './DropZone.module.css'
 
 /**
@@ -9,6 +10,7 @@ import styles from './DropZone.module.css'
  * mobile, où le glisser-déposer n'existe pas.
  */
 export function DropZone({ onFiles }: { onFiles: (files: File[]) => void }) {
+  const { t } = useTranslation()
   const id = useId()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -28,7 +30,7 @@ export function DropZone({ onFiles }: { onFiles: (files: File[]) => void }) {
           event.target.value = ''
         }}
       />
-      <label htmlFor={id} className={styles.zone} title="Ajouter un fichier">
+      <label htmlFor={id} className={styles.zone} title={t('attachments.add')}>
         +
       </label>
     </>

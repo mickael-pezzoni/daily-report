@@ -1,0 +1,142 @@
+{
+  "app": {
+    "name": "Mon journal",
+    "loading": "Chargement…"
+  },
+
+  "auth": {
+    "band": {
+      "loginTitle": "Mon journal de travail",
+      "loginSubtitle": "Notez votre journée en une minute.",
+      "signupTitle": "Bienvenue — créons votre compte",
+      "signupSubtitle": "Une seule fois, au premier lancement."
+    },
+    "login": {
+      "title": "Se connecter",
+      "submit": "Se connecter",
+      "submitPending": "Connexion…",
+      "rememberMe": "Rester connecté"
+    },
+    "signup": {
+      "title": "Créer votre compte",
+      "subtitle": "Aucun compte sur cet espace — cet écran ne s'affichera plus ensuite.",
+      "footnote": "Vos notes restent sur cet espace.",
+      "submit": "Créer mon compte",
+      "submitPending": "Création…"
+    },
+    "fields": {
+      "name": "Prénom",
+      "namePlaceholder": "Camille",
+      "email": "E-mail",
+      "emailPlaceholder": "vous@exemple.fr",
+      "password": "Mot de passe",
+      "show": "afficher",
+      "hide": "masquer"
+    },
+    "strength": {
+      "weak": "trop court",
+      "fair": "correct",
+      "strong": "solide"
+    },
+    "signOut": "Se déconnecter",
+    "menu": {
+      "open": "Menu utilisateur",
+      "language": "Langue"
+    },
+    "errors": {
+      "signInFailed": "Connexion impossible. Vérifiez votre e-mail et votre mot de passe.",
+      "signUpFailed": "La création du compte a échoué.",
+      "INVALID_EMAIL_OR_PASSWORD": "E-mail ou mot de passe incorrect.",
+      "USER_ALREADY_EXISTS": "Un compte existe déjà avec cette adresse.",
+      "PASSWORD_TOO_SHORT": "Le mot de passe doit faire au moins 8 caractères.",
+      "SIGNUP_CLOSED": "Cet espace a déjà un compte : la création est fermée."
+    }
+  },
+
+  "calendar": {
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "previousYear": "Année précédente",
+    "nextYear": "Année suivante",
+    "pickerHint": "choisir le mois · ‹ › pour l'année",
+    "legend": "pastilles sauge = jour rédigé"
+  },
+
+  "sidebar": {
+    "recentTitle": "Derniers jours",
+    "recentEmpty": "Aucune note pour l'instant.",
+    "newNote": "＋ Note"
+  },
+
+  "note": {
+    "close": "Fermer cette journée",
+    "titlePlaceholder": "Titre de la journée…",
+    "titleLabel": "Titre de la journée",
+    "bodyPlaceholder": "Racontez votre journée…",
+    "save": {
+      "saving": "Enregistrement…",
+      "saved": "✓ Enregistré",
+      "dirty": "Modifications non enregistrées",
+      "failed": "Enregistrement impossible"
+    },
+    "toolbar": {
+      "bold": "Gras",
+      "italic": "Italique",
+      "heading1": "Titre 1",
+      "heading2": "Titre 2",
+      "bulletList": "Liste à puces",
+      "taskList": "Liste de tâches",
+      "code": "Code",
+      "link": "Lien",
+      "linkPrompt": "Adresse du lien"
+    }
+  },
+
+  "empty": {
+    "title": "Aucune note ouverte",
+    "resume": "Reprendre où vous en étiez",
+    "blank": "Votre journal est vierge",
+    "hint": "Choisissez un jour dans le calendrier, ou ＋ Note pour aujourd'hui."
+  },
+
+  "card": {
+    "open": "ouvrir",
+    "openDay": "ouvrir la note du {{day}}",
+    "delete": "supprimer",
+    "deleteDay": "supprimer la note du {{day}}",
+    "confirmDelete": "Supprimer la note du {{day}} ?\n\nCette action est définitive.",
+    "confirmDeleteWithFiles": "Supprimer la note du {{day}} ?\n\nSes {{files}} seront supprimés avec elle. Cette action est définitive."
+  },
+
+  "attachments": {
+    "title": "Pièces jointes",
+    "drawerHint": "{{count}} · glissez un fichier ici pour l'ajouter",
+    "none": "Aucune pièce jointe",
+    "count_one": "{{count}} pièce jointe",
+    "count_other": "{{count}} pièces jointes",
+    "files_one": "{{count}} fichier",
+    "files_other": "{{count}} fichiers",
+    "uploading": "envoi…",
+    "collapse": "replier ▴",
+    "expand": "voir / ajouter ▾",
+    "add": "Ajouter un fichier",
+    "download": "Télécharger",
+    "remove": "Supprimer",
+    "actionsFor": "Actions pour {{filename}}",
+    "confirmRemove": "Supprimer « {{filename}} » ?\n\nSi cette image a été insérée dans le texte, elle n'y sera plus affichée.",
+    "unknownType": "FIC"
+  },
+
+  "errors": {
+    "generic": "Une erreur est survenue. Réessayez.",
+    "network": "Serveur injoignable. Vérifiez votre connexion.",
+    "loadFailed": "Chargement impossible.",
+    "saveFailed": "L'enregistrement a échoué.",
+    "uploadFailed": "L'envoi a échoué.",
+    "deleteFailed": "La suppression a échoué.",
+    "notFound": "Introuvable.",
+    "unauthorized": "Session expirée. Reconnectez-vous.",
+    "fileTooLarge": "Fichier trop volumineux.",
+    "noteExists": "Une note existe déjà pour ce jour."
+  }
+}

@@ -1,33 +1,17 @@
 import type { Attachment } from '@daily-report/types'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
-import { buildStorageKey, contentDisposition, sanitizeFilename } from '../lib/attachments.js'
+import {
+  ATTACHMENT_COLUMNS,
+  buildStorageKey,
+  contentDisposition,
+  sanitizeFilename,
+  toAttachment,
+} from '../lib/attachments.js'
 import { isUuid } from '../lib/validate.js'
 import { env } from '../env.js'
 import type { AuthedEnv } from '../middleware/require-auth.js'
 import { storage } from '../storage/index.js'
-
-interface AttachmentRow {
-  id: string
-  noteId: string
-  filename: string
-  mimeType: string
-  sizeBytes: string
-  createdAt: Date
-}
-
-function toAttachment(row: AttachmentRow): Attachment {
-  return {
-    id: row.id,
-    noteId: row.noteId,
-    filename: row.filename,
-    mimeType: row.mimeType,
-    // BIGINT arrive en chaîne depuis `pg` ; les tailles restent bien en deçà de
-    // Number.MAX_SAFE_INTEGER.
-    size: Number(row.sizeBytes),
-    createdAt: row.createdAt.toISOString(),
-  }
-}
 
 /**
  * La note appartient-elle bien à cet utilisateur ?
@@ -71,14 +55,14 @@ export const noteAttachments = new Hono<AuthedEnv>()
 /** Liste les pièces jointes d'une note. */
 noteAttachments.get('/', async (c) => {
   const noteId = c.req.param('noteId')
-  if (!isUuid(noteId)) return c.json({ error: 'identifiant de note invalide' }, 400)
+  if (!isUuid(noteId)) return c.json({ error: 'invalid note id' }, 400)
   if (!(await ownsNote(noteId, c.get('userId')))) {
-    return c.json({ error: 'note introuvable' }, 404)
+    return c.json({ error: 'note not found' }, 404)
   }
 
   const rows = await db
     .selectFrom('attachments')
-    .select(['id', 'noteId', 'filename', 'mimeType', 'sizeBytes', 'createdAt'])
+    .select(ATTACHMENT_COLUMNS)
     .where('noteId', '=', noteId)
     .orderBy('createdAt', 'asc')
     .execute()
@@ -95,25 +79,25 @@ noteAttachments.get('/', async (c) => {
 noteAttachments.post('/', async (c) => {
   const noteId = c.req.param('noteId')
   const userId = c.get('userId')
-  if (!isUuid(noteId)) return c.json({ error: 'identifiant de note invalide' }, 400)
-  if (!(await ownsNote(noteId, userId))) return c.json({ error: 'note introuvable' }, 404)
+  if (!isUuid(noteId)) return c.json({ error: 'invalid note id' }, 400)
+  if (!(await ownsNote(noteId, userId))) return c.json({ error: 'note not found' }, 404)
 
   let form: FormData
   try {
     form = await c.req.formData()
   } catch {
-    return c.json({ error: 'corps multipart/form-data attendu' }, 400)
+    return c.json({ error: 'expected a multipart/form-data body' }, 400)
   }
 
   const files = form.getAll('file').filter((entry): entry is File => entry instanceof File)
-  if (files.length === 0) return c.json({ error: 'aucun fichier dans le champ « file »' }, 400)
+  if (files.length === 0) return c.json({ error: 'no file in the "file" field' }, 400)
 
   for (const file of files) {
-    if (file.size === 0) return c.json({ error: `fichier vide : ${file.name}` }, 400)
+    if (file.size === 0) return c.json({ error: `empty file: ${file.name}` }, 400)
     if (file.size > env.MAX_UPLOAD_BYTES) {
       return c.json(
         {
-          error: `fichier trop volumineux : ${file.name}`,
+          error: `file too large: ${file.name}`,
           code: 'FILE_TOO_LARGE',
           maxBytes: env.MAX_UPLOAD_BYTES,
         },
@@ -141,7 +125,7 @@ noteAttachments.post('/', async (c) => {
       const row = await db
         .insertInto('attachments')
         .values({ noteId, storageKey: key, filename, mimeType, sizeBytes: file.size })
-        .returning(['id', 'noteId', 'filename', 'mimeType', 'sizeBytes', 'createdAt'])
+        .returning(ATTACHMENT_COLUMNS)
         .executeTakeFirstOrThrow()
 
       saved.push(toAttachment(row))
@@ -163,10 +147,10 @@ export const attachments = new Hono<AuthedEnv>()
 /** Métadonnées d'une pièce jointe. */
 attachments.get('/:id', async (c) => {
   const id = c.req.param('id')
-  if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+  if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
   const row = await findOwnedAttachment(id, c.get('userId'))
-  if (!row) return c.json({ error: 'pièce jointe introuvable' }, 404)
+  if (!row) return c.json({ error: 'attachment not found' }, 404)
   return c.json(toAttachment(row))
 })
 
@@ -179,10 +163,10 @@ attachments.get('/:id', async (c) => {
  */
 attachments.get('/:id/content', async (c) => {
   const id = c.req.param('id')
-  if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+  if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
   const row = await findOwnedAttachment(id, c.get('userId'))
-  if (!row) return c.json({ error: 'pièce jointe introuvable' }, 404)
+  if (!row) return c.json({ error: 'attachment not found' }, 404)
 
   if (storage.getSignedUrl) {
     const url = await storage.getSignedUrl(row.storageKey, {
@@ -208,10 +192,10 @@ attachments.get('/:id/content', async (c) => {
 /** Supprime une pièce jointe, ligne et objet. */
 attachments.delete('/:id', async (c) => {
   const id = c.req.param('id')
-  if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+  if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
   const row = await findOwnedAttachment(id, c.get('userId'))
-  if (!row) return c.json({ error: 'pièce jointe introuvable' }, 404)
+  if (!row) return c.json({ error: 'attachment not found' }, 404)
 
   // La ligne d'abord : elle est la source de vérité. Si la suppression de
   // l'objet échoue derrière, il reste un orphelin — pas un lien mort.

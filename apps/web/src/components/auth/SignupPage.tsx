@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { signUp } from '../../api/auth-client'
+import { authErrorKeys } from '../../i18n/api-errors'
 import { todayISO } from '../../lib/dates'
 import { AuthShell } from './AuthShell'
 import { PasswordField } from './PasswordField'
@@ -14,23 +16,24 @@ import styles from './AuthForm.module.css'
  * vers la connexion et l'API refuse l'inscription (403 SIGNUP_CLOSED).
  */
 export function SignupPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [errorKeys, setErrorKeys] = useState<string[] | null>(null)
   const [pending, setPending] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    setError(null)
+    setErrorKeys(null)
     setPending(true)
 
     const { error: signUpError } = await signUp.email({ name, email, password })
 
     setPending(false)
     if (signUpError) {
-      setError(signUpError.message ?? 'La création du compte a échoué.')
+      setErrorKeys(authErrorKeys(signUpError, 'auth.errors.signUpFailed'))
       return
     }
     // « Ensuite, l'application ouvre directement la note du jour. » — maquette 2e.
@@ -40,46 +43,46 @@ export function SignupPage() {
   return (
     <AuthShell
       band={{
-        title: 'Bienvenue — créons votre compte',
-        subtitle: 'Une seule fois, au premier lancement.',
+        title: t('auth.band.signupTitle'),
+        subtitle: t('auth.band.signupSubtitle'),
       }}
       head={{
-        title: 'Créer votre compte',
-        subtitle: "Aucun compte sur cet espace — cet écran ne s'affichera plus ensuite.",
+        title: t('auth.signup.title'),
+        subtitle: t('auth.signup.subtitle'),
       }}
-      footnote="Vos notes restent sur cet espace."
+      footnote={t('auth.signup.footnote')}
     >
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className="field">
-          <label htmlFor="name">Prénom</label>
+          <label htmlFor="name">{t('auth.fields.name')}</label>
           <input
             id="name"
             className="input"
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Camille"
+            placeholder={t('auth.fields.namePlaceholder')}
             autoComplete="given-name"
             required
           />
         </div>
 
         <div className="field">
-          <label htmlFor="email">E-mail</label>
+          <label htmlFor="email">{t('auth.fields.email')}</label>
           <input
             id="email"
             className="input"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="vous@exemple.fr"
+            placeholder={t('auth.fields.emailPlaceholder')}
             autoComplete="email"
             required
           />
         </div>
 
         <PasswordField
-          label="Mot de passe"
+          label={t('auth.fields.password')}
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
@@ -87,14 +90,14 @@ export function SignupPage() {
           <PasswordStrength password={password} />
         </PasswordField>
 
-        {error ? (
+        {errorKeys ? (
           <p className={styles.error} role="alert">
-            {error}
+            {t(errorKeys)}
           </p>
         ) : null}
 
         <button type="submit" className="btn btn-primary btn-block" disabled={pending}>
-          {pending ? 'Création…' : 'Créer mon compte'}
+          {pending ? t('auth.signup.submitPending') : t('auth.signup.submit')}
         </button>
       </form>
     </AuthShell>

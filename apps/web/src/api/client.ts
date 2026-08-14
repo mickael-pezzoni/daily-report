@@ -4,6 +4,7 @@ import type {
   CalendarMonth,
   DailyNote,
   NoteDraft,
+  NoteListItem,
   NotePatch,
   SessionUser,
 } from '@daily-report/types'
@@ -64,10 +65,11 @@ export const api = {
   notes: {
     /** La note d'un jour, ou `null` si le jour est vierge. */
     byDate: async (date: string): Promise<DailyNote | null> => {
-      const found = await request<DailyNote[]>(`/notes?date=${date}`)
+      const found = await request<NoteListItem[]>(`/notes?date=${date}`)
       return found[0] ?? null
     },
-    recent: (limit: number) => request<DailyNote[]>(`/notes?limit=${limit}`),
+    /** Les derniers jours rédigés, pièces jointes comprises — les cartes de 2f. */
+    recent: (limit: number) => request<NoteListItem[]>(`/notes?limit=${limit}`),
     create: (draft: NoteDraft) =>
       request<DailyNote>('/notes', { method: 'POST', body: JSON.stringify(draft) }),
     update: (id: string, patch: NotePatch) =>

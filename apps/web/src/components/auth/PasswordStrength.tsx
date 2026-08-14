@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import styles from './PasswordStrength.module.css'
 
 /**
@@ -11,9 +12,10 @@ function score(password: string): 0 | 1 | 2 | 3 {
   return 2
 }
 
-const LABELS = ['', 'trop court', 'correct', 'solide'] as const
+const LABEL_KEYS = ['', 'auth.strength.weak', 'auth.strength.fair', 'auth.strength.strong'] as const
 
 export function PasswordStrength({ password }: { password: string }) {
+  const { t } = useTranslation()
   const level = score(password)
   if (level === 0) return null
 
@@ -22,7 +24,7 @@ export function PasswordStrength({ password }: { password: string }) {
       {[1, 2, 3].map((step) => (
         <span key={step} className={step <= level ? styles.barFilled : styles.bar} />
       ))}
-      <span className={styles.label}>{LABELS[level]}</span>
+      <span className={styles.label}>{t(LABEL_KEYS[level])}</span>
     </div>
   )
 }

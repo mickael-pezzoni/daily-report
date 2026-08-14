@@ -6,10 +6,14 @@
  * midi UTC, ce qui met les changements d'heure hors de portée — un `+1 jour` ne
  * peut pas retomber sur le même jour ou en sauter un. Seul `todayISO()` lit
  * l'heure locale, pour qu'« aujourd'hui » soit celui de l'utilisateur.
+ *
+ * Ce module ne fait que du **calcul**, identique dans toutes les langues. Tout
+ * ce qui produit du texte lisible vit dans `date-format.ts`, qui dépend de la
+ * langue courante.
  */
 
 /** `YYYY-MM-DD` → `Date` à midi UTC. */
-function toUtcNoon(iso: string): Date {
+export function toUtcNoon(iso: string): Date {
   return new Date(`${iso}T12:00:00Z`)
 }
 
@@ -50,47 +54,6 @@ export function isValidISODate(value: string): boolean {
   return !Number.isNaN(date.getTime()) && toIso(date) === value
 }
 
-const longDay = new Intl.DateTimeFormat('fr-FR', {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'long',
-  timeZone: 'UTC',
-})
-const shortDay = new Intl.DateTimeFormat('fr-FR', {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  timeZone: 'UTC',
-})
-const monthYear = new Intl.DateTimeFormat('fr-FR', {
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'UTC',
-})
-const monthOnly = new Intl.DateTimeFormat('fr-FR', { month: 'short', timeZone: 'UTC' })
-
-/** `lun. 3 août` */
-export function formatDayLong(iso: string): string {
-  return longDay.format(toUtcNoon(iso))
-}
-
-/** `ven. 31 juil.` */
-export function formatDayShort(iso: string): string {
-  return shortDay.format(toUtcNoon(iso))
-}
-
-/** `août 2026` */
-export function formatMonth(month: string): string {
-  return monthYear.format(new Date(`${month}-01T12:00:00Z`))
-}
-
-/** Les douze mois abrégés d'une année, pour le sélecteur. */
-export function monthNames(): string[] {
-  return Array.from({ length: 12 }, (_, index) =>
-    monthOnly.format(new Date(Date.UTC(2026, index, 15, 12))),
-  )
-}
-
 export interface CalendarDay {
   iso: string
   dayOfMonth: number
@@ -128,5 +91,3 @@ export function monthGrid(month: string): CalendarDay[][] {
   }
   return weeks
 }
-
-export const WEEKDAY_INITIALS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'] as const

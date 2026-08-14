@@ -1,0 +1,142 @@
+{
+  "app": {
+    "name": "My journal",
+    "loading": "Loading…"
+  },
+
+  "auth": {
+    "band": {
+      "loginTitle": "My work journal",
+      "loginSubtitle": "Write down your day in a minute.",
+      "signupTitle": "Welcome — let's create your account",
+      "signupSubtitle": "Once only, on first launch."
+    },
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "submitPending": "Signing in…",
+      "rememberMe": "Stay signed in"
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitle": "No account on this space yet — this screen won't appear again.",
+      "footnote": "Your notes stay on this space.",
+      "submit": "Create my account",
+      "submitPending": "Creating…"
+    },
+    "fields": {
+      "name": "First name",
+      "namePlaceholder": "Camille",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "show": "show",
+      "hide": "hide"
+    },
+    "strength": {
+      "weak": "too short",
+      "fair": "fair",
+      "strong": "strong"
+    },
+    "signOut": "Sign out",
+    "menu": {
+      "open": "User menu",
+      "language": "Language"
+    },
+    "errors": {
+      "signInFailed": "Could not sign in. Check your email and password.",
+      "signUpFailed": "Account creation failed.",
+      "INVALID_EMAIL_OR_PASSWORD": "Wrong email or password.",
+      "USER_ALREADY_EXISTS": "An account already exists for this address.",
+      "PASSWORD_TOO_SHORT": "The password must be at least 8 characters.",
+      "SIGNUP_CLOSED": "This space already has an account: sign-up is closed."
+    }
+  },
+
+  "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "pickerHint": "pick a month · ‹ › for the year",
+    "legend": "sage dots = day written"
+  },
+
+  "sidebar": {
+    "recentTitle": "Recent days",
+    "recentEmpty": "No notes yet.",
+    "newNote": "＋ Note"
+  },
+
+  "note": {
+    "close": "Close this day",
+    "titlePlaceholder": "Title for the day…",
+    "titleLabel": "Title for the day",
+    "bodyPlaceholder": "Tell us about your day…",
+    "save": {
+      "saving": "Saving…",
+      "saved": "✓ Saved",
+      "dirty": "Unsaved changes",
+      "failed": "Could not save"
+    },
+    "toolbar": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "heading1": "Heading 1",
+      "heading2": "Heading 2",
+      "bulletList": "Bullet list",
+      "taskList": "Task list",
+      "code": "Code",
+      "link": "Link",
+      "linkPrompt": "Link address"
+    }
+  },
+
+  "empty": {
+    "title": "No note open",
+    "resume": "Pick up where you left off",
+    "blank": "Your journal is empty",
+    "hint": "Choose a day in the calendar, or ＋ Note for today."
+  },
+
+  "card": {
+    "open": "open",
+    "openDay": "open the note for {{day}}",
+    "delete": "delete",
+    "deleteDay": "delete the note for {{day}}",
+    "confirmDelete": "Delete the note for {{day}}?\n\nThis cannot be undone.",
+    "confirmDeleteWithFiles": "Delete the note for {{day}}?\n\nIts {{files}} will be deleted with it. This cannot be undone."
+  },
+
+  "attachments": {
+    "title": "Attachments",
+    "drawerHint": "{{count}} · drop a file here to add it",
+    "none": "No attachments",
+    "count_one": "{{count}} attachment",
+    "count_other": "{{count}} attachments",
+    "files_one": "{{count}} file",
+    "files_other": "{{count}} files",
+    "uploading": "uploading…",
+    "collapse": "collapse ▴",
+    "expand": "view / add ▾",
+    "add": "Add a file",
+    "download": "Download",
+    "remove": "Delete",
+    "actionsFor": "Actions for {{filename}}",
+    "confirmRemove": "Delete “{{filename}}”?\n\nIf this image was inserted in the text, it will no longer show there.",
+    "unknownType": "FILE"
+  },
+
+  "errors": {
+    "generic": "Something went wrong. Try again.",
+    "network": "Server unreachable. Check your connection.",
+    "loadFailed": "Could not load.",
+    "saveFailed": "Saving failed.",
+    "uploadFailed": "Upload failed.",
+    "deleteFailed": "Deletion failed.",
+    "notFound": "Not found.",
+    "unauthorized": "Session expired. Please sign in again.",
+    "fileTooLarge": "File too large.",
+    "noteExists": "A note already exists for this day."
+  }
+}

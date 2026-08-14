@@ -1,6 +1,8 @@
 import type { Attachment } from '@daily-report/types'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
+import { extensionLabel, isPreviewableImage } from '../../lib/attachments'
 import styles from './AttachmentChip.module.css'
 
 interface AttachmentChipProps {
@@ -8,17 +10,12 @@ interface AttachmentChipProps {
   onRemove: (id: string) => void
 }
 
-/** `capture-1.png` → `PNG`, pour la pastille des fichiers non prévisualisables. */
-function extensionLabel(filename: string): string {
-  const match = /\.([a-z0-9]{1,5})$/i.exec(filename)
-  return match?.[1]?.toUpperCase() ?? 'FIC'
-}
-
 /** Une vignette du tiroir : aperçu, nom, menu ⋯. */
 export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
+  const { t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const chipRef = useRef<HTMLDivElement>(null)
-  const isImage = attachment.mimeType.startsWith('image/')
+  const isImage = isPreviewableImage(attachment.mimeType)
   const url = api.attachments.contentUrl(attachment.id)
 
   // Referme le menu au clic ailleurs et à Échap — sans ça, il resterait ouvert
@@ -42,8 +39,7 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
   function handleRemove() {
     setMenuOpen(false)
     const confirmed = window.confirm(
-      `Supprimer « ${attachment.filename} » ?\n\n` +
-        "Si cette image a été insérée dans le texte, elle n'y sera plus affichée.",
+      t('attachments.confirmRemove', { filename: attachment.filename }),
     )
     if (confirmed) onRemove(attachment.id)
   }
@@ -53,7 +49,9 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
       {isImage ? (
         <img src={url} alt="" className={styles.preview} loading="lazy" />
       ) : (
-        <span className={`tag tag-accent ${styles.badge}`}>{extensionLabel(attachment.filename)}</span>
+        <span className={`tag tag-accent ${styles.badge}`}>
+          {extensionLabel(attachment.filename) ?? t('attachments.unknownType')}
+        </span>
       )}
 
       <a href={url} className={styles.name} title={attachment.filename} download>
@@ -65,7 +63,7 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
         className={styles.menuButton}
         onClick={() => setMenuOpen((open) => !open)}
         aria-expanded={menuOpen}
-        aria-label={`Actions pour ${attachment.filename}`}
+        aria-label={t('attachments.actionsFor', { filename: attachment.filename })}
       >
         ⋯
       </button>
@@ -73,10 +71,10 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
       {menuOpen ? (
         <div className={`card elev-lg ${styles.menu}`} role="menu">
           <a href={url} className={styles.menuItem} download onClick={() => setMenuOpen(false)}>
-            Télécharger
+            {t('attachments.download')}
           </a>
           <button type="button" className={styles.menuItem} onClick={handleRemove}>
-            Supprimer
+            {t('attachments.remove')}
           </button>
         </div>
       ) : null}

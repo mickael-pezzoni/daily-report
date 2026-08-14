@@ -1,6 +1,7 @@
 import type { Attachment } from '@daily-report/types'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
+import { apiErrorKey } from '../i18n/api-errors'
 
 /**
  * Les pièces jointes d'une journée.
@@ -15,7 +16,9 @@ import { api } from '../api/client'
 export function useAttachments(noteId: string | null, ensureNoteId: () => Promise<string>) {
   const [items, setItems] = useState<Attachment[]>([])
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Une clé de traduction, pas un message : l'API répond en anglais technique
+  // et un texte figé ne suivrait pas un changement de langue.
+  const [errorKey, setErrorKey] = useState<string | null>(null)
 
   useEffect(() => {
     if (!noteId) {
@@ -41,7 +44,7 @@ export function useAttachments(noteId: string | null, ensureNoteId: () => Promis
     async (files: File[]): Promise<Attachment[]> => {
       if (files.length === 0) return []
       setUploading(true)
-      setError(null)
+      setErrorKey(null)
       try {
         const id = await ensureNoteId()
         const created = await api.attachments.upload(id, files)
@@ -50,7 +53,7 @@ export function useAttachments(noteId: string | null, ensureNoteId: () => Promis
         setItems((current) => [...current, ...created])
         return created
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "L'envoi a échoué.")
+        setErrorKey(apiErrorKey(cause, 'errors.uploadFailed'))
         return []
       } finally {
         setUploading(false)
@@ -60,14 +63,14 @@ export function useAttachments(noteId: string | null, ensureNoteId: () => Promis
   )
 
   const remove = useCallback(async (id: string) => {
-    setError(null)
+    setErrorKey(null)
     try {
       await api.attachments.remove(id)
       setItems((current) => current.filter((item) => item.id !== id))
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'La suppression a échoué.')
+      setErrorKey(apiErrorKey(cause, 'errors.deleteFailed'))
     }
   }, [])
 
-  return { items, uploading, error, upload, remove, dismissError: () => setError(null) }
+  return { items, uploading, errorKey, upload, remove, dismissError: () => setErrorKey(null) }
 }

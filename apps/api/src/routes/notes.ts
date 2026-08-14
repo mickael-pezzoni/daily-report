@@ -1,6 +1,7 @@
-import type { DailyNote } from '@daily-report/types'
+import type { Attachment, DailyNote, NoteListItem } from '@daily-report/types'
 import { Hono } from 'hono'
 import { db } from '../db/index.js'
+import { ATTACHMENT_COLUMNS, toAttachment } from '../lib/attachments.js'
 import { excerptOf, flattenRichText } from '../lib/rich-text.js'
 import { isRichTextDoc, isUuid, isValidDate } from '../lib/validate.js'
 import type { AuthedEnv } from '../middleware/require-auth.js'
@@ -34,8 +35,37 @@ function toDailyNote(row: NoteRow): DailyNote {
 }
 
 /**
+ * Les pièces jointes de plusieurs notes, groupées par note.
+ *
+ * Une seule requête pour toute la page : une par note ferait un N+1 dont le
+ * coût grimperait avec la limite demandée.
+ */
+async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachment[]>> {
+  const grouped = new Map<string, Attachment[]>()
+  if (noteIds.length === 0) return grouped
+
+  const rows = await db
+    .selectFrom('attachments')
+    .select(ATTACHMENT_COLUMNS)
+    .where('noteId', 'in', noteIds)
+    .orderBy('createdAt', 'asc')
+    .execute()
+
+  for (const row of rows) {
+    const list = grouped.get(row.noteId)
+    if (list) list.push(toAttachment(row))
+    else grouped.set(row.noteId, [toAttachment(row)])
+  }
+  return grouped
+}
+
+/**
  * `GET /api/notes?date=YYYY-MM-DD` — la note de ce jour, tableau vide si vierge.
  * `GET /api/notes?limit=3`        — les dernières notes, date décroissante.
+ *
+ * Chaque élément embarque ses pièces jointes : les cartes de l'écran « aucune
+ * note ouverte » les affichent, et le détail `GET /api/notes/:id` n'est pas le
+ * chemin qu'elles empruntent.
  */
 notes.get('/', async (c) => {
   const userId = c.get('userId')
@@ -45,17 +75,23 @@ notes.get('/', async (c) => {
   let query = db.selectFrom('dailyNotes').select(COLUMNS).where('userId', '=', userId)
 
   if (date !== undefined) {
-    if (!isValidDate(date)) return c.json({ error: 'date invalide, attendu YYYY-MM-DD' }, 400)
+    if (!isValidDate(date)) return c.json({ error: 'invalid date, expected YYYY-MM-DD' }, 400)
     query = query.where('noteDate', '=', date)
   }
 
   const limit = limitParam === undefined ? 50 : Number(limitParam)
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-    return c.json({ error: 'limit invalide, attendu un entier entre 1 et 100' }, 400)
+    return c.json({ error: 'invalid limit, expected an integer between 1 and 100' }, 400)
   }
 
   const rows = await query.orderBy('noteDate', 'desc').limit(limit).execute()
-  return c.json(rows.map(toDailyNote))
+  const grouped = await attachmentsByNote(rows.map((row) => row.id))
+
+  const items: NoteListItem[] = rows.map((row) => ({
+    ...toDailyNote(row),
+    attachments: grouped.get(row.id) ?? [],
+  }))
+  return c.json(items)
 })
 
 /** `POST /api/notes` — crée la note d'un jour. `409` si ce jour en a déjà une. */
@@ -64,10 +100,10 @@ notes.post('/', async (c) => {
   const body = await c.req.json().catch(() => null)
 
   if (!body || !isValidDate(body.date)) {
-    return c.json({ error: 'date invalide, attendu YYYY-MM-DD' }, 400)
+    return c.json({ error: 'invalid date, expected YYYY-MM-DD' }, 400)
   }
   if (!isRichTextDoc(body.content)) {
-    return c.json({ error: 'content invalide, attendu un document TipTap' }, 400)
+    return c.json({ error: 'invalid content, expected a TipTap document' }, 400)
   }
   const title = typeof body.title === 'string' ? body.title : ''
   const contentText = flattenRichText(body.content)
@@ -86,7 +122,7 @@ notes.post('/', async (c) => {
     // On laisse la contrainte UNIQUE (user_id, note_date) trancher plutôt que
     // de faire un SELECT préalable, qui laisserait une fenêtre de concurrence.
     if ((error as { code?: string }).code === UNIQUE_VIOLATION) {
-      return c.json({ error: 'une note existe déjà pour ce jour', code: 'NOTE_EXISTS' }, 409)
+      return c.json({ error: 'a note already exists for this day', code: 'NOTE_EXISTS' }, 409)
     }
     throw error
   }
@@ -95,7 +131,7 @@ notes.post('/', async (c) => {
 /** `GET /api/notes/:id` */
 notes.get('/:id', async (c) => {
   const id = c.req.param('id')
-  if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+  if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
   const row = await db
     .selectFrom('dailyNotes')
@@ -105,33 +141,33 @@ notes.get('/:id', async (c) => {
     .executeTakeFirst()
 
   // 404 et non 403 : la note d'autrui n'existe pas de notre point de vue.
-  if (!row) return c.json({ error: 'note introuvable' }, 404)
+  if (!row) return c.json({ error: 'note not found' }, 404)
   return c.json(toDailyNote(row))
 })
 
 /** `PATCH /api/notes/:id` — modification partielle. */
 notes.patch('/:id', async (c) => {
   const id = c.req.param('id')
-  if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+  if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
   const body = await c.req.json().catch(() => null)
-  if (!body) return c.json({ error: 'corps de requête invalide' }, 400)
+  if (!body) return c.json({ error: 'invalid request body' }, 400)
 
   const patch: { title?: string; content?: DailyNote['content']; contentText?: string } = {}
 
   if (body.title !== undefined) {
-    if (typeof body.title !== 'string') return c.json({ error: 'title invalide' }, 400)
+    if (typeof body.title !== 'string') return c.json({ error: 'invalid title' }, 400)
     patch.title = body.title
   }
   if (body.content !== undefined) {
     if (!isRichTextDoc(body.content)) {
-      return c.json({ error: 'content invalide, attendu un document TipTap' }, 400)
+      return c.json({ error: 'invalid content, expected a TipTap document' }, 400)
     }
     patch.content = body.content
     patch.contentText = flattenRichText(body.content)
   }
   if (Object.keys(patch).length === 0) {
-    return c.json({ error: 'rien à modifier' }, 400)
+    return c.json({ error: 'nothing to update' }, 400)
   }
 
   const row = await db
@@ -142,14 +178,14 @@ notes.patch('/:id', async (c) => {
     .returning(COLUMNS)
     .executeTakeFirst()
 
-  if (!row) return c.json({ error: 'note introuvable' }, 404)
+  if (!row) return c.json({ error: 'note not found' }, 404)
   return c.json(toDailyNote(row))
 })
 
 /** `DELETE /api/notes/:id` — emporte les pièces jointes avec la note. */
 notes.delete('/:id', async (c) => {
   const id = c.req.param('id')
-  if (!isUuid(id)) return c.json({ error: 'identifiant invalide' }, 400)
+  if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
   // Relever les clés AVANT la suppression : le `ON DELETE CASCADE` emporte les
   // lignes `attachments`, et avec elles la seule trace des objets stockés. Sans
@@ -167,7 +203,7 @@ notes.delete('/:id', async (c) => {
     .where('userId', '=', c.get('userId'))
     .executeTakeFirst()
 
-  if (result.numDeletedRows === 0n) return c.json({ error: 'note introuvable' }, 404)
+  if (result.numDeletedRows === 0n) return c.json({ error: 'note not found' }, 404)
 
   // Après la base : un objet qui survit est du déchet silencieux, une ligne qui
   // survit serait un lien mort. On préfère le premier.

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes } from 'react-router'
 import { useSession } from './api/auth-client'
 import { LoginPage } from './components/auth/LoginPage'
@@ -6,6 +7,7 @@ import { AppShell } from './components/layout/AppShell'
 import { useAuthState } from './hooks/useAuthState'
 
 function Splash() {
+  const { t } = useTranslation()
   return (
     <div
       style={{
@@ -15,7 +17,7 @@ function Splash() {
         color: 'var(--app-text-muted)',
       }}
     >
-      Chargement…
+      {t('app.loading')}
     </div>
   )
 }

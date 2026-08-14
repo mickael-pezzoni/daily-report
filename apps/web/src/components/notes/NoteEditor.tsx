@@ -6,6 +6,7 @@ import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, type Editor, type JSONContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { EditorToolbar } from './EditorToolbar'
 import styles from './NoteEditor.module.css'
 
@@ -36,15 +37,25 @@ export function NoteEditor({
   onChange,
   onUploadImages,
 }: NoteEditorProps) {
+  const { t } = useTranslation()
+
   // Les handlers de ProseMirror sont capturés à la création de l'éditeur. Ils
   // passent donc par des refs, sinon ils figeraient les closures du premier
   // rendu — et l'instance n'existe pas encore quand on les déclare.
   const editorRef = useRef<Editor | null>(null)
   const uploadRef = useRef(onUploadImages)
+  // Même raison pour la traduction : le texte fantôme est lu à chaque calcul
+  // des décorations, pas figé à la création de l'éditeur, ce qui lui permet de
+  // suivre un changement de langue sans qu'on remonte l'instance.
+  const tRef = useRef(t)
 
   useEffect(() => {
     uploadRef.current = onUploadImages
   }, [onUploadImages])
+
+  useEffect(() => {
+    tRef.current = t
+  }, [t])
 
   /**
    * Envoie les images puis les insère.
@@ -73,7 +84,7 @@ export function NoteEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       Image,
-      Placeholder.configure({ placeholder: 'Racontez votre journée…' }),
+      Placeholder.configure({ placeholder: () => tRef.current('note.bodyPlaceholder') }),
     ],
     content: (content.content?.length ? content : EMPTY_DOC) as JSONContent,
     onUpdate: ({ editor: instance }) => {

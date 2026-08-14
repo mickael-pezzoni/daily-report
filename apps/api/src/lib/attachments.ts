@@ -1,5 +1,41 @@
+import type { Attachment } from '@daily-report/types'
 import { randomUUID } from 'node:crypto'
 import { extname } from 'node:path'
+
+/**
+ * Les colonnes qui suffisent à composer un `Attachment`. Partagées par les
+ * routes des pièces jointes et par la liste des notes, qui les embarque.
+ */
+export const ATTACHMENT_COLUMNS = [
+  'id',
+  'noteId',
+  'filename',
+  'mimeType',
+  'sizeBytes',
+  'createdAt',
+] as const
+
+export interface AttachmentRow {
+  id: string
+  noteId: string
+  filename: string
+  mimeType: string
+  sizeBytes: string
+  createdAt: Date
+}
+
+export function toAttachment(row: AttachmentRow): Attachment {
+  return {
+    id: row.id,
+    noteId: row.noteId,
+    filename: row.filename,
+    mimeType: row.mimeType,
+    // BIGINT arrive en chaîne depuis `pg` ; les tailles restent bien en deçà de
+    // Number.MAX_SAFE_INTEGER.
+    size: Number(row.sizeBytes),
+    createdAt: row.createdAt.toISOString(),
+  }
+}
 
 /**
  * Types servis **en ligne** dans le navigateur. Tout le reste est renvoyé en

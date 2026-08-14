@@ -1,4 +1,4 @@
-import type { DailyNote } from '@daily-report/types'
+import type { DailyNote, NoteListItem } from '@daily-report/types'
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router'
 import { api } from '../../api/client'
@@ -22,7 +22,7 @@ export function AppShell() {
   const { date } = useParams<{ date?: string }>()
   const [month, setMonth] = useState(() => monthOf(date ?? todayISO()))
   const [daysWithNotes, setDaysWithNotes] = useState<string[]>([])
-  const [recent, setRecent] = useState<DailyNote[]>([])
+  const [recent, setRecent] = useState<NoteListItem[]>([])
 
   // Le mois affiché suit la journée ouverte.
   useEffect(() => {
@@ -55,6 +55,31 @@ export function AppShell() {
     [loadRecent],
   )
 
+  /**
+   * Suppression depuis une carte de l'écran 2f.
+   *
+   * On retire la carte et la pastille du calendrier tout de suite — la réponse
+   * est un 204 sans corps, il n'y a rien à attendre pour savoir quoi peindre —
+   * puis on recharge la liste : trois cartes étaient affichées, une quatrième
+   * peut maintenant remonter.
+   */
+  const handleNoteDeleted = useCallback(
+    (note: NoteListItem) => {
+      setRecent((notes) => notes.filter((item) => item.id !== note.id))
+      setDaysWithNotes((days) => days.filter((day) => day !== note.date))
+
+      api.notes
+        .remove(note.id)
+        .catch(() => {
+          // La suppression a échoué : on remet la vue en accord avec le serveur
+          // plutôt que de laisser une note disparue de l'écran mais bien vivante.
+          loadMonth(month)
+        })
+        .finally(loadRecent)
+    },
+    [loadMonth, loadRecent, month],
+  )
+
   // Une date bricolée dans l'URL ramène à aujourd'hui plutôt qu'à un écran cassé.
   if (date !== undefined && !isValidISODate(date)) {
     return <Navigate to={`/notes/${todayISO()}`} replace />
@@ -72,7 +97,7 @@ export function AppShell() {
       {date ? (
         <NoteView key={date} date={date} onNoteSaved={handleNoteSaved} />
       ) : (
-        <EmptyState recent={recent} />
+        <EmptyState recent={recent} onDelete={handleNoteDeleted} />
       )}
     </div>
   )

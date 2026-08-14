@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { signIn } from '../../api/auth-client'
+import { authErrorKeys } from '../../i18n/api-errors'
 import { todayISO } from '../../lib/dates'
 import { AuthShell } from './AuthShell'
 import { PasswordField } from './PasswordField'
@@ -8,25 +10,26 @@ import styles from './AuthForm.module.css'
 
 /** Écran 2d de la maquette. */
 export function LoginPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // La clé, pas le texte : changer de langue doit aussi retraduire l'erreur
+  // déjà affichée.
+  const [errorKeys, setErrorKeys] = useState<string[] | null>(null)
   const [pending, setPending] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    setError(null)
+    setErrorKeys(null)
     setPending(true)
 
     const { error: signInError } = await signIn.email({ email, password, rememberMe })
 
     setPending(false)
     if (signInError) {
-      setError(
-        signInError.message ?? 'Connexion impossible. Vérifiez votre e-mail et votre mot de passe.',
-      )
+      setErrorKeys(authErrorKeys(signInError, 'auth.errors.signInFailed'))
       return
     }
     // L'application ouvre directement sur la note du jour.
@@ -36,28 +39,28 @@ export function LoginPage() {
   return (
     <AuthShell
       band={{
-        title: 'Mon journal de travail',
-        subtitle: 'Notez votre journée en une minute.',
+        title: t('auth.band.loginTitle'),
+        subtitle: t('auth.band.loginSubtitle'),
       }}
-      head={{ title: 'Se connecter' }}
+      head={{ title: t('auth.login.title') }}
     >
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className="field">
-          <label htmlFor="email">E-mail</label>
+          <label htmlFor="email">{t('auth.fields.email')}</label>
           <input
             id="email"
             className="input"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="vous@exemple.fr"
+            placeholder={t('auth.fields.emailPlaceholder')}
             autoComplete="email"
             required
           />
         </div>
 
         <PasswordField
-          label="Mot de passe"
+          label={t('auth.fields.password')}
           value={password}
           onChange={setPassword}
           autoComplete="current-password"
@@ -71,18 +74,18 @@ export function LoginPage() {
               onChange={(event) => setRememberMe(event.target.checked)}
             />
             <span className={styles.box} />
-            Rester connecté
+            {t('auth.login.rememberMe')}
           </label>
         </div>
 
-        {error ? (
+        {errorKeys ? (
           <p className={styles.error} role="alert">
-            {error}
+            {t(errorKeys)}
           </p>
         ) : null}
 
         <button type="submit" className="btn btn-primary btn-block" disabled={pending}>
-          {pending ? 'Connexion…' : 'Se connecter'}
+          {pending ? t('auth.login.submitPending') : t('auth.login.submit')}
         </button>
       </form>
     </AuthShell>

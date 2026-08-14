@@ -6,7 +6,10 @@
   min-height: 0;
 }
 
+/* `position: relative` : ancre du menu utilisateur, que la maquette pose à
+   24 px du bord droit de l'en-tête. */
 .header {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;

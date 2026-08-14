@@ -1,7 +1,7 @@
 .card {
-  padding: var(--space-4) var(--space-4);
+  position: relative;
+  padding: var(--space-4);
   gap: var(--space-2);
-  text-decoration: none;
   color: inherit;
 }
 
@@ -9,7 +9,9 @@
   box-shadow: var(--app-elevation-panel);
 }
 
-.card:focus-visible {
+/* Le focus vit sur le lien étiré, invisible ; c'est la carte qui doit le
+   montrer, sinon la navigation au clavier n'a plus aucun repère. */
+.card:has(.open:focus-visible) {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
 }
@@ -17,14 +19,32 @@
 .head {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .date {
+  margin: 0;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
   font-size: 18px;
+}
+
+/* Le lien de la date couvre toute la carte : la maquette n'y laisse plus
+   qu'une action explicite, « supprimer ». Le pseudo-élément porte la surface
+   cliquable, le lien garde la date pour nom accessible. */
+.open {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 
 .title {
@@ -36,9 +56,30 @@
   flex: 1;
 }
 
-.open {
+/* Au-dessus du lien étiré, sans quoi le clic ouvrirait la note au lieu de
+   demander sa suppression. */
+.remove {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  font: inherit;
   font-size: 11.5px;
-  color: var(--app-text-muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--app-danger);
+}
+
+.remove:hover {
+  background: var(--app-danger-bg);
+}
+
+.remove:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
 }
 
 .excerpt {
@@ -51,4 +92,46 @@
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.previews {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  /* Les aperçus ne sont qu'illustratifs : le clic les traverse et atteint le
+     lien étiré, pour que toute la carte ouvre bien la journée. */
+  pointer-events: none;
+}
+
+.thumb {
+  width: 62px;
+  height: 44px;
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--app-desk-bg);
+}
+
+.file {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  max-width: 220px;
+}
+
+.fileName {
+  min-width: 0;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more {
+  font-size: 11.5px;
+  color: var(--app-text-muted);
 }
