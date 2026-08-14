@@ -4,6 +4,10 @@
     "loading": "Loading…"
   },
 
+  "dialog": {
+    "cancel": "Cancel"
+  },
+
   "auth": {
     "band": {
       "loginTitle": "My work journal",
@@ -31,7 +35,8 @@
       "emailPlaceholder": "you@example.com",
       "password": "Password",
       "show": "show",
-      "hide": "hide"
+      "hide": "hide",
+      "language": "Language"
     },
     "strength": {
       "weak": "too short",
@@ -89,6 +94,12 @@
       "code": "Code",
       "link": "Link",
       "linkPrompt": "Link address"
+    },
+    "contextMenu": {
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste",
+      "insertImage": "Insert an image here"
     }
   },
 
@@ -104,8 +115,12 @@
     "openDay": "open the note for {{day}}",
     "delete": "delete",
     "deleteDay": "delete the note for {{day}}",
-    "confirmDelete": "Delete the note for {{day}}?\n\nThis cannot be undone.",
-    "confirmDeleteWithFiles": "Delete the note for {{day}}?\n\nIts {{files}} will be deleted with it. This cannot be undone."
+    "confirmDelete": {
+      "title": "Delete “{{day}}”?",
+      "body": "This note will be permanently deleted. This cannot be undone.",
+      "bodyWithFiles": "This note and its {{files}} will be permanently deleted. This cannot be undone.",
+      "confirm": "Delete"
+    }
   },
 
   "attachments": {
@@ -123,7 +138,10 @@
     "download": "Download",
     "remove": "Delete",
     "actionsFor": "Actions for {{filename}}",
-    "confirmRemove": "Delete “{{filename}}”?\n\nIf this image was inserted in the text, it will no longer show there.",
+    "confirmRemove": {
+      "title": "Delete “{{filename}}”?",
+      "body": "This attachment will be permanently deleted. If this image was inserted in the text, it will no longer show there."
+    },
     "unknownType": "FILE"
   },
 

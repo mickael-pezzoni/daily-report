@@ -3,15 +3,22 @@
   flex-shrink: 0;
 }
 
+/* La puce du menu, telle que la maquette la dessine en 2a, 2f et 6a : un rond
+   👤 suivi du prénom, l'ensemble dans une pastille allongée. */
 .avatar {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  /* Le retrait de droite est porté par `.name` : sans prénom, la pastille se
+     referme d'elle-même en un rond symétrique autour du 👤. */
+  padding: 0 8px;
+  height: 42px;
+  max-width: 220px;
   border: 0;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1;
   border-radius: 999px;
   background: var(--app-control-bg);
@@ -21,6 +28,26 @@
 .avatar:hover {
   background: var(--app-day-hover);
   color: var(--app-text);
+}
+
+.avatarDot {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--app-control-inset-bg);
+  font-size: 15px;
+}
+
+/* Un prénom trop long tronque plutôt que de pousser l'en-tête. */
+.name {
+  min-width: 0;
+  padding-right: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .avatar:focus-visible {

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { signOut } from '../../api/auth-client'
-import { LANGUAGES } from '../../i18n'
+import { signOut, updateUser, useSession } from '../../api/auth-client'
+import { LANGUAGES, type LanguageCode } from '../../i18n'
 import styles from './UserMenu.module.css'
 
 /**
- * L'écran 6a de la maquette : la pastille 👤 de la barre latérale et son menu
+ * L'écran 6a de la maquette : la puce « 👤 Prénom » de l'en-tête et son menu
  * — langue, puis déconnexion.
  *
  * C'est la maquette qui place le choix de langue ici plutôt qu'en réglage à
@@ -15,6 +15,10 @@ import styles from './UserMenu.module.css'
 export function UserMenu() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  // Le prénom vient de la session, pas d'un appel à part : better-auth le
+  // porte déjà (colonne `name` de la table `user`), comme la langue.
+  const { data: session } = useSession()
+  const name = session?.user.name ?? ''
   const rootRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [languagesOpen, setLanguagesOpen] = useState(false)
@@ -55,8 +59,12 @@ export function UserMenu() {
     void navigate('/login', { replace: true })
   }
 
-  function chooseLanguage(code: string) {
+  function chooseLanguage(code: LanguageCode) {
     void i18n.changeLanguage(code)
+    // La langue est une préférence du compte, pas du navigateur : on l'y écrit
+    // sans faire attendre le menu. Un échec réseau n'annule rien — le choix
+    // tient déjà en local, et la maquette 6a n'offre aucune place pour le dire.
+    void updateUser({ language: code }).catch(() => {})
     setLanguagesOpen(false)
     setOpen(false)
   }
@@ -70,9 +78,15 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         title={t('auth.menu.open')}
-        aria-label={t('auth.menu.open')}
+        // Le prénom visible devient le nom accessible du bouton ; un
+        // `aria-label` fixe le masquerait, et dirait autre chose que ce qui est
+        // écrit. Il ne sert donc qu'au repli, quand il n'y a rien à lire.
+        aria-label={name ? undefined : t('auth.menu.open')}
       >
-        👤
+        <span className={styles.avatarDot} aria-hidden="true">
+          👤
+        </span>
+        {name ? <span className={styles.name}>{name}</span> : null}
       </button>
 
       {open ? (

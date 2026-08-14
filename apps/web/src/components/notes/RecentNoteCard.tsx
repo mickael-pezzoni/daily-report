@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { api } from '../../api/client'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { extensionLabel, isPreviewableImage } from '../../lib/attachments'
+import { useConfirm } from '../ui/ConfirmDialog'
 import styles from './RecentNoteCard.module.css'
 
 interface RecentNoteCardProps {
@@ -57,21 +58,25 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
 export function RecentNoteCard({ note, onDelete }: RecentNoteCardProps) {
   const { t } = useTranslation()
   const format = useDateFormat()
+  const { confirm, dialog } = useConfirm()
 
   const shown = note.attachments.slice(0, PREVIEW_LIMIT)
   const hidden = note.attachments.length - shown.length
   const day = format.dayShort(note.date)
   const fileCount = note.attachments.length
 
-  function handleDelete() {
-    const confirmed = window.confirm(
-      fileCount > 0
-        ? t('card.confirmDeleteWithFiles', {
-            day,
-            files: t('attachments.files', { count: fileCount }),
-          })
-        : t('card.confirmDelete', { day }),
-    )
+  async function handleDelete() {
+    const confirmed = await confirm({
+      title: t('card.confirmDelete.title', { day }),
+      body:
+        fileCount > 0
+          ? t('card.confirmDelete.bodyWithFiles', {
+              files: t('attachments.files', { count: fileCount }),
+            })
+          : t('card.confirmDelete.body'),
+      confirmLabel: t('card.confirmDelete.confirm'),
+      tone: 'danger',
+    })
     if (confirmed) onDelete(note)
   }
 
@@ -95,7 +100,7 @@ export function RecentNoteCard({ note, onDelete }: RecentNoteCardProps) {
         <button
           type="button"
           className={styles.remove}
-          onClick={handleDelete}
+          onClick={() => void handleDelete()}
           aria-label={t('card.deleteDay', { day })}
         >
           {t('card.delete')}
@@ -112,6 +117,8 @@ export function RecentNoteCard({ note, onDelete }: RecentNoteCardProps) {
           {hidden > 0 ? <span className={styles.more}>+{hidden}</span> : null}
         </div>
       ) : null}
+
+      {dialog}
     </article>
   )
 }

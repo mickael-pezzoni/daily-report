@@ -1,0 +1,100 @@
+/* Positionné au point du clic droit, corrigé par le composant s'il déborde du
+   viewport — voir le useLayoutEffect dans EditorContextMenu.tsx. */
+.menu {
+  position: fixed;
+  z-index: 20;
+  width: 220px;
+  padding: var(--space-1);
+  gap: 2px;
+}
+
+.item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  text-align: left;
+  color: var(--app-text-subtle);
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled) {
+  background: var(--app-day-hover);
+}
+
+.item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: -2px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--app-border);
+  margin: 4px 2px;
+}
+
+/* Le sous-menu d'images, en retrait comme celui des langues dans UserMenu. */
+.images {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--space-3);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.imageItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--app-text-subtle);
+  cursor: pointer;
+}
+
+.imageItem:hover {
+  background: var(--app-day-hover);
+}
+
+.imageItem:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: -2px;
+}
+
+.imageThumb {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--app-desk-bg);
+}
+
+.imageName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

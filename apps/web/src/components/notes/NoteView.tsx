@@ -134,6 +134,7 @@ export function NoteView({ date, onNoteSaved }: NoteViewProps) {
                 content={draft.content}
                 onChange={(content) => edit({ content })}
                 onUploadImages={uploadFromEditor}
+                attachments={attachments.items}
               />
             </>
           )}

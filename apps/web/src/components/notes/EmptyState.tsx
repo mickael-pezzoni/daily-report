@@ -1,7 +1,5 @@
 import type { NoteListItem } from '@daily-report/types'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
-import { todayISO } from '../../lib/dates'
 import { UserMenu } from '../auth/UserMenu'
 import { RecentNoteCard } from './RecentNoteCard'
 import styles from './EmptyState.module.css'
@@ -17,12 +15,12 @@ export function EmptyState({ recent, onDelete }: EmptyStateProps) {
 
   return (
     <div className={styles.view}>
+      {/* La maquette a retiré le « ＋ Note » de cet en-tête : il ne reste que le
+          titre et le menu utilisateur. Le geste vit toujours au pied de la barre
+          latérale, que 2f affiche aussi — d'où le renvoi du texte d'aide. */}
       <header className={styles.header}>
         <span className={styles.title}>{t('empty.title')}</span>
         <span className={styles.spacer} />
-        <Link to={`/notes/${todayISO()}`} className="btn btn-primary">
-          {t('sidebar.newNote')}
-        </Link>
         <UserMenu />
       </header>
 

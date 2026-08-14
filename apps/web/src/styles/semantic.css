@@ -40,6 +40,9 @@
   /* Un cran plus soutenu : le ✕ est posé sur une pastille déjà en
      --app-control-bg, il lui faut ça pour s'en détacher. */
   --app-control-strong-bg: var(--color-neutral-400);
+  /* L'inverse : le rond 👤 est creusé dans la puce du menu utilisateur, elle
+     aussi en --app-control-bg — il s'en détache par le clair. */
+  --app-control-inset-bg: var(--color-neutral-100);
 
   /* — dépôt de fichiers — */
   --app-dropzone-border: var(--color-neutral-400);
@@ -52,6 +55,11 @@
      plus saturé de la rampe accent plutôt qu'un rouge hors palette. */
   --app-danger: var(--color-accent-700);
   --app-danger-bg: var(--color-accent-100);
+  /* Le fond plein d'un bouton destructif — la modale 8b. Deux crans plus
+     sombre que --app-danger, qui sert de couleur de *texte* posée sur
+     --app-danger-bg et ne porterait pas du blanc lisible. */
+  --app-danger-solid: var(--color-accent-800);
+  --app-danger-solid-hover: var(--color-accent-900);
 
   /* — marqueurs du produit (calendrier, recherche) — */
   --app-day-selected: var(--color-accent); /* pastille pleine du jour ouvert */

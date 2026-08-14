@@ -1,12 +1,13 @@
-import type { RichTextDoc } from '@daily-report/types'
+import type { Attachment, RichTextDoc } from '@daily-report/types'
 import Image from '@tiptap/extension-image'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor, type Editor, type JSONContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { EditorContextMenu } from './EditorContextMenu'
 import { EditorToolbar } from './EditorToolbar'
 import styles from './NoteEditor.module.css'
 
@@ -23,6 +24,8 @@ interface NoteEditorProps {
   onChange: (content: RichTextDoc) => void
   /** Joint les fichiers à la note et renvoie les images à insérer. */
   onUploadImages: (files: File[]) => Promise<UploadedImage[]>
+  /** Pièces jointes déjà envoyées à la note — pour le menu contextuel (écran 7a). */
+  attachments: Attachment[]
 }
 
 const EMPTY_DOC: RichTextDoc = { type: 'doc', content: [{ type: 'paragraph' }] }
@@ -36,6 +39,7 @@ export function NoteEditor({
   content,
   onChange,
   onUploadImages,
+  attachments,
 }: NoteEditorProps) {
   const { t } = useTranslation()
 
@@ -44,6 +48,9 @@ export function NoteEditor({
   // rendu — et l'instance n'existe pas encore quand on les déclare.
   const editorRef = useRef<Editor | null>(null)
   const uploadRef = useRef(onUploadImages)
+  // Position du clic droit, en coordonnées écran — `null` menu fermé. Le menu
+  // lui-même n'a pas besoin de ref : il se referme via son propre effet.
+  const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null)
   // Même raison pour la traduction : le texte fantôme est lu à chaque calcul
   // des décorations, pas figé à la création de l'éditeur, ce qui lui permet de
   // suivre un changement de langue sans qu'on remonte l'instance.
@@ -123,6 +130,27 @@ export function NoteEditor({
         insertUploaded(files)
         return true
       },
+
+      handleDOMEvents: {
+        /**
+         * Écran 7a — remplace le menu natif par le nôtre. Le curseur ne saute
+         * au point du clic que s'il tombe hors d'une sélection déjà active :
+         * un clic droit à l'intérieur d'un texte sélectionné doit pouvoir le
+         * couper/copier, pas l'écraser — comme le ferait tout navigateur.
+         */
+        contextmenu: (_view, domEvent) => {
+          const event = domEvent as MouseEvent
+          const instance = editorRef.current
+          const pos = instance?.view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
+          if (instance && pos !== undefined) {
+            const { from, to } = instance.state.selection
+            if (from === to || pos < from || pos > to) instance.commands.setTextSelection(pos)
+          }
+          event.preventDefault()
+          setMenuAnchor({ x: event.clientX, y: event.clientY })
+          return true
+        },
+      },
     },
   })
 
@@ -146,6 +174,14 @@ export function NoteEditor({
     <div className={styles.editor}>
       <EditorToolbar editor={editor} />
       <EditorContent editor={editor} />
+      {menuAnchor ? (
+        <EditorContextMenu
+          editor={editor}
+          attachments={attachments}
+          anchor={menuAnchor}
+          onClose={() => setMenuAnchor(null)}
+        />
+      ) : null}
     </div>
   )
 }

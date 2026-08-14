@@ -5,6 +5,7 @@ import { LoginPage } from './components/auth/LoginPage'
 import { SignupPage } from './components/auth/SignupPage'
 import { AppShell } from './components/layout/AppShell'
 import { useAuthState } from './hooks/useAuthState'
+import { useLanguageSync } from './hooks/useLanguageSync'
 
 function Splash() {
   const { t } = useTranslation()
@@ -33,6 +34,10 @@ function Splash() {
 export function App() {
   const { data: session, isPending: sessionPending } = useSession()
   const { hasAccount, isPending: authStatePending } = useAuthState(session?.user.id ?? null)
+
+  // Avant le premier `return` : un hook ne peut pas être conditionnel, et la
+  // langue du compte doit s'appliquer même pendant l'écran d'attente.
+  useLanguageSync(session)
 
   if (sessionPending || authStatePending) return <Splash />
 

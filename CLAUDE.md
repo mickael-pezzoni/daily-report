@@ -50,6 +50,18 @@ Pas de suite de tests dans ce dépôt pour l'instant.
 > Le nom de projet Docker Compose vient du nom du dossier. Un autre dossier
 > nommé `daily-report` partagerait le même volume `daily-report_postgres_data`.
 
+## Commits
+
+**Ne jamais se citer comme auteur ou co-auteur.** Pas de trailer
+`Co-Authored-By:`, pas de mention « Generated with… », pas de signature d'aucune
+sorte. L'auteur du commit est celui que git a configuré, et lui seul.
+
+Message en français, sur le modèle de l'historique : une ligne de titre en
+phrase nominale, puis un corps qui dit **pourquoi** plutôt que quoi — le diff
+dit déjà quoi.
+
+Commits directement sur `main` : ce dépôt n'utilise pas de branches.
+
 ## Architecture
 
 Monorepo pnpm : `apps/api`, `apps/web`, `packages/types`.
@@ -69,7 +81,9 @@ sur le fil, pas les lignes de base.
 - `src/auth.ts` configure better-auth (e-mail + mot de passe) et porte le verrou
   d'espace mono-compte : un hook `before` sur `/sign-up/email` renvoie
   **403 `SIGNUP_CLOSED`** dès qu'un compte existe. C'est le pendant serveur de
-  l'écran de premier lancement.
+  l'écran de premier lancement. Il porte aussi les `additionalFields` de la table
+  `user` — aujourd'hui la seule `language` ; tout ajout ici doit se retrouver
+  dans `001_better_auth.sql`, que le CLI better-auth sait régénérer.
 - `src/env.ts` lit l'environnement et échoue tout de suite si `DATABASE_URL` ou
   `BETTER_AUTH_SECRET` manque.
 - `src/routes/notes.ts` et `src/routes/calendar.ts` sont **du REST classique** :
@@ -192,6 +206,16 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   enfant survolé, et le tiroir clignoterait. L'éditeur intercepte à part les
   images (`handleDrop`/`handlePaste` de TipTap) pour les insérer dans le texte, et
   appelle `stopPropagation()` — sinon le fichier partirait deux fois.
+- `EditorContextMenu` (écran 7a) remplace le menu natif du clic droit dans
+  l'éditeur — `handleDOMEvents.contextmenu` de `NoteEditor` fait le
+  `preventDefault()`. Couper/Copier/Coller sont donc réimplémentés
+  (`execCommand`/`navigator.clipboard`) plutôt que laissés au navigateur ;
+  Ctrl+X/C/V au clavier restent la voie de repli si l'un des trois échoue
+  (permission refusée, API absente). « Insérer une image ici » ne liste que les
+  pièces jointes **image** de la note ouverte (`isPreviewableImage`) — pas de
+  médiathèque globale, une pièce jointe appartient à une note. Le clic droit ne
+  déplace le curseur que s'il tombe hors d'une sélection déjà active, sinon
+  Couper/Copier casseraient une sélection qu'on vient d'écraser.
 - `src/hooks/useNote.ts` — chargement et enregistrement automatique d'une journée.
   L'écriture est en deux temps (`POST` puis `PATCH`), puisque la note n'existe pas
   tant que rien n'a été écrit. Trois garde-fous à ne pas casser : une seule
@@ -223,11 +247,31 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
 
 `src/i18n/` — i18next + react-i18next, **français et anglais**, catalogues dans
 le bundle (`locales/*.json`) : pas de chargement réseau, donc rien à attendre au
-premier rendu. La langue choisie est retenue en `localStorage`, sinon déduite du
-navigateur.
+premier rendu.
 
-- `LANGUAGES` est la **seule liste** à compléter pour ajouter une langue : le
+La langue **appartient au compte**, colonne `user.language` — se connecter
+depuis un autre navigateur la restitue. `localStorage` reste le repli tant qu'on
+ne sait pas qui regarde l'écran (écran de connexion, tout premier rendu), et
+i18next continue de l'écrire à chaque `changeLanguage`.
+
+- `LANGUAGES` reste la **seule liste** à compléter pour ajouter une langue : le
   code, son `locale` Intl et son libellé. Le sélecteur et `Intl` s'y alimentent.
+  Seul le `code` est partagé, dans `LANGUAGE_CODES` de `@daily-report/types` :
+  c'est ce que le serveur doit connaître pour refuser une autre valeur. Le
+  `satisfies` de `LANGUAGES` fait échouer la compilation si on ajoute une entrée
+  sans son code — c'est le garde-fou qui tient les deux listes ensemble.
+- Le champ passe par les **`additionalFields`** de better-auth (`src/auth.ts`),
+  pas par une route maison : la langue voyage dans la session
+  (`useSession().data.user.language`), et `updateUser({ language })` l'écrit. Son
+  `type` est la liste littérale des codes — ce qui donne au client le type
+  `'fr' | 'en'`, mais **ne valide rien** : better-auth traduit un type en liste
+  littérale par un `z.any()`. C'est le hook `before` d'`auth.ts` qui refuse les
+  codes inconnus, sur `/sign-up/email` comme sur `/update-user`.
+- `useLanguageSync` (branché dans `App.tsx`, **avant le premier `return`**)
+  applique la langue du compte dès que la session arrive, et **sème** la langue
+  locale sur un compte qui n'en a pas encore. Il retient dans un ref la dernière
+  valeur appliquée : sans ça, un effet rejoué sur une session encore périmée
+  rebasculerait la langue que l'utilisateur vient de choisir dans le menu.
 - On y attache un `locale` et pas seulement un code : `en-GB` et non `en-US`,
   parce que la grille du calendrier commence le lundi (maquette 2a) et qu'`en-US`
   afficherait des initiales de jours contredisant cette grille.
@@ -292,8 +336,10 @@ ouverte) et **6a** (menu utilisateur).
 
 ⚠️ **La maquette bouge.** Relire le fichier avant de toucher un écran plutôt que
 de se fier à ce document. Révisions déjà encaissées : le menu utilisateur est
-passé de la barre latérale à l'en-tête de droite, et les cartes de 2f ont perdu
-leur action « ouvrir ».
+passé de la barre latérale à l'en-tête de droite, les cartes de 2f ont perdu
+leur action « ouvrir », et l'en-tête de 2f a perdu son bouton « ＋ Note » — il
+n'y reste que le titre et le menu utilisateur, le geste restant offert par la
+barre latérale.
 
 ## Ce qui n'existe pas encore
 
@@ -324,6 +370,8 @@ leur action « ouvrir ».
 - **Passkey** et **lien magique** : présents dans la maquette 2d/2e, pas rendus —
   ils demandent les plugins better-auth correspondants, et le lien magique un
   fournisseur SMTP. « Mot de passe oublié ? » est retiré pour la même raison.
-- **La langue n'est pas rattachée au compte** : elle vit en `localStorage`, donc
-  par navigateur et non par utilisateur. Suffisant pour un espace mono-compte ;
-  une colonne de préférence serait à ajouter le jour où ça change.
+- **Le schéma n'est pas figé** : `user.language` a été ajouté *dans*
+  `001_better_auth.sql` plutôt qu'en migration `004_`. Tant que ce choix tient,
+  toucher au schéma demande un `pnpm db:reset` — et donc de recréer le compte.
+  Le jour où la base porte des données à garder, revenir aux migrations
+  additives et ne plus rééditer un fichier appliqué.

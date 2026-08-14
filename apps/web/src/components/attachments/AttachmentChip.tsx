@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../api/client'
 import { extensionLabel, isPreviewableImage } from '../../lib/attachments'
+import { useConfirm } from '../ui/ConfirmDialog'
 import styles from './AttachmentChip.module.css'
 
 interface AttachmentChipProps {
@@ -13,6 +14,7 @@ interface AttachmentChipProps {
 /** Une vignette du tiroir : aperçu, nom, menu ⋯. */
 export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
   const { t } = useTranslation()
+  const { confirm, dialog } = useConfirm()
   const [menuOpen, setMenuOpen] = useState(false)
   const chipRef = useRef<HTMLDivElement>(null)
   const isImage = isPreviewableImage(attachment.mimeType)
@@ -36,11 +38,14 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
     }
   }, [menuOpen])
 
-  function handleRemove() {
+  async function handleRemove() {
     setMenuOpen(false)
-    const confirmed = window.confirm(
-      t('attachments.confirmRemove', { filename: attachment.filename }),
-    )
+    const confirmed = await confirm({
+      title: t('attachments.confirmRemove.title', { filename: attachment.filename }),
+      body: t('attachments.confirmRemove.body'),
+      confirmLabel: t('attachments.remove'),
+      tone: 'danger',
+    })
     if (confirmed) onRemove(attachment.id)
   }
 
@@ -73,11 +78,13 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
           <a href={url} className={styles.menuItem} download onClick={() => setMenuOpen(false)}>
             {t('attachments.download')}
           </a>
-          <button type="button" className={styles.menuItem} onClick={handleRemove}>
+          <button type="button" className={styles.menuItem} onClick={() => void handleRemove()}>
             {t('attachments.remove')}
           </button>
         </div>
       ) : null}
+
+      {dialog}
     </div>
   )
 }

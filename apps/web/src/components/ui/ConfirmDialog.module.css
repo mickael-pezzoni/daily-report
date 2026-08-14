@@ -1,0 +1,39 @@
+/* La modale 8a / 8b de la maquette.
+
+   La forme entière vient du design system — `.dialog`, `.dialog-title`,
+   `.dialog-body`, `.dialog-actions`. Il ne reste ici que ce qu'impose
+   l'élément natif `<dialog>`, et la teinte destructive de 8b. */
+
+/* `.dialog` du design system pose `display: flex`, et une feuille d'auteur
+   passe toujours devant celle du navigateur : la règle
+   `dialog:not([open]) { display: none }` de l'agent utilisateur ne s'applique
+   plus. Sans cette ligne, la modale se verrait posée dans le flux le temps
+   d'une image, avant que `showModal()` ne la monte dans la couche
+   supérieure. */
+.dialog:not([open]) {
+  display: none;
+}
+
+.dialog {
+  /* Ce que l'agent utilisateur impose à <dialog> et que la carte du design
+     system ne prévoit pas : une bordure, et un texte en couleur système qui
+     ignorerait le thème. La marge, elle, est ce qui centre la modale. */
+  border: 0;
+  color: var(--app-text);
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+}
+
+/* 8b — l'action destructive.
+   `.btn-primary:hover` du design system pèse deux classes ; les états doivent
+   en peser autant pour passer devant, l'ordre des imports faisant le reste. */
+.danger {
+  background: var(--app-danger-solid);
+}
+
+.danger:hover,
+.danger:active {
+  background: var(--app-danger-solid-hover);
+}

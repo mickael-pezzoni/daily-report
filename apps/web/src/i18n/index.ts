@@ -1,8 +1,11 @@
+import type { LanguageCode } from '@daily-report/types'
 import i18next from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 import en from './locales/en.json'
 import fr from './locales/fr.json'
+
+export type { LanguageCode }
 
 /**
  * Les langues offertes, dans l'ordre du sélecteur.
@@ -11,13 +14,21 @@ import fr from './locales/fr.json'
  * plutôt que `en-US` parce que la grille du calendrier commence le lundi
  * (maquette 2a) : `en-US` afficherait des jours de semaine dont l'ordre
  * contredirait la grille.
+ *
+ * C'est toujours la seule liste à compléter pour ajouter une langue — mais le
+ * `code` est désormais typé par `LANGUAGE_CODES` de `@daily-report/types`, que
+ * l'API partage. Ajouter une entrée sans son code là-bas ne compile pas : c'est
+ * voulu, le serveur refuserait la valeur.
  */
 export const LANGUAGES = [
   { code: 'fr', locale: 'fr-FR', label: 'Français' },
   { code: 'en', locale: 'en-GB', label: 'English' },
-] as const
+] as const satisfies readonly { code: LanguageCode; locale: string; label: string }[]
 
-export type LanguageCode = (typeof LANGUAGES)[number]['code']
+/** Le code appartient-il aux langues offertes ? */
+export function isLanguageCode(value: unknown): value is LanguageCode {
+  return LANGUAGES.some((language) => language.code === value)
+}
 
 export const DEFAULT_LANGUAGE: LanguageCode = 'fr'
 

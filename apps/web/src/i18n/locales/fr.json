@@ -4,6 +4,10 @@
     "loading": "Chargement…"
   },
 
+  "dialog": {
+    "cancel": "Annuler"
+  },
+
   "auth": {
     "band": {
       "loginTitle": "Mon journal de travail",
@@ -31,7 +35,8 @@
       "emailPlaceholder": "vous@exemple.fr",
       "password": "Mot de passe",
       "show": "afficher",
-      "hide": "masquer"
+      "hide": "masquer",
+      "language": "Langue"
     },
     "strength": {
       "weak": "trop court",
@@ -89,6 +94,12 @@
       "code": "Code",
       "link": "Lien",
       "linkPrompt": "Adresse du lien"
+    },
+    "contextMenu": {
+      "cut": "Couper",
+      "copy": "Copier",
+      "paste": "Coller",
+      "insertImage": "Insérer une image ici"
     }
   },
 
@@ -104,8 +115,12 @@
     "openDay": "ouvrir la note du {{day}}",
     "delete": "supprimer",
     "deleteDay": "supprimer la note du {{day}}",
-    "confirmDelete": "Supprimer la note du {{day}} ?\n\nCette action est définitive.",
-    "confirmDeleteWithFiles": "Supprimer la note du {{day}} ?\n\nSes {{files}} seront supprimés avec elle. Cette action est définitive."
+    "confirmDelete": {
+      "title": "Supprimer « {{day}} » ?",
+      "body": "Cette note sera supprimée définitivement. Cette action est irréversible.",
+      "bodyWithFiles": "Cette note et ses {{files}} seront supprimées définitivement. Cette action est irréversible.",
+      "confirm": "Supprimer"
+    }
   },
 
   "attachments": {
@@ -123,7 +138,10 @@
     "download": "Télécharger",
     "remove": "Supprimer",
     "actionsFor": "Actions pour {{filename}}",
-    "confirmRemove": "Supprimer « {{filename}} » ?\n\nSi cette image a été insérée dans le texte, elle n'y sera plus affichée.",
+    "confirmRemove": {
+      "title": "Supprimer « {{filename}} » ?",
+      "body": "Cette pièce jointe sera supprimée définitivement. Si cette image a été insérée dans le texte, elle n'y sera plus affichée."
+    },
     "unknownType": "FIC"
   },
 

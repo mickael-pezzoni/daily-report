@@ -3,6 +3,18 @@
  * qu'elles passent sur le fil — pas les types de lignes en base.
  */
 
+/**
+ * Les langues de l'interface, par leur seul code.
+ *
+ * Ce paquet ne porte d'ordinaire que des formes JSON, mais ces codes en sont
+ * une : c'est la valeur que le web écrit sur son compte et que l'API doit
+ * pouvoir refuser si elle vaut autre chose. Le libellé et le `locale` Intl,
+ * eux, ne regardent que le web — ils restent dans `apps/web/src/i18n`.
+ */
+export const LANGUAGE_CODES = ['fr', 'en'] as const
+
+export type LanguageCode = (typeof LANGUAGE_CODES)[number]
+
 /** Réponse de `GET /api/auth-state`. Public : appelé avant toute session. */
 export interface AuthState {
   /**
