@@ -1,9 +1,10 @@
-import type { Attachment, DailyNote, NoteListItem } from '@daily-report/types'
+import { SEARCH_SCOPES, type Attachment, type DailyNote, type NoteListItem } from '@daily-report/types'
 import { Hono } from 'hono'
+import { sql } from 'kysely'
 import { db } from '../db/index.js'
 import { ATTACHMENT_COLUMNS, toAttachment } from '../lib/attachments.js'
 import { excerptOf, flattenRichText } from '../lib/rich-text.js'
-import { isRichTextDoc, isUuid, isValidDate } from '../lib/validate.js'
+import { isRichTextDoc, isSearchScope, isUuid, isValidDate } from '../lib/validate.js'
 import type { AuthedEnv } from '../middleware/require-auth.js'
 import { storage } from '../storage/index.js'
 
@@ -11,6 +12,17 @@ const notes = new Hono<AuthedEnv>()
 
 /** Code d'erreur Postgres pour une violation de contrainte d'unicité. */
 const UNIQUE_VIOLATION = '23505'
+
+/**
+ * Un fragment `LIKE` encadré de jokers, le texte de l'utilisateur échappé.
+ *
+ * Sans cet échappement, un `%` tapé dans la recherche ferait tout sortir et un
+ * `_` matcherait n'importe quel caractère : ce qu'on cherche est du texte, pas
+ * un motif.
+ */
+function likeFragment(value: string): string {
+  return `%${value.replace(/[\\%_]/g, (char) => `\\${char}`)}%`
+}
 
 const COLUMNS = ['id', 'noteDate', 'title', 'content', 'contentText', 'updatedAt'] as const
 
@@ -62,6 +74,12 @@ async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachm
 /**
  * `GET /api/notes?date=YYYY-MM-DD` — la note de ce jour, tableau vide si vierge.
  * `GET /api/notes?limit=3`        — les dernières notes, date décroissante.
+ * `GET /api/notes?q=…`            — recherche plein texte (titre, contenu, noms
+ *                                    de pièces jointes), triée par pertinence.
+ * `GET /api/notes?q=…&scope=text` — ne fouille que le texte, ou que les noms de
+ *                                    fichiers avec `files`. Défaut : `all`.
+ * `GET /api/notes?from=YYYY-MM-DD` — borne basse sur la date, cumulable avec le
+ *                                    reste (c'est le filtre « cette année »).
  *
  * Chaque élément embarque ses pièces jointes : les cartes de l'écran « aucune
  * note ouverte » les affichent, et le détail `GET /api/notes/:id` n'est pas le
@@ -70,7 +88,10 @@ async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachm
 notes.get('/', async (c) => {
   const userId = c.get('userId')
   const date = c.req.query('date')
+  const from = c.req.query('from')
   const limitParam = c.req.query('limit')
+  const qParam = c.req.query('q')
+  const scope = c.req.query('scope') ?? 'all'
 
   let query = db.selectFrom('dailyNotes').select(COLUMNS).where('userId', '=', userId)
 
@@ -79,12 +100,56 @@ notes.get('/', async (c) => {
     query = query.where('noteDate', '=', date)
   }
 
+  if (from !== undefined) {
+    if (!isValidDate(from)) return c.json({ error: 'invalid from, expected YYYY-MM-DD' }, 400)
+    query = query.where('noteDate', '>=', from)
+  }
+
+  const q = qParam?.trim()
+  if (qParam !== undefined) {
+    if (!q) return c.json({ error: 'invalid q, expected a non-empty string' }, 400)
+    if (!isSearchScope(scope)) {
+      return c.json({ error: `invalid scope, expected one of ${SEARCH_SCOPES.join(', ')}` }, 400)
+    }
+
+    // Titre/contenu via la colonne générée `search_vector` (langue figée par
+    // compte à la création, cf. migration 004).
+    //
+    // Le nom de fichier, lui, se cherche en `ILIKE` et **non** avec l'opérateur
+    // de similarité `%` : celui-ci compare les deux chaînes *entières*, si bien
+    // qu'un terme court noyé dans un nom long passe sous le seuil et ne sort
+    // jamais (« ecran » contre « Capture d'ecran_20260701_203406.png » ne vaut
+    // que 0,18). L'index `gin_trgm_ops` de la migration 004 accélère les deux ;
+    // c'est bien un `ILIKE` qu'il sert ici.
+    const matchesText = sql<boolean>`search_vector @@ websearch_to_tsquery(search_language, ${q})`
+    const noteIdsWithMatchingFile = db
+      .selectFrom('attachments')
+      .select('noteId')
+      .where(sql<boolean>`f_unaccent(filename) ILIKE f_unaccent(${likeFragment(q)})`)
+
+    query = query.where((eb) => {
+      const matchesFilename = eb('id', 'in', noteIdsWithMatchingFile)
+      if (scope === 'text') return matchesText
+      if (scope === 'files') return matchesFilename
+      return eb.or([matchesText, matchesFilename])
+    })
+  }
+
   const limit = limitParam === undefined ? 50 : Number(limitParam)
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
     return c.json({ error: 'invalid limit, expected an integer between 1 and 100' }, 400)
   }
 
-  const rows = await query.orderBy('noteDate', 'desc').limit(limit).execute()
+  // Par pertinence si `q` est fourni — une note qui ne matche que par une
+  // pièce jointe a un rang de 0 et retombe en fin de liste, triée par date.
+  const rows = await (q
+    ? query
+        .orderBy(sql<number>`ts_rank(search_vector, websearch_to_tsquery(search_language, ${q}))`, 'desc')
+        .orderBy('noteDate', 'desc')
+    : query.orderBy('noteDate', 'desc')
+  )
+    .limit(limit)
+    .execute()
   const grouped = await attachmentsByNote(rows.map((row) => row.id))
 
   const items: NoteListItem[] = rows.map((row) => ({

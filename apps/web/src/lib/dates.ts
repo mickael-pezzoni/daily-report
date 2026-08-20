@@ -37,6 +37,28 @@ export function addDays(iso: string, days: number): string {
   return toIso(date)
 }
 
+/** Le lundi de la semaine contenant `iso`. */
+export function startOfWeek(iso: string): string {
+  const date = toUtcNoon(iso)
+  // getUTCDay() : 0 = dimanche. On veut 0 = lundi, comme `monthGrid`.
+  const leading = (date.getUTCDay() + 6) % 7
+  date.setUTCDate(date.getUTCDate() - leading)
+  return toIso(date)
+}
+
+export function addWeeks(iso: string, weeks: number): string {
+  return addDays(iso, weeks * 7)
+}
+
+/** Les sept jours (lundi → dimanche) de la semaine contenant `iso`. */
+export function weekOf(iso: string): CalendarDay[] {
+  const monday = startOfWeek(iso)
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = addDays(monday, index)
+    return { iso: day, dayOfMonth: Number(day.slice(8, 10)), outside: false }
+  })
+}
+
 /** `2026-08-03` → `2026-08`. */
 export function monthOf(iso: string): string {
   return iso.slice(0, 7)

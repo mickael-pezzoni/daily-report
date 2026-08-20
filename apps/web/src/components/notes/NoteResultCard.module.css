@@ -1,0 +1,139 @@
+/* La rangée pleine largeur d'une journée — carte de résultat de l'écran 2c et
+   « derniers jours » de l'onglet Calendrier mobile (2b). */
+
+.card {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-2);
+  /* Bordure toujours présente, transparente au repos : le liseré de la ligne
+     courante ne doit pas décaler la carte d'un pixel. */
+  border: 2px solid transparent;
+}
+
+.selected {
+  border-color: var(--app-focus-ring);
+}
+
+/* Le focus vit sur le bouton étiré, invisible ; c'est la carte qui doit le
+   montrer, sinon la navigation au clavier n'a plus aucun repère. */
+.card:has(.open:focus-visible) {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.date {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+
+/* Le bouton de la date couvre toute la carte : la maquette n'y laisse qu'une
+   action explicite, « supprimer ». Le pseudo-élément porte la surface
+   cliquable, le bouton garde la date pour nom accessible. */
+.open {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Au-dessus du bouton étiré, sans quoi le clic ouvrirait la note au lieu de
+   demander sa suppression. */
+.remove {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--app-link-hover);
+}
+
+.remove:hover {
+  background: var(--app-day-hover);
+}
+
+.remove:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Ni l'extrait, ni les étiquettes, ni les vignettes ne sont interactifs : le
+   clic doit les traverser pour atteindre le bouton étiré, sur toute la carte. */
+.excerpt {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--app-text-subtle);
+  pointer-events: none;
+}
+
+.mark {
+  background: var(--app-search-highlight);
+  border-radius: var(--radius-sm);
+  padding: 1px 4px;
+  font-weight: 600;
+  color: inherit;
+}
+
+/* — la pièce jointe dont le nom a répondu : vignette puis nom — */
+.fileMatch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.thumb {
+  width: 56px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--app-control-bg);
+}
+
+/* Pas d'aperçu possible : la pastille d'extension, comme dans le tiroir. */
+.thumbFallback {
+  width: 56px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--app-control-bg);
+  color: var(--app-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.fileName {
+  font-size: 11px;
+  color: var(--app-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

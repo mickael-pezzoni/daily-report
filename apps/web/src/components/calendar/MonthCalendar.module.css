@@ -130,59 +130,9 @@
   text-align: center;
 }
 
-.day {
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  border-radius: 999px;
-  color: var(--app-text-subtle);
-}
-.day:hover {
-  background: var(--app-day-hover);
-}
-.day:focus-visible {
-  outline: 2px solid var(--app-focus-ring);
-  outline-offset: 2px;
-}
-
-.dayOutside {
-  color: var(--app-text-placeholder);
-}
-
-/* Aujourd'hui, quand ce n'est pas le jour ouvert : cerclé, pas rempli. */
-.dayToday {
-  border-color: var(--app-day-selected);
-  font-weight: 700;
-}
-
-.daySelected {
-  background: var(--app-day-selected);
-  color: var(--app-text-on-accent);
-  font-weight: 700;
-}
-.daySelected:hover {
-  background: var(--app-day-selected);
-}
-
-.dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--app-day-has-note);
-}
-
-/* Sur la pastille pleine, le point sauge disparaîtrait dans le terracotta. */
-.daySelected .dot {
-  background: var(--app-text-on-accent);
-}
+/* Les états d'une case de jour (.day, .dayOutside, .dayToday, .daySelected,
+   .dot) vivent dans DayCell.module.css — partagés avec la bande de semaine
+   mobile, voir WeekStrip. */
 
 .legend {
   margin: 0;

@@ -63,8 +63,16 @@
     "nextMonth": "Mois suivant",
     "previousYear": "Année précédente",
     "nextYear": "Année suivante",
+    "previousWeek": "Semaine précédente",
+    "nextWeek": "Semaine suivante",
     "pickerHint": "choisir le mois · ‹ › pour l'année",
     "legend": "pastilles sauge = jour rédigé"
+  },
+
+  "mobile": {
+    "tabsLabel": "Navigation",
+    "today": "Aujourd'hui",
+    "calendar": "Calendrier"
   },
 
   "sidebar": {
@@ -107,13 +115,14 @@
     "title": "Aucune note ouverte",
     "resume": "Reprendre où vous en étiez",
     "blank": "Votre journal est vierge",
-    "hint": "Choisissez un jour dans le calendrier, ou ＋ Note pour aujourd'hui."
+    "hint": "Choisissez un jour dans le calendrier, ou ＋ Note pour aujourd'hui.",
+    "mobileNoNote": "Aucune note pour aujourd'hui",
+    "mobileCreate": "Créer la note du jour"
   },
 
   "card": {
     "open": "ouvrir",
     "openDay": "ouvrir la note du {{day}}",
-    "delete": "supprimer",
     "deleteDay": "supprimer la note du {{day}}",
     "confirmDelete": {
       "title": "Supprimer « {{day}} » ?",
@@ -121,6 +130,26 @@
       "bodyWithFiles": "Cette note et ses {{files}} seront supprimées définitivement. Cette action est irréversible.",
       "confirm": "Supprimer"
     }
+  },
+
+  "search": {
+    "title": "Rechercher",
+    "placeholder": "Rechercher dans toutes mes notes…",
+    "idle": "Tapez pour rechercher dans vos notes.",
+    "noResults": "Aucun résultat.",
+    "resultCount_one": "{{count}} note",
+    "resultCount_other": "{{count}} notes",
+    "today": "aujourd'hui",
+    "delete": "supprimer",
+    "filtersLabel": "Filtres de recherche",
+    "scope": {
+      "all": "tout",
+      "text": "texte",
+      "files": "pièces jointes"
+    },
+    "thisYear": "cette année",
+    "attachmentsHint": "les pièces jointes sont fouillées aussi (nom de fichier)",
+    "keyboardHint": "↑ ↓ pour parcourir · ⏎ pour ouvrir la note · Échap pour fermer"
   },
 
   "attachments": {

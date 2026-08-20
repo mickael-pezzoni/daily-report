@@ -7,7 +7,9 @@
   padding: var(--space-4) var(--space-4);
   background: var(--app-panel-bg);
   border-right: 1px solid var(--app-border);
-  overflow-y: auto;
+  /* Le défilement vit dans `.recent`, pas ici : la marque, le calendrier et
+     le bouton restent fixes quelle que soit la longueur des derniers jours. */
+  overflow: hidden;
 }
 
 .brandRow {
@@ -29,20 +31,34 @@
   color: var(--app-link);
 }
 
+/* Seule section qui grandit et défile : `flex:1` lui donne l'espace restant
+   entre le calendrier et le bouton. Sur une fenêtre basse, cet espace peut
+   fondre à presque rien — le `min-height` garde un plancher d'environ quatre
+   lignes visibles plutôt qu'une zone de défilement invisible. */
 .recent {
+  flex: 1;
+  min-height: 130px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
 .recentTitle {
+  flex: none;
   margin: 0;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
 }
 
+/* `overflow: hidden` (pour l'ellipse) ramène sinon la taille minimale
+   automatique de l'élément à 0 : le flex-shrink écraserait les 50 lignes à
+   une hauteur quasi nulle pour les faire tenir, plutôt que de laisser
+   `.recent` déborder et défiler normalement. `flex: none` les en empêche —
+   chaque lien garde sa hauteur naturelle, l'excédent revient au scroll. */
 .recentItem {
+  flex: none;
   font-size: 12px;
   color: var(--app-text-subtle);
   text-decoration: none;
@@ -60,17 +76,17 @@
   color: var(--app-text-muted);
 }
 
+/* Un simple espacement fixe désormais : c'est `.recent` qui absorbe l'espace
+   disponible et pousse le bouton en bas, pas ce spacer. */
 .spacer {
-  flex: 1;
-  min-height: var(--space-4);
+  flex: none;
+  height: var(--space-4);
 }
 
-/* Sous 900 px, la colonne passe au-dessus du contenu plutôt que de l'écraser.
-   Le vrai écran mobile (2b) viendra dans une passe dédiée. */
+/* Sous 900 px, l'écran mobile 2b prend le relais : deux onglets (voir
+   MobileTabBar) plutôt que le calendrier permanent et les derniers jours. */
 @media (max-width: 900px) {
   .sidebar {
-    width: 100%;
-    border-right: 0;
-    border-bottom: 1px solid var(--app-border);
+    display: none;
   }
 }

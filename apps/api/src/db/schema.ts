@@ -31,6 +31,14 @@ export interface DailyNotesTable {
   title: string
   content: ColumnType<RichTextDoc, RichTextDoc, RichTextDoc>
   contentText: string
+  /**
+   * Nom de config `regconfig` (`french`/`english`), figé à la création par un
+   * déclencheur SQL depuis la langue du compte — jamais écrit par le code
+   * applicatif.
+   */
+  searchLanguage: Generated<string>
+  /** Colonne générée par Postgres à partir de `title`/`contentText` — lecture seule. */
+  searchVector: ColumnType<string, never, never>
   createdAt: Generated<Date>
   updatedAt: Generated<Date>
 }

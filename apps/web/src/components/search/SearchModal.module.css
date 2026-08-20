@@ -1,0 +1,158 @@
+/* Écran 2c de la maquette — modale de recherche globale (Ctrl+K/⌘K).
+
+   Mêmes bases que `ConfirmDialog` : `<dialog>` natif pour la couche
+   supérieure, le fond et le piège à focus. La feuille interne est une `.card`
+   à part (`.panel`) : la maquette la veut plus large et découpée en trois
+   bandes (en-tête, résultats, mentions), là où `.dialog` du design system est
+   taillé pour une question courte. */
+
+.dialog:not([open]) {
+  display: none;
+}
+
+.dialog {
+  border: 0;
+  color: var(--app-text);
+  background: transparent;
+  padding: 0;
+  /* `.dialog` du design system fixe `width: min(440px, 100%)` et
+     `display: flex`, dimensionnés pour ses propres `.dialog-title`/`.dialog-
+     body`. Ici c'est `.panel` qui porte la taille et la mise en page ; sans
+     ces remises à zéro, il resterait comprimé dans une boîte de 440 px.
+
+     `fit-content` et non `auto` : le navigateur centre une modale avec
+     `inset: 0` + `margin: auto`, et une largeur `auto` s'étirerait alors sur
+     tout le viewport — la feuille se collerait en haut à gauche au lieu
+     d'être centrée. */
+  width: fit-content;
+  height: fit-content;
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  display: block;
+  gap: 0;
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+}
+
+.panel {
+  width: 640px;
+  max-width: calc(100vw - var(--space-8));
+  max-height: calc(100vh - var(--space-8));
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* — l'en-tête : le champ et les filtres, sur le fond des panneaux —
+   Pas de bordure basse : dans la maquette, c'est le changement de fond avec
+   la zone de résultats qui sépare les deux. */
+.header {
+  padding: var(--space-4) var(--space-6);
+  background: var(--app-panel-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 14px;
+  color: var(--app-text-muted);
+  pointer-events: none;
+}
+
+.input {
+  padding-left: 36px;
+  padding-right: 56px;
+}
+
+.shortcut {
+  position: absolute;
+  right: 14px;
+  font-size: 11px;
+  color: var(--app-text-muted);
+  pointer-events: none;
+}
+
+.filters {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Les filtres sont des boutons peints par `.tag` / `.tag-accent` /
+   `.tag-outline`. Les remises à zéro du bouton natif passent par `:where()`,
+   de spécificité nulle : sans ça elles gagneraient contre les classes du
+   design system — les modules sont chargés après lui — et effaceraient le
+   fond de l'état actif comme la bordure de l'état inactif. */
+:where(.filter) {
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.filter {
+  cursor: pointer;
+}
+
+.filter:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.count {
+  font-size: 11.5px;
+  color: var(--app-text-muted);
+}
+
+/* — les résultats, sur le fond « papier » — */
+.results {
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-y: auto;
+  min-height: 120px;
+  max-height: 50vh;
+  background: var(--app-paper-bg);
+}
+
+.hint {
+  margin: var(--space-4) 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--app-text-muted);
+}
+
+/* — les mentions de pied —
+   Même fond que les résultats : la maquette les pose dans la continuité de la
+   liste. Hors du conteneur défilant, pour rester lisibles quand elle défile. */
+.footer {
+  padding: 0 var(--space-6) var(--space-4);
+  background: var(--app-paper-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.footerHint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--app-text-muted);
+}
+
+.footerHintCentered {
+  text-align: center;
+}

@@ -1,4 +1,4 @@
-import type { RichTextDoc } from '@daily-report/types'
+import { SEARCH_SCOPES, type RichTextDoc, type SearchScope } from '@daily-report/types'
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 const ISO_MONTH = /^\d{4}-\d{2}$/
@@ -25,6 +25,10 @@ export function isValidMonth(value: unknown): value is string {
 
 export function isUuid(value: unknown): value is string {
   return typeof value === 'string' && UUID.test(value)
+}
+
+export function isSearchScope(value: unknown): value is SearchScope {
+  return typeof value === 'string' && (SEARCH_SCOPES as readonly string[]).includes(value)
 }
 
 export function isRichTextDoc(value: unknown): value is RichTextDoc {

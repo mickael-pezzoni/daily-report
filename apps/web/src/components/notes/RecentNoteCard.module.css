@@ -1,12 +1,41 @@
+/* Trois teintes qui alternent, carte après carte, sans rien connaître du
+   contenu — c'est la position dans la liste qui choisit, comme un vrai bloc de
+   post-it dont on prend les feuillets dans l'ordre. */
 .card {
+  --card-bg: var(--app-note-card-a-bg);
+  --card-ink: var(--app-note-card-a-ink);
   position: relative;
-  padding: var(--space-4);
+  flex: none;
+  width: 200px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-2);
-  color: inherit;
+  padding: 16px 18px;
+  border-radius: 0;
+  background: var(--card-bg);
+  box-shadow: var(--app-elevation-panel);
+  color: var(--card-ink);
+  transform: rotate(-3deg);
+  /* Toute la carte est cliquable (lien étiré) : sans ça, un clic un peu
+     appuyé sélectionne la date ou l'extrait au lieu d'ouvrir la journée. */
+  user-select: none;
+}
+
+.card:nth-child(3n + 2) {
+  --card-bg: var(--app-note-card-b-bg);
+  --card-ink: var(--app-note-card-b-ink);
+  transform: rotate(2deg);
+}
+
+.card:nth-child(3n + 3) {
+  --card-bg: var(--app-note-card-c-bg);
+  --card-ink: var(--app-note-card-c-ink);
+  transform: rotate(-1.5deg);
 }
 
 .card:hover {
-  box-shadow: var(--app-elevation-panel);
+  box-shadow: var(--app-elevation-modal);
 }
 
 /* Le focus vit sur le lien étiré, invisible ; c'est la carte qui doit le
@@ -19,20 +48,19 @@
 .head {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
-  flex-wrap: wrap;
 }
 
 .date {
   margin: 0;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
-  font-size: 18px;
+  font-size: 17px;
 }
 
 /* Le lien de la date couvre toute la carte : la maquette n'y laisse plus
-   qu'une action explicite, « supprimer ». Le pseudo-élément porte la surface
+   qu'une action explicite, « ✕ ». Le pseudo-élément porte la surface
    cliquable, le lien garde la date pour nom accessible. */
 .open {
   color: inherit;
@@ -44,12 +72,6 @@
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-}
-
-.title {
-  font-size: 13px;
-  color: var(--app-text-subtle);
 }
 
 .spacer {
@@ -57,24 +79,25 @@
 }
 
 /* Au-dessus du lien étiré, sans quoi le clic ouvrirait la note au lieu de
-   demander sa suppression. */
+   demander sa suppression. Couleur fixe (pas --card-ink) : la maquette garde
+   ce ✕ dans le même accent sur les trois teintes de carte. */
 .remove {
   position: relative;
   z-index: 1;
+  flex: none;
   border: 0;
   background: transparent;
   padding: 2px 4px;
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 11.5px;
-  line-height: 1.2;
-  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1;
   cursor: pointer;
-  color: var(--app-danger);
+  color: var(--app-link-hover);
 }
 
 .remove:hover {
-  background: var(--app-danger-bg);
+  background: color-mix(in srgb, var(--card-ink) 15%, transparent);
 }
 
 .remove:focus-visible {
@@ -82,56 +105,22 @@
   outline-offset: 2px;
 }
 
+/* Ni l'étiquette ni l'extrait ne sont interactifs : le clic doit les
+   traverser pour atteindre le lien étiré derrière, sur toute la carte. */
+.tag {
+  pointer-events: none;
+}
+
 .excerpt {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--app-text-subtle);
+  color: inherit;
+  opacity: 0.75;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.previews {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  /* Les aperçus ne sont qu'illustratifs : le clic les traverse et atteint le
-     lien étiré, pour que toute la carte ouvre bien la journée. */
   pointer-events: none;
-}
-
-.thumb {
-  width: 62px;
-  height: 44px;
-  flex: none;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  background: var(--app-desk-bg);
-}
-
-.file {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  max-width: 220px;
-}
-
-.fileName {
-  min-width: 0;
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.more {
-  font-size: 11.5px;
-  color: var(--app-text-muted);
 }

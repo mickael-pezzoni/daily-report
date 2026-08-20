@@ -65,32 +65,56 @@
   flex: 1;
 }
 
-/* Le sous-main sur lequel repose la feuille. */
+/* Le bureau sur lequel repose la pile de feuilles (maquette 9c/2a). */
 .desk {
+  position: relative;
+  /* Ferme le contexte d'empilement ici : les feuilles fantômes ci-dessous,
+     en z-index négatif, doivent rester derrière `.paper` sans pour autant
+     passer derrière le fond de toute la page. */
+  z-index: 0;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: var(--app-desk-bg);
+  background: var(--app-desk-surface);
   padding: var(--space-6);
 }
 
-/* Un fichier survole : le sous-main se teinte pour dire qu'on peut lâcher. */
+/* Les deux jours précédents, entrevus sous la note active — ce qui distingue
+   « une note » de « le journal », sans rien montrer de leur contenu. */
+.desk::before,
+.desk::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  background: var(--app-paper-stack-bg);
+  box-shadow: var(--app-paper-stack-shadow);
+}
+.desk::before {
+  inset: 22px 20px 8px 42px;
+  transform: rotate(1deg);
+}
+.desk::after {
+  inset: 22px 24px 12px 38px;
+  transform: rotate(-0.7deg);
+}
+
+/* Un fichier survole : le bureau se teinte pour dire qu'on peut lâcher. */
 .deskDragging {
   background: var(--app-drop-active-bg);
 }
 
 .paper {
+  position: relative;
   min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-6) var(--space-8);
   background: var(--app-paper-bg);
-  border-radius: var(--radius-lg);
+  /* Coins droits : la feuille du dessus de la pile, pas la carte arrondie du
+     reste de l'interface. */
+  border-radius: 0;
   box-shadow: var(--app-paper-shadow);
-  /* Le très léger désalignement de la maquette : la feuille est posée, pas
-     encastrée. Assez faible pour ne pas gêner le curseur dans l'éditeur. */
-  transform: rotate(-0.3deg);
 }
 
 .title {

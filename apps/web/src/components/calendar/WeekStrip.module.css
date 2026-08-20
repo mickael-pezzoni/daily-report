@@ -1,0 +1,64 @@
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+}
+
+.arrow {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--app-text);
+}
+.arrow:hover {
+  background: var(--app-day-hover);
+}
+.arrow:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.weekdays {
+  font-size: 12px;
+  color: var(--app-text-muted);
+  text-align: center;
+}
+
+/* Cases plus grandes que dans la colonne de 266 px du desktop : la bande
+   occupe ici toute la largeur de l'écran, en contexte tactile. */
+.grid {
+  font-size: 15px;
+}
+
+.legend {
+  margin: 0;
+  font-size: 12px;
+  color: var(--app-text-muted);
+  text-align: center;
+}

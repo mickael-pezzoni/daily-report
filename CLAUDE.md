@@ -8,9 +8,9 @@ Guide pour Claude Code (claude.ai/code) sur ce dépôt.
 date**, texte riche, pièces jointes, recherche plein texte, et un calendrier qui
 montre les jours rédigés.
 
-État actuel : **socle, authentification, notes et calendrier**. La recherche, les
-pièces jointes et l'export ne sont pas encore écrits — voir « Ce qui n'existe pas
-encore » en bas.
+État actuel : **socle, authentification, notes, calendrier, pièces jointes et
+recherche globale (⌘K)**. L'export n'est pas encore écrit — voir « Ce qui
+n'existe pas encore » en bas.
 
 ## ⚠️ Toolchain — à lire avant toute commande
 
@@ -107,7 +107,19 @@ sur le fil, pas les lignes de base.
   qui laisserait une fenêtre de concurrence.
 - `content_text` est **toujours recalculé au serveur** (`src/lib/rich-text.ts`),
   jamais accepté du client : il doit rester le reflet exact de `content`, sinon les
-  extraits — et demain la recherche — mentiraient sur le contenu des notes.
+  extraits et la recherche mentiraient sur le contenu des notes.
+- `GET /api/notes` porte aussi la **recherche globale** (écran 2c) : `q=` le
+  terme, `scope=all|text|files` ce qu'on fouille, `from=YYYY-MM-DD` une borne
+  basse cumulable avec le reste. `SEARCH_SCOPES` vit dans `@daily-report/types`
+  pour la même raison que `LANGUAGE_CODES` : le serveur doit pouvoir refuser
+  une autre valeur.
+- ⚠️ **Le nom de fichier se cherche en `ILIKE`, pas avec l'opérateur `%`.**
+  `%` compare les deux chaînes *entières* : un terme court noyé dans un nom
+  long passe sous le seuil de similarité et ne sort jamais (« ecran » contre
+  « Capture d'ecran_20260701_203406.png » ne vaut que 0,18). L'index
+  `gin_trgm_ops` de la migration 004 accélère les deux — c'est un `ILIKE`
+  qu'il sert ici. Le fragment est échappé (`likeFragment`) : un `%` tapé dans
+  la recherche est du texte, pas un joker.
 - `src/routes/attachments.ts` expose deux routeurs : les routes portées par une
   note (`/api/notes/:noteId/attachments`, dépôt et listing) et celles portées par
   la pièce jointe (`/api/attachments/:id`, métadonnées, contenu, suppression).
@@ -232,6 +244,16 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   au-dessus en `z-index`. Un bouton ne peut pas être imbriqué dans un lien —
   c'est ce qui interdit la solution évidente. Les aperçus de pièces jointes sont
   en `pointer-events: none` pour que le clic les traverse.
+- **Deux formes de carte pour une journée, à ne pas confondre.**
+  `RecentNoteCard` est le post-it incliné de l'écran 2f, et n'y sert que là.
+  `NoteResultCard` est la **rangée pleine largeur** : résultats de la
+  recherche (2c) *et* « derniers jours » de l'onglet Calendrier mobile (2b) —
+  la maquette leur donne la même forme. Il reprend le bouton étiré en
+  `::after` de `RecentNoteCard` (un bouton dans un bouton n'existe pas non
+  plus), et son `onOpen` est un rappel plutôt qu'un `<Link>` : la modale de
+  recherche doit se refermer en même temps qu'elle navigue.
+  Le `query` y est **facultatif** — sans lui, pas de surlignage ni de pièces
+  jointes listées, ce qui est exactement ce que veut la liste mobile.
 - La suppression depuis une carte est **optimiste** : `AppShell` retire la carte
   et la pastille du calendrier avant la réponse (un `204` n'a rien à apprendre à
   la vue), recharge la liste derrière — une quatrième note peut remonter — et
@@ -240,6 +262,29 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   dans la barre latérale : la maquette l'y a déplacé. Il porte le choix de la
   langue et la déconnexion. Les deux en-têtes qui l'accueillent ont un
   `position: relative` — c'est leur bord droit qui ancre le menu.
+- `SearchModal` (écran 2c) est monté et démonté par `AppShell`, qui possède
+  l'écouteur clavier global Ctrl+K/⌘K (`keydown` sur `document`, seul point
+  d'entrée pour l'instant — voir « Ce qui n'existe pas encore ») et lui passe
+  `onNavigate`/`onDelete`. Reprend le `<dialog>` + `showModal()` de
+  `ConfirmDialog` (`components/ui/`) plutôt qu'un nouveau système de modale.
+  Trois points à ne pas défaire :
+  - La saisie est **amortie** (`setTimeout` 250 ms) et la requête en vol
+    **annulée** (`AbortController`) : c'est le premier appel du projet à le
+    faire, les autres hooks se contentent d'ignorer une réponse périmée, ce
+    qui ne suffit pas à une frappe qui déclenche une requête par caractère.
+  - Le surlignage passe par `foldWithMap`, qui replie **caractère par
+    caractère** en retenant la position d'origine de chacun. `'é'.normalize
+    ('NFD')` fait deux caractères : un index cherché dans la chaîne repliée ne
+    désigne pas le même endroit dans la chaîne d'origine dès qu'un accent le
+    précède, et le surlignage se décale. Il reste par ailleurs purement
+    esthétique et travaille sur l'extrait **déjà tronqué** par `excerptOf` :
+    un terme trouvé par racinisation, ou situé plus loin dans la note, ne s'y
+    retrouve pas littéralement — l'extrait s'affiche alors sans surlignage.
+- Les remises à zéro du bouton natif des filtres de `SearchModal` passent par
+  `:where(.filter)`, de spécificité **nulle**. Une règle de module l'emporte
+  sur le design system (les modules sont chargés après lui) : à spécificité
+  normale, ces resets effaceraient le fond de `.tag-accent` et la bordure de
+  `.tag-outline`. Même piège que l'ordre des imports de `main.tsx`.
 - Composants par domaine sous `src/components/<domaine>/`, chacun avec son
   `*.module.css`.
 
@@ -332,7 +377,7 @@ Projet Claude Design « Maquette rapport journalier »
 lisible via l'outil `DesignSync`. Direction retenue : **1b / 2a** — calendrier
 permanent à gauche, éditeur à droite. Écrans implémentés : **2d** (connexion),
 **2e** (premier lancement), **2a** (journée ouverte), **2f** (aucune note
-ouverte) et **6a** (menu utilisateur).
+ouverte), **2c** (recherche globale, en modale) et **6a** (menu utilisateur).
 
 ⚠️ **La maquette bouge.** Relire le fichier avant de toucher un écran plutôt que
 de se fier à ce document. Révisions déjà encaissées : le menu utilisateur est
@@ -354,11 +399,20 @@ barre latérale.
 - **Directions non retenues de la maquette** : la galerie horizontale (3a), la
   liste compacte (3b), la grille (3c) et le panneau latéral rétractable (4a/4b)
   sont des explorations. C'est le tiroir de pied 2a-open qui est implémenté.
-- **Recherche globale ⌘K** (2c) et **export** PDF/.md : les boutons `⌕` et
-  « Exporter ▾ » de l'en-tête 2a, comme la barre « Rechercher dans toutes mes
-  notes… » de 2f, ne sont volontairement pas rendus, pour ne pas livrer de
-  commande morte. La colonne `content_text` prépare déjà le terrain de la
-  recherche plein texte française.
+- **Export** PDF/.md : le bouton `⌕` et « Exporter ▾ » de l'en-tête 2a ne sont
+  volontairement pas rendus, pour ne pas livrer de commande morte. La barre
+  « Rechercher dans toutes mes notes… » de 2f, elle, l'est : `EmptyState`
+  l'ouvre par un `onOpenSearch` remonté jusqu'à `setSearchOpen` d'`AppShell`,
+  seul propriétaire de l'état d'ouverture de `SearchModal`. Uniquement sur
+  desktop (masquée sous 900 px comme `.desktopRecent`) : elle ouvre la même
+  modale que Ctrl+K/⌘K, un raccourci clavier n'a donc de sens que là où le
+  clavier est la norme — l'onglet Calendrier mobile porte son propre champ
+  dans la maquette, pas encore branché.
+- **Contenu des PDF** : la maquette 2c annonce que les pièces jointes sont
+  fouillées « nom de fichier **et contenu PDF** ». Seul le nom l'est ; rien
+  n'extrait le texte d'un PDF aujourd'hui. La mention rendue par
+  `SearchModal` ne parle donc que du nom de fichier — écart assumé avec la
+  maquette, plutôt que de promettre ce que la recherche ne fait pas.
 - **Étiquette « brouillon »** : la maquette 2f la pose sur une des trois cartes.
   Rien dans le modèle ne distingue un brouillon d'une note finie — il n'y a ni
   colonne d'état ni geste de publication. L'étiquette attend qu'on décide ce

@@ -1,0 +1,38 @@
+/* N'existe que sur mobile — le desktop navigue par le calendrier permanent
+   de `Sidebar`, pas par onglets. */
+.bar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .bar {
+    flex: none;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background: var(--app-panel-bg);
+    border-top: 1px solid var(--app-border);
+  }
+}
+
+.tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  color: var(--app-text-subtle);
+  padding: 11px 0;
+  border-radius: 999px;
+}
+.tab:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.tabActive {
+  font-weight: 700;
+  color: var(--app-text);
+}

@@ -15,6 +15,17 @@ export const LANGUAGE_CODES = ['fr', 'en'] as const
 
 export type LanguageCode = (typeof LANGUAGE_CODES)[number]
 
+/**
+ * Ce que la recherche globale (écran 2c) accepte de fouiller.
+ *
+ * Partagé pour la même raison que `LANGUAGE_CODES` : c'est la valeur que le
+ * web pose dans l'URL et que l'API doit pouvoir refuser si elle vaut autre
+ * chose. Les libellés, eux, ne regardent que le web.
+ */
+export const SEARCH_SCOPES = ['all', 'text', 'files'] as const
+
+export type SearchScope = (typeof SEARCH_SCOPES)[number]
+
 /** Réponse de `GET /api/auth-state`. Public : appelé avant toute session. */
 export interface AuthState {
   /**

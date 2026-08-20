@@ -6,13 +6,75 @@
   overflow: hidden;
 }
 
-/* Sous 900 px, la barre latérale passe au-dessus. Le vrai écran mobile (2b),
-   avec sa barre d'onglets, viendra dans une passe dédiée. */
+/* Panneau de l'onglet Aujourd'hui — la note ouverte ou l'état vide. Toujours
+   visible au-dessus de 900 px (c'est le contenu desktop), replié par le
+   pendant mobile de `.paneInactive` en dessous. */
+.notePane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Panneau de l'onglet Calendrier — n'existe que sur mobile, voir la media
+   query ci-dessous. Absent du desktop, qui a déjà son calendrier dans
+   `Sidebar`. */
+.calendarPane {
+  display: none;
+}
+
+/* Écran mobile 2b : deux onglets plutôt que deux colonnes. `Sidebar` (le
+   calendrier du mois + derniers jours desktop) disparaît complètement — voir
+   Sidebar.module.css — au profit de `.calendarPane` (bande de semaine) et du
+   pied d'onglets. Hauteur fixe comme le desktop : c'est aux panneaux de
+   défiler en interne, pas à la page, pour que le pied d'onglets reste ancré
+   comme dans une vraie appli. */
 @media (max-width: 900px) {
   .shell {
     flex-direction: column;
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
+    overflow: hidden;
   }
+
+  .calendarPane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .paneInactive {
+    display: none;
+  }
+}
+
+.calendarRecent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.calendarRecentTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+
+.calendarRecentEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--app-text-muted);
+}
+
+/* Une pile de rangées pleine largeur, comme la maquette 2b — et non la rangée
+   de post-it qui s'enroule du desktop : ce panneau n'existe que sous 900 px,
+   où les cartes inclinées n'ont ni la place de tenir côte à côte, ni celle de
+   montrer un extrait lisible. */
+.calendarRecentCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }

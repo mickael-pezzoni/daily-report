@@ -16,8 +16,16 @@
   --app-panel-bg: var(--color-bg); /* barre latérale, en-têtes, pieds */
   --app-paper-bg: var(--color-neutral-100); /* la « feuille » de note, les cartes */
   --app-sheet-bg: var(--color-neutral-100); /* feuille mobile des écrans d'auth */
-  --app-desk-bg: var(--color-neutral-300); /* le sous-main sur lequel repose la feuille */
-  --app-paper-shadow: var(--shadow-lg); /* la feuille décolle du sous-main */
+  /* Fond des petits éléments arrondis (pilule de date, puces de menu…). Ne
+     désigne plus le bureau de 2a depuis la direction « pile » : voir
+     --app-desk-surface. */
+  --app-desk-bg: var(--color-neutral-300);
+  --app-paper-shadow: var(--shadow-lg); /* la feuille décolle du bureau */
+  /* Le bureau de 2a, derrière la pile de feuilles. */
+  --app-desk-surface: var(--color-bg);
+  /* Les feuilles des jours précédents, entrevues sous la note active. */
+  --app-paper-stack-bg: var(--color-neutral-200);
+  --app-paper-stack-shadow: var(--shadow-sm);
 
   /* — texte — */
   --app-text: var(--color-text);
@@ -74,4 +82,14 @@
   /* — jauge de robustesse du mot de passe — */
   --app-meter-filled: var(--color-accent-2);
   --app-meter-empty: var(--color-neutral-300);
+
+  /* — cartes « post-it » des jours récents (2f) —
+     Trois teintes qui alternent carte après carte ; « ink » habille le texte
+     et l'extrait pour rester lisible sur son propre fond. */
+  --app-note-card-a-bg: var(--color-accent-200);
+  --app-note-card-a-ink: var(--color-accent-800);
+  --app-note-card-b-bg: var(--color-accent-2-200);
+  --app-note-card-b-ink: var(--color-accent-2-800);
+  --app-note-card-c-bg: var(--color-neutral-300);
+  --app-note-card-c-ink: var(--color-neutral-800);
 }

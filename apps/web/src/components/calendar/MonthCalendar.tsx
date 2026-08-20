@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { addMonths, monthGrid, todayISO } from '../../lib/dates'
+import { DayCell } from './DayCell'
 import styles from './MonthCalendar.module.css'
 
 interface MonthCalendarProps {
@@ -118,25 +119,20 @@ export function MonthCalendar({
       </div>
 
       <div className={styles.grid}>
-        {monthGrid(month).flat().map((day) => {
-          const classes = [styles.day]
-          if (day.outside) classes.push(styles.dayOutside)
-          if (day.iso === selected) classes.push(styles.daySelected)
-          else if (day.iso === today) classes.push(styles.dayToday)
-
-          return (
-            <button
-              type="button"
+        {monthGrid(month)
+          .flat()
+          .map((day) => (
+            <DayCell
               key={day.iso}
-              className={classes.join(' ')}
-              onClick={() => onSelect(day.iso)}
-              aria-current={day.iso === today ? 'date' : undefined}
-            >
-              <span>{day.dayOfMonth}</span>
-              {written.has(day.iso) ? <span className={styles.dot} /> : null}
-            </button>
-          )
-        })}
+              iso={day.iso}
+              dayOfMonth={day.dayOfMonth}
+              outside={day.outside}
+              selected={day.iso === selected}
+              today={day.iso === today}
+              hasNote={written.has(day.iso)}
+              onSelect={onSelect}
+            />
+          ))}
       </div>
 
       <p className={styles.legend}>{t('calendar.legend')}</p>

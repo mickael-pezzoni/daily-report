@@ -6,8 +6,17 @@ import type {
   NoteDraft,
   NoteListItem,
   NotePatch,
+  SearchScope,
   SessionUser,
 } from '@daily-report/types'
+
+/** Les filtres de l'écran 2c, tels qu'ils voyagent dans l'URL. */
+export interface SearchOptions {
+  scope?: SearchScope
+  /** Borne basse sur la date — ce que pose le filtre « cette année ». */
+  from?: string
+  signal?: AbortSignal
+}
 
 export class ApiError extends Error {
   constructor(
@@ -70,6 +79,13 @@ export const api = {
     },
     /** Les derniers jours rédigés, pièces jointes comprises — les cartes de 2f. */
     recent: (limit: number) => request<NoteListItem[]>(`/notes?limit=${limit}`),
+    /** Recherche plein texte (titre, contenu, noms de pièces jointes) — écran 2c. */
+    search: (q: string, options: SearchOptions = {}) => {
+      const params = new URLSearchParams({ q })
+      if (options.scope && options.scope !== 'all') params.set('scope', options.scope)
+      if (options.from) params.set('from', options.from)
+      return request<NoteListItem[]>(`/notes?${params}`, { signal: options.signal })
+    },
     create: (draft: NoteDraft) =>
       request<DailyNote>('/notes', { method: 'POST', body: JSON.stringify(draft) }),
     update: (id: string, patch: NotePatch) =>
