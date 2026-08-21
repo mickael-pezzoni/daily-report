@@ -22,7 +22,7 @@ export function PasswordStrength({ password }: { password: string }) {
   return (
     <div className={styles.meter}>
       {[1, 2, 3].map((step) => (
-        <span key={step} className={step <= level ? styles.barFilled : styles.bar} />
+        <span key={step} className={step <= level ? styles.bar_filled : styles.bar} />
       ))}
       <span className={styles.label}>{t(LABEL_KEYS[level])}</span>
     </div>

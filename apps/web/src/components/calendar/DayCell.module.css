@@ -24,22 +24,22 @@
   outline-offset: 2px;
 }
 
-.dayOutside {
+.day_outside {
   color: var(--app-text-placeholder);
 }
 
 /* Aujourd'hui, quand ce n'est pas le jour ouvert : cerclé, pas rempli. */
-.dayToday {
+.day_today {
   border-color: var(--app-day-selected);
   font-weight: 700;
 }
 
-.daySelected {
+.day_selected {
   background: var(--app-day-selected);
   color: var(--app-text-on-accent);
   font-weight: 700;
 }
-.daySelected:hover {
+.day_selected:hover {
   background: var(--app-day-selected);
 }
 
@@ -51,6 +51,6 @@
 }
 
 /* Sur la pastille pleine, le point sauge disparaîtrait dans le terracotta. */
-.daySelected .dot {
+.day_selected .dot {
   background: var(--app-text-on-accent);
 }

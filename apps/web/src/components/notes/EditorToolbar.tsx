@@ -15,7 +15,7 @@ function button(label: string, title: string, isActive: boolean, run: () => void
       title={title}
       aria-label={title}
       aria-pressed={isActive}
-      className={isActive ? styles.itemActive : styles.item}
+      className={isActive ? styles.item_active : styles.item}
       // `onMouseDown` plutôt que `onClick` : sans ça, le bouton prend le focus
       // et la sélection de texte s'efface avant l'exécution de la commande.
       onMouseDown={(event) => {

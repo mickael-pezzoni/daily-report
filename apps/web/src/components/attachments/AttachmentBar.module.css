@@ -5,7 +5,7 @@
 }
 
 /* Un fichier survole la journée : la bande se signale comme cible. */
-.barDragging {
+.bar_dragging {
   background: var(--app-drop-active-bg);
 }
 

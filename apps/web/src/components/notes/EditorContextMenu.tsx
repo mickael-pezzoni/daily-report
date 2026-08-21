@@ -131,16 +131,16 @@ export function EditorContextMenu({ editor, attachments, anchor, onClose }: Edit
             <button
               key={image.id}
               type="button"
-              className={styles.imageItem}
+              className={styles.image_item}
               onClick={() => chooseImage(image)}
             >
               <img
                 src={api.attachments.contentUrl(image.id)}
                 alt=""
-                className={styles.imageThumb}
+                className={styles.image_thumb}
                 loading="lazy"
               />
-              <span className={styles.imageName}>{image.filename}</span>
+              <span className={styles.image_name}>{image.filename}</span>
             </button>
           ))}
         </div>

@@ -30,7 +30,7 @@
   color: var(--app-text);
 }
 
-.avatarDot {
+.avatar_dot {
   display: grid;
   place-items: center;
   width: 32px;
@@ -122,6 +122,6 @@
   color: var(--app-link);
 }
 
-.signOut {
+.sign_out {
   color: var(--app-link-hover);
 }

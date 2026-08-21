@@ -99,7 +99,7 @@ export function NoteView({ date, onNoteSaved }: NoteViewProps) {
       onDrop={handleDrop}
     >
       <header className={styles.header}>
-        <span className={styles.datePill}>
+        <span className={styles.date_pill}>
           {format.dayLong(date)}
           {/* Referme la journée et ramène à l'écran « aucune note ouverte ».
               Ce qui est en attente d'enregistrement part au démontage. */}
@@ -112,7 +112,7 @@ export function NoteView({ date, onNoteSaved }: NoteViewProps) {
         <UserMenu />
       </header>
 
-      <div className={`${styles.desk} ${dragging ? styles.deskDragging : ''}`}>
+      <div className={`${styles.desk} ${dragging ? styles.desk_dragging : ''}`}>
         <article className={styles.paper}>
           {/* On attend la réponse avant de monter l'éditeur. TipTap prend son
               document au montage : le monter sur un brouillon vide puis laisser

@@ -42,7 +42,7 @@
   color: var(--app-link);
 }
 
-.menuButton {
+.menu_button {
   flex: none;
   border: 0;
   background: transparent;
@@ -54,10 +54,10 @@
   border-radius: var(--radius-sm);
   color: var(--app-link);
 }
-.menuButton:hover {
+.menu_button:hover {
   background: var(--app-day-hover);
 }
-.menuButton:focus-visible,
+.menu_button:focus-visible,
 .name:focus-visible {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
@@ -74,7 +74,7 @@
   min-width: 150px;
 }
 
-.menuItem {
+.menu_item {
   display: block;
   width: 100%;
   text-align: left;
@@ -88,10 +88,10 @@
   color: var(--app-text);
   text-decoration: none;
 }
-.menuItem:hover {
+.menu_item:hover {
   background: var(--app-day-hover);
 }
-.menuItem:focus-visible {
+.menu_item:focus-visible {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: -2px;
 }

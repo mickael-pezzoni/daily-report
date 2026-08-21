@@ -8,7 +8,7 @@
 }
 
 .item,
-.itemActive {
+.item_active {
   border: 0;
   cursor: pointer;
   font: inherit;
@@ -24,13 +24,13 @@
   background: var(--app-day-hover);
 }
 
-.itemActive {
+.item_active {
   background: var(--app-day-selected);
   color: var(--app-text-on-accent);
 }
 
 .item:focus-visible,
-.itemActive:focus-visible {
+.item_active:focus-visible {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
 }

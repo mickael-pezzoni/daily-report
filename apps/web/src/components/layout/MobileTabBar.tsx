@@ -25,7 +25,7 @@ export function MobileTabBar({ active, onChange, todayLabel }: MobileTabBarProps
     <nav className={styles.bar} aria-label={t('mobile.tabsLabel')}>
       <button
         type="button"
-        className={`${styles.tab} ${active === 'today' ? `card elev-sm ${styles.tabActive}` : ''}`}
+        className={`${styles.tab} ${active === 'today' ? `card elev-sm ${styles.tab_active}` : ''}`}
         aria-current={active === 'today' ? 'page' : undefined}
         onClick={() => onChange('today')}
       >
@@ -33,7 +33,7 @@ export function MobileTabBar({ active, onChange, todayLabel }: MobileTabBarProps
       </button>
       <button
         type="button"
-        className={`${styles.tab} ${active === 'calendar' ? `card elev-sm ${styles.tabActive}` : ''}`}
+        className={`${styles.tab} ${active === 'calendar' ? `card elev-sm ${styles.tab_active}` : ''}`}
         aria-current={active === 'calendar' ? 'page' : undefined}
         onClick={() => onChange('calendar')}
       >

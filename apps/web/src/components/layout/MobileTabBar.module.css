@@ -32,7 +32,7 @@
   outline-offset: 2px;
 }
 
-.tabActive {
+.tab_active {
   font-weight: 700;
   color: var(--app-text);
 }

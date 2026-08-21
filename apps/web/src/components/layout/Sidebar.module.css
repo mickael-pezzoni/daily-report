@@ -12,7 +12,7 @@
   overflow: hidden;
 }
 
-.brandRow {
+.brand_row {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -44,7 +44,7 @@
   gap: var(--space-2);
 }
 
-.recentTitle {
+.recent_title {
   flex: none;
   margin: 0;
   font-family: var(--font-body);
@@ -57,7 +57,7 @@
    une hauteur quasi nulle pour les faire tenir, plutôt que de laisser
    `.recent` déborder et défiler normalement. `flex: none` les en empêche —
    chaque lien garde sa hauteur naturelle, l'excédent revient au scroll. */
-.recentItem {
+.recent_item {
   flex: none;
   font-size: 12px;
   color: var(--app-text-subtle);
@@ -66,11 +66,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.recentItem:hover {
+.recent_item:hover {
   color: var(--app-link);
 }
 
-.recentEmpty {
+.recent_empty {
   margin: 0;
   font-size: 12px;
   color: var(--app-text-muted);

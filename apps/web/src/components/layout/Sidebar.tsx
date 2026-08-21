@@ -30,7 +30,7 @@ export function Sidebar({
     <aside className={styles.sidebar}>
       {/* Le menu utilisateur vivait ici ; la maquette l'a déplacé dans
           l'en-tête de droite. La barre latérale ne porte plus que le titre. */}
-      <div className={styles.brandRow}>
+      <div className={styles.brand_row}>
         <Link to="/" className={styles.brand}>
           {t('app.name')}
         </Link>
@@ -45,12 +45,12 @@ export function Sidebar({
       />
 
       <section className={styles.recent}>
-        <h2 className={styles.recentTitle}>{t('sidebar.recentTitle')}</h2>
+        <h2 className={styles.recent_title}>{t('sidebar.recentTitle')}</h2>
         {recent.length === 0 ? (
-          <p className={styles.recentEmpty}>{t('sidebar.recentEmpty')}</p>
+          <p className={styles.recent_empty}>{t('sidebar.recentEmpty')}</p>
         ) : (
           recent.map((note) => (
-            <Link key={note.id} to={`/notes/${note.date}`} className={styles.recentItem}>
+            <Link key={note.id} to={`/notes/${note.date}`} className={styles.recent_item}>
               {format.dayShort(note.date)}
               {note.title ? ` — ${note.title}` : ''}
             </Link>

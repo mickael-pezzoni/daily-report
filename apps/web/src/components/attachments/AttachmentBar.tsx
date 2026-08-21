@@ -37,7 +37,7 @@ export function AttachmentBar({
   const count = items.length
 
   return (
-    <div className={`${styles.bar} ${dragging ? styles.barDragging : ''}`}>
+    <div className={`${styles.bar} ${dragging ? styles.bar_dragging : ''}`}>
       <button
         type="button"
         className={styles.header}

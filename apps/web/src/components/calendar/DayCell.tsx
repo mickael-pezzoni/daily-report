@@ -19,9 +19,9 @@ interface DayCellProps {
  */
 export function DayCell({ iso, dayOfMonth, outside, selected, today, hasNote, onSelect }: DayCellProps) {
   const classes = [styles.day]
-  if (outside) classes.push(styles.dayOutside)
-  if (selected) classes.push(styles.daySelected)
-  else if (today) classes.push(styles.dayToday)
+  if (outside) classes.push(styles.day_outside)
+  if (selected) classes.push(styles.day_selected)
+  else if (today) classes.push(styles.day_today)
 
   return (
     <button

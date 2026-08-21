@@ -65,7 +65,7 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
 
       <button
         type="button"
-        className={styles.menuButton}
+        className={styles.menu_button}
         onClick={() => setMenuOpen((open) => !open)}
         aria-expanded={menuOpen}
         aria-label={t('attachments.actionsFor', { filename: attachment.filename })}
@@ -75,10 +75,10 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
 
       {menuOpen ? (
         <div className={`card elev-lg ${styles.menu}`} role="menu">
-          <a href={url} className={styles.menuItem} download onClick={() => setMenuOpen(false)}>
+          <a href={url} className={styles.menu_item} download onClick={() => setMenuOpen(false)}>
             {t('attachments.download')}
           </a>
-          <button type="button" className={styles.menuItem} onClick={() => void handleRemove()}>
+          <button type="button" className={styles.menu_item} onClick={() => void handleRemove()}>
             {t('attachments.remove')}
           </button>
         </div>

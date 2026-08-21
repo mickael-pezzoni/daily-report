@@ -32,7 +32,7 @@
   outline-offset: 2px;
 }
 
-.monthLabel {
+.month_label {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -46,10 +46,10 @@
   border-radius: 999px;
   padding: 4px 12px;
 }
-.monthLabel:hover {
+.month_label:hover {
   background: var(--app-day-hover);
 }
-.monthLabel:focus-visible {
+.month_label:focus-visible {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
 }
@@ -70,7 +70,7 @@
   gap: var(--space-2);
 }
 
-.pickerHeader {
+.picker_header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -78,14 +78,14 @@
   font-size: 12px;
 }
 
-.pickerGrid {
+.picker_grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
 }
 
-.pickerMonth,
-.pickerMonthActive {
+.picker_month,
+.picker_month_active {
   border: 0;
   cursor: pointer;
   font: inherit;
@@ -96,21 +96,21 @@
   background: transparent;
   color: var(--app-text-subtle);
 }
-.pickerMonth:hover {
+.picker_month:hover {
   background: var(--app-day-hover);
 }
-.pickerMonthActive {
+.picker_month_active {
   background: var(--app-day-selected);
   color: var(--app-text-on-accent);
   font-weight: 700;
 }
-.pickerMonth:focus-visible,
-.pickerMonthActive:focus-visible {
+.picker_month:focus-visible,
+.picker_month_active:focus-visible {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
 }
 
-.pickerHint {
+.picker_hint {
   margin: 0;
   font-size: 10.5px;
   color: var(--app-text-muted);
@@ -130,7 +130,7 @@
   text-align: center;
 }
 
-/* Les états d'une case de jour (.day, .dayOutside, .dayToday, .daySelected,
+/* Les états d'une case de jour (.day, .day_outside, .day_today, .day_selected,
    .dot) vivent dans DayCell.module.css — partagés avec la bande de semaine
    mobile, voir WeekStrip. */
 

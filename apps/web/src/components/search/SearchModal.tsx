@@ -136,7 +136,7 @@ export function SearchModal({ onNavigate, onClose, onDelete }: SearchModalProps)
     >
       <div className={`card elev-lg ${styles.panel}`}>
         <div className={styles.header}>
-          <div className={styles.inputWrapper}>
+          <div className={styles.input_wrapper}>
             <span className={styles.icon} aria-hidden="true">
               ⌕
             </span>
@@ -211,8 +211,8 @@ export function SearchModal({ onNavigate, onClose, onDelete }: SearchModalProps)
         </div>
 
         <div className={styles.footer}>
-          <p className={styles.footerHint}>{t('search.attachmentsHint')}</p>
-          <p className={`${styles.footerHint} ${styles.footerHintCentered}`}>
+          <p className={styles.footer_hint}>{t('search.attachmentsHint')}</p>
+          <p className={`${styles.footer_hint} ${styles.footer_hint_centered}`}>
             {t('search.keyboardHint')}
           </p>
         </div>

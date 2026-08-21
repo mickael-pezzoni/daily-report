@@ -83,7 +83,7 @@ export function UserMenu() {
         // écrit. Il ne sert donc qu'au repli, quand il n'y a rien à lire.
         aria-label={name ? undefined : t('auth.menu.open')}
       >
-        <span className={styles.avatarDot} aria-hidden="true">
+        <span className={styles.avatar_dot} aria-hidden="true">
           👤
         </span>
         {name ? <span className={styles.name}>{name}</span> : null}
@@ -128,7 +128,7 @@ export function UserMenu() {
 
           <button
             type="button"
-            className={`${styles.item} ${styles.signOut}`}
+            className={`${styles.item} ${styles.sign_out}`}
             onClick={handleSignOut}
             disabled={pending}
           >

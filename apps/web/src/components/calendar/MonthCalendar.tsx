@@ -51,7 +51,7 @@ export function MonthCalendar({
 
         <button
           type="button"
-          className={styles.monthLabel}
+          className={styles.month_label}
           onClick={() => setPickerOpen((open) => !open)}
           aria-expanded={pickerOpen}
         >
@@ -71,7 +71,7 @@ export function MonthCalendar({
 
       {pickerOpen ? (
         <div className={`card elev-lg ${styles.picker}`}>
-          <div className={styles.pickerHeader}>
+          <div className={styles.picker_header}>
             <button
               type="button"
               className={styles.arrow}
@@ -90,14 +90,14 @@ export function MonthCalendar({
               ›
             </button>
           </div>
-          <div className={styles.pickerGrid}>
+          <div className={styles.picker_grid}>
             {format.monthNames().map((label, index) => {
               const value = `${year}-${String(index + 1).padStart(2, '0')}`
               return (
                 <button
                   type="button"
                   key={value}
-                  className={value === month ? styles.pickerMonthActive : styles.pickerMonth}
+                  className={value === month ? styles.picker_month_active : styles.picker_month}
                   onClick={() => {
                     onMonthChange(value)
                     setPickerOpen(false)
@@ -108,7 +108,7 @@ export function MonthCalendar({
               )
             })}
           </div>
-          <p className={styles.pickerHint}>{t('calendar.pickerHint')}</p>
+          <p className={styles.picker_hint}>{t('calendar.pickerHint')}</p>
         </div>
       ) : null}
 
