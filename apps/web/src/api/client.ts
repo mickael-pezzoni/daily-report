@@ -77,8 +77,10 @@ export const api = {
       const found = await request<NoteListItem[]>(`/notes?date=${date}`)
       return found[0] ?? null
     },
-    /** Les derniers jours rédigés, pièces jointes comprises — les cartes de 2f. */
+    /** Les derniers jours rédigés, pièces jointes comprises — la colonne latérale et l'onglet Calendrier mobile. */
     recent: (limit: number) => request<NoteListItem[]>(`/notes?limit=${limit}`),
+    /** Les notes d'une semaine, bornes incluses — le condensé des écrans 2f/2g. */
+    week: (from: string, to: string) => request<NoteListItem[]>(`/notes?from=${from}&to=${to}&limit=7`),
     /** Recherche plein texte (titre, contenu, noms de pièces jointes) — écran 2c. */
     search: (q: string, options: SearchOptions = {}) => {
       const params = new URLSearchParams({ q })

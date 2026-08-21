@@ -99,13 +99,13 @@ function excerptAroundMatch(text: string, query: string): ReactNode {
  *
  * C'est la carte de résultat de l'écran 2c, et celle des « derniers jours » de
  * l'onglet Calendrier mobile (2b) — la maquette leur donne la même forme. À ne
- * pas confondre avec `RecentNoteCard`, le post-it incliné de l'écran 2f, qui
- * reste une forme à part.
+ * pas confondre avec les rangées de `WeekDigest` (2f/2g), plus simples — pas
+ * de bouton « supprimer » — et sans bordure.
  *
  * Toute la carte ouvre la journée : le bouton de la date est étiré en
  * `::after` par-dessus, et « supprimer » repasse au-dessus de lui en
  * `z-index`. Un bouton dans un bouton n'existe pas — c'est ce qui interdit la
- * solution évidente, exactement comme dans `RecentNoteCard`.
+ * solution évidente.
  */
 export function NoteResultCard({
   note,
@@ -178,7 +178,7 @@ export function NoteResultCard({
       ) : null}
 
       {matchingFiles.map((attachment) => (
-        <div key={attachment.id} className={styles.fileMatch}>
+        <div key={attachment.id} className={styles.file_match}>
           {isPreviewableImage(attachment.mimeType) ? (
             <img
               src={api.attachments.contentUrl(attachment.id)}
@@ -187,11 +187,11 @@ export function NoteResultCard({
               loading="lazy"
             />
           ) : (
-            <span className={styles.thumbFallback}>
+            <span className={styles.thumb_fallback}>
               {extensionLabel(attachment.filename) ?? t('attachments.unknownType')}
             </span>
           )}
-          <span className={styles.fileName}>{attachment.filename}</span>
+          <span className={styles.file_name}>{attachment.filename}</span>
         </div>
       ))}
 

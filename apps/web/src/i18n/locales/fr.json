@@ -113,11 +113,18 @@
 
   "empty": {
     "title": "Aucune note ouverte",
-    "resume": "Reprendre où vous en étiez",
-    "blank": "Votre journal est vierge",
     "hint": "Choisissez un jour dans le calendrier, ou ＋ Note pour aujourd'hui.",
     "mobileNoNote": "Aucune note pour aujourd'hui",
-    "mobileCreate": "Créer la note du jour"
+    "mobileCreate": "Créer la note du jour",
+    "week": {
+      "heading": "Votre semaine",
+      "backToCurrent": "↩ Cette semaine",
+      "daysWithoutNote_one": "{{count}} jour sans note",
+      "daysWithoutNote_other": "{{count}} jours sans note",
+      "emptyTitle": "Aucune note cette semaine",
+      "emptyDescription": "Vos notes apparaîtront ici dès que vous en aurez écrit une.",
+      "emptyCta": "＋ Écrire la note du {{day}}"
+    }
   },
 
   "card": {

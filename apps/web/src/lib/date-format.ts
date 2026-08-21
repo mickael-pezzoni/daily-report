@@ -15,6 +15,10 @@ export interface DateFormat {
   dayLong(iso: string): string
   /** `ven. 31 juil.` — les cartes et la liste « derniers jours ». */
   dayShort(iso: string): string
+  /** `ven. 31` — les rangées du condensé de semaine (2f/2g), le mois y est déjà dans l'en-tête. */
+  weekdayShort(iso: string): string
+  /** `27 juil. – 2 août` — l'en-tête du condensé de semaine (2f/2g). */
+  weekRange(startIso: string, endIso: string): string
   /** `août 2026` — l'en-tête du calendrier. */
   month(month: string): string
   /** Les douze mois abrégés, pour le sélecteur. */
@@ -42,6 +46,16 @@ function build(locale: string): DateFormat {
     month: 'short',
     timeZone: 'UTC',
   })
+  const weekday = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+  const dayMonth = new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  })
   const monthYear = new Intl.DateTimeFormat(locale, {
     month: 'long',
     year: 'numeric',
@@ -53,6 +67,9 @@ function build(locale: string): DateFormat {
   return {
     dayLong: (iso) => longDay.format(toUtcNoon(iso)),
     dayShort: (iso) => shortDay.format(toUtcNoon(iso)),
+    weekdayShort: (iso) => weekday.format(toUtcNoon(iso)),
+    weekRange: (startIso, endIso) =>
+      `${dayMonth.format(toUtcNoon(startIso))} – ${dayMonth.format(toUtcNoon(endIso))}`,
     month: (month) => monthYear.format(new Date(`${month}-01T12:00:00Z`)),
     monthNames: () =>
       Array.from({ length: 12 }, (_, index) =>

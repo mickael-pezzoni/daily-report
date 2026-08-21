@@ -56,9 +56,10 @@ Pas de suite de tests dans ce dépôt pour l'instant.
 `Co-Authored-By:`, pas de mention « Generated with… », pas de signature d'aucune
 sorte. L'auteur du commit est celui que git a configuré, et lui seul.
 
-Message en français, sur le modèle de l'historique : une ligne de titre en
-phrase nominale, puis un corps qui dit **pourquoi** plutôt que quoi — le diff
-dit déjà quoi.
+Message en français, sur le modèle de l'historique : une ligne de titre au
+format **Conventional Commits** — `type:` ou `type(scope):` (`feat`, `fix`,
+`refactor`, `chore`, `docs`…), suivi d'une phrase nominale — puis un corps qui
+dit **pourquoi** plutôt que quoi — le diff dit déjà quoi.
 
 Commits directement sur `main` : ce dépôt n'utilise pas de branches.
 
@@ -238,26 +239,41 @@ d'un cran dès que le fuseau n'est pas UTC. `src/db/index.ts` pose donc
   session. Sans elle, après la création du premier compte puis une déconnexion,
   on garderait un `hasAccount: false` périmé et on renverrait vers un écran
   d'inscription que le serveur refuse.
-- `RecentNoteCard` (écran 2f) : la maquette n'y laisse qu'une action explicite,
-  « supprimer ». C'est donc la **carte entière qui ouvre la journée**, par un
-  lien étiré en `::after` sur toute la carte, le bouton de suppression repassant
-  au-dessus en `z-index`. Un bouton ne peut pas être imbriqué dans un lien —
-  c'est ce qui interdit la solution évidente. Les aperçus de pièces jointes sont
-  en `pointer-events: none` pour que le clic les traverse.
-- **Deux formes de carte pour une journée, à ne pas confondre.**
-  `RecentNoteCard` est le post-it incliné de l'écran 2f, et n'y sert que là.
-  `NoteResultCard` est la **rangée pleine largeur** : résultats de la
-  recherche (2c) *et* « derniers jours » de l'onglet Calendrier mobile (2b) —
-  la maquette leur donne la même forme. Il reprend le bouton étiré en
-  `::after` de `RecentNoteCard` (un bouton dans un bouton n'existe pas non
-  plus), et son `onOpen` est un rappel plutôt qu'un `<Link>` : la modale de
-  recherche doit se refermer en même temps qu'elle navigue.
-  Le `query` y est **facultatif** — sans lui, pas de surlignage ni de pièces
-  jointes listées, ce qui est exactement ce que veut la liste mobile.
-- La suppression depuis une carte est **optimiste** : `AppShell` retire la carte
-  et la pastille du calendrier avant la réponse (un `204` n'a rien à apprendre à
-  la vue), recharge la liste derrière — une quatrième note peut remonter — et
-  recharge le mois si l'appel a échoué.
+- `WeekDigest` (écrans 2f et 2g) : le condensé de semaine de la colonne de
+  droite quand aucune note n'est ouverte. Autonome — sa propre ancre de
+  semaine (`startOfWeek(todayISO())` au montage) plutôt qu'un état porté par
+  `AppShell`, puisque rien d'autre à l'écran n'en dépend. Chaque rangée est un
+  `<Link>` pleine largeur (date + extrait + étiquette « N fichiers »),
+  **sans bouton supprimer** — contrairement à `NoteResultCard`, la maquette
+  n'en met pas ici. Ne liste que les jours **ayant** une note ; les jours
+  vierges de la semaine ne comptent que dans l'étiquette « N jours sans
+  note ». **2g** est l'état d'une semaine sans aucune note : le message centré
+  et le bouton « ＋ Écrire la note du … » remplacent la liste et les
+  étiquettes — il ouvre le **premier jour de la semaine affichée**
+  (`anchor`, pas `todayISO()`) : naviguer vers une semaine passée vide puis
+  cliquer doit écrire ce lundi-là, pas rouvrir la journée du jour.
+  Consomme `GET /api/notes?from=…&to=…` — la borne haute incluse qu'`from`
+  n'avait pas avant cet écran, symétrique et cumulable avec elle.
+  « ↩ Cette semaine » ne s'affiche que si `anchor` s'est éloigné de la semaine
+  courante (`anchor !== startOfWeek(todayISO())`) — inutile d'offrir un retour
+  vers là où l'on se trouve déjà. Il vit **devant** la flèche ‹, pas après la
+  flèche › : apparaître et disparaître à la fin de la rangée décalerait la
+  plage de dates et les flèches à chaque franchissement de la semaine
+  courante, alors que devant elles seul son propre texte bouge.
+- **Deux formes de rangée pour une journée, à ne pas confondre.**
+  `NoteResultCard` est la carte élevée (`.card elev-sm`) des résultats de
+  recherche (2c) *et* des « derniers jours » de l'onglet Calendrier mobile
+  (2b) — la maquette leur donne la même forme, bouton « supprimer » compris.
+  Les rangées de `WeekDigest` (2f/2g) sont plus nues — un simple `border-bottom`,
+  sans bouton ni surlignage — puisque la maquette ne leur donne aucune
+  action de suppression. Le `query` de `NoteResultCard` est **facultatif** —
+  sans lui, pas de surlignage ni de pièces jointes listées, ce qui est
+  exactement ce que veut la liste mobile.
+- La suppression depuis une carte de résultat (`NoteResultCard`, écrans 2b/2c)
+  est **optimiste** : `AppShell` retire la note et la pastille du calendrier
+  avant la réponse (un `204` n'a rien à apprendre à la vue), recharge la liste
+  derrière — une note masquée par la limite peut remonter — et recharge le
+  mois si l'appel a échoué. `WeekDigest` n'expose aucune suppression.
 - `UserMenu` (écran 6a) vit dans **l'en-tête de droite**, en 2a comme en 2f, pas
   dans la barre latérale : la maquette l'y a déplacé. Il porte le choix de la
   langue et la déconnexion. Les deux en-têtes qui l'accueillent ont un
@@ -377,14 +393,16 @@ Projet Claude Design « Maquette rapport journalier »
 lisible via l'outil `DesignSync`. Direction retenue : **1b / 2a** — calendrier
 permanent à gauche, éditeur à droite. Écrans implémentés : **2d** (connexion),
 **2e** (premier lancement), **2a** (journée ouverte), **2f** (aucune note
-ouverte), **2c** (recherche globale, en modale) et **6a** (menu utilisateur).
+ouverte, condensé de semaine), **2g** (aucune note ouverte, semaine sans
+note), **2c** (recherche globale, en modale) et **6a** (menu utilisateur).
 
 ⚠️ **La maquette bouge.** Relire le fichier avant de toucher un écran plutôt que
 de se fier à ce document. Révisions déjà encaissées : le menu utilisateur est
-passé de la barre latérale à l'en-tête de droite, les cartes de 2f ont perdu
-leur action « ouvrir », et l'en-tête de 2f a perdu son bouton « ＋ Note » — il
-n'y reste que le titre et le menu utilisateur, le geste restant offert par la
-barre latérale.
+passé de la barre latérale à l'en-tête de droite, l'en-tête de 2f a perdu son
+bouton « ＋ Note » — il n'y reste que le titre et le menu utilisateur, le geste
+restant offert par la barre latérale — et 2f a remplacé sa colonne de post-it
+inclinés (`RecentNoteCard`, abandonné) par le condensé de semaine navigable
+`WeekDigest`, avec son pendant à vide 2g.
 
 ## Ce qui n'existe pas encore
 
@@ -400,24 +418,25 @@ barre latérale.
   liste compacte (3b), la grille (3c) et le panneau latéral rétractable (4a/4b)
   sont des explorations. C'est le tiroir de pied 2a-open qui est implémenté.
 - **Export** PDF/.md : le bouton `⌕` et « Exporter ▾ » de l'en-tête 2a ne sont
-  volontairement pas rendus, pour ne pas livrer de commande morte. La barre
-  « Rechercher dans toutes mes notes… » de 2f, elle, l'est : `EmptyState`
-  l'ouvre par un `onOpenSearch` remonté jusqu'à `setSearchOpen` d'`AppShell`,
-  seul propriétaire de l'état d'ouverture de `SearchModal`. Uniquement sur
-  desktop (masquée sous 900 px comme `.desktopRecent`) : elle ouvre la même
-  modale que Ctrl+K/⌘K, un raccourci clavier n'a donc de sens que là où le
-  clavier est la norme — l'onglet Calendrier mobile porte son propre champ
-  dans la maquette, pas encore branché.
+  volontairement pas rendus, pour ne pas livrer de commande morte. Les deux
+  barres de recherche de la maquette (« Rechercher dans toutes mes notes… »
+  de 2f, « chercher dans mes notes… » de l'onglet Calendrier mobile 2b), elles,
+  le sont : chacune ouvre la même `SearchModal` via un `onOpenSearch` (2f) ou
+  un clic direct (`.calendar_search`, 2b) remonté jusqu'à `setSearchOpen`
+  d'`AppShell`, seul propriétaire de l'état d'ouverture. La barre de 2f est
+  masquée sous 900 px comme `.desktop_week` : elle affiche le raccourci
+  Ctrl+K/⌘K, qui n'a de sens que là où le clavier est la norme — la version
+  mobile n'en montre pas.
 - **Contenu des PDF** : la maquette 2c annonce que les pièces jointes sont
   fouillées « nom de fichier **et contenu PDF** ». Seul le nom l'est ; rien
   n'extrait le texte d'un PDF aujourd'hui. La mention rendue par
   `SearchModal` ne parle donc que du nom de fichier — écart assumé avec la
   maquette, plutôt que de promettre ce que la recherche ne fait pas.
-- **Étiquette « brouillon »** : la maquette 2f la pose sur une des trois cartes.
-  Rien dans le modèle ne distingue un brouillon d'une note finie — il n'y a ni
-  colonne d'état ni geste de publication. L'étiquette attend qu'on décide ce
-  qu'elle veut dire ; les cartes rendent les seules qui ont un référent réel,
-  « N fichiers ».
+- **Étiquette « brouillon »** : la maquette 2f la pose sur une des rangées de
+  son condensé de semaine. Rien dans le modèle ne distingue un brouillon d'une
+  note finie — il n'y a ni colonne d'état ni geste de publication. L'étiquette
+  attend qu'on décide ce qu'elle veut dire ; `WeekDigest` ne rend que
+  l'étiquette qui a un référent réel, « N fichiers ».
 - **Écran mobile 2b** : barre d'onglets Aujourd'hui/Calendrier/Exporter, calendrier
   plein écran. Il n'y a pour l'instant qu'un repli responsive sous 900 px, où la
   barre latérale passe au-dessus du contenu.

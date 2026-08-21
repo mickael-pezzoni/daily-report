@@ -28,13 +28,6 @@
   flex: 1;
 }
 
-/* Distinct de `.spacer` : celui-ci pousse le texte d'aide en bas sur
-   desktop, et doit pouvoir disparaître seul sous 900 px sans emporter le
-   spacer de l'en-tête, qui partage la même classe `.spacer` par ailleurs. */
-.bodySpacer {
-  flex: 1;
-}
-
 .body {
   flex: 1;
   min-height: 0;
@@ -69,32 +62,20 @@
   outline-offset: 2px;
 }
 
-.searchLabel {
+.search_label {
   flex: 1;
   text-align: left;
 }
 
-.searchShortcut {
+.search_shortcut {
   font-size: 11px;
 }
 
-.heading {
-  margin: 0;
-  font-family: var(--font-heading);
-  font-weight: var(--font-heading-weight);
-  font-size: 20px;
-}
-
-/* Une rangée qui s'enroule, plutôt qu'une pile — les cartes ont désormais une
-   taille fixe (post-it) et n'ont plus besoin de toute la largeur. Un peu de
-   padding vertical : les cartes sont pivotées, leur ombre serait rognée par
-   le bord du conteneur défilant sans cette marge. */
-.cards {
+.desktop_week {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-  padding: var(--space-2) 0;
+  flex-direction: column;
 }
 
 .hint {
@@ -103,13 +84,13 @@
   color: var(--app-text-muted);
 }
 
-.mobileCreate {
+.mobile_create {
   display: none;
 }
 
 /* Le bouton lui-même : rond, 64 px, juste le glyphe — le texte qui explique
-   l'action vit à côté (`.mobileCreateHint`), pas dedans. */
-.mobileCreateButton {
+   l'action vit à côté (`.mobile_create_hint`), pas dedans. */
+.mobile_create_button {
   flex: none;
   width: 64px;
   height: 64px;
@@ -120,7 +101,7 @@
   place-items: center;
 }
 
-.mobileCreateHint {
+.mobile_create_hint {
   margin: 0;
   font-size: 13px;
   color: var(--app-text-muted);
@@ -129,13 +110,12 @@
 
 @media (max-width: 900px) {
   .search,
-  .desktopRecent,
-  .bodySpacer,
+  .desktop_week,
   .hint {
     display: none;
   }
 
-  .mobileCreate {
+  .mobile_create {
     flex: 1;
     display: flex;
     flex-direction: column;

@@ -8,8 +8,8 @@
 
 /* Panneau de l'onglet Aujourd'hui — la note ouverte ou l'état vide. Toujours
    visible au-dessus de 900 px (c'est le contenu desktop), replié par le
-   pendant mobile de `.paneInactive` en dessous. */
-.notePane {
+   pendant mobile de `.pane_inactive` en dessous. */
+.note_pane {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -20,13 +20,13 @@
 /* Panneau de l'onglet Calendrier — n'existe que sur mobile, voir la media
    query ci-dessous. Absent du desktop, qui a déjà son calendrier dans
    `Sidebar`. */
-.calendarPane {
+.calendar_pane {
   display: none;
 }
 
 /* Écran mobile 2b : deux onglets plutôt que deux colonnes. `Sidebar` (le
    calendrier du mois + derniers jours desktop) disparaît complètement — voir
-   Sidebar.module.css — au profit de `.calendarPane` (bande de semaine) et du
+   Sidebar.module.css — au profit de `.calendar_pane` (bande de semaine) et du
    pied d'onglets. Hauteur fixe comme le desktop : c'est aux panneaux de
    défiler en interne, pas à la page, pour que le pied d'onglets reste ancré
    comme dans une vraie appli. */
@@ -36,7 +36,7 @@
     overflow: hidden;
   }
 
-  .calendarPane {
+  .calendar_pane {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -44,26 +44,45 @@
     overflow-y: auto;
   }
 
-  .paneInactive {
+  .pane_inactive {
     display: none;
   }
 }
 
-.calendarRecent {
+.calendar_search {
+  /* `.input` (global) fixe `width: 100%` : sans ce `width: auto`, les marges
+     ci-dessous s'ajouteraient à ce 100% au lieu de le réduire, et le bouton
+     déborderait de l'écran. `.calendar_pane` est en `flex-direction: column`
+     avec l'`align-items: stretch` par défaut, qui étire un item `width: auto`
+     jusqu'au bord du conteneur *en tenant compte de la marge* — c'est cette
+     étirette qui refait le plein-largeur, correctement cette fois. */
+  width: auto;
+  margin: var(--space-4) var(--space-4) 0;
+  text-align: left;
+  color: var(--app-text-muted);
+  cursor: pointer;
+}
+
+.calendar_search:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+.calendar_recent {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-4);
 }
 
-.calendarRecentTitle {
+.calendar_recent_title {
   margin: 0;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
   font-size: 16px;
 }
 
-.calendarRecentEmpty {
+.calendar_recent_empty {
   margin: 0;
   font-size: 13px;
   color: var(--app-text-muted);
@@ -73,7 +92,7 @@
    de post-it qui s'enroule du desktop : ce panneau n'existe que sous 900 px,
    où les cartes inclinées n'ont ni la place de tenir côte à côte, ni celle de
    montrer un extrait lisible. */
-.calendarRecentCards {
+.calendar_recent_cards {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

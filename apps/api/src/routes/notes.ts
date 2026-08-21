@@ -80,6 +80,9 @@ async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachm
  *                                    fichiers avec `files`. Défaut : `all`.
  * `GET /api/notes?from=YYYY-MM-DD` — borne basse sur la date, cumulable avec le
  *                                    reste (c'est le filtre « cette année »).
+ * `GET /api/notes?to=YYYY-MM-DD`   — borne haute incluse, cumulable avec
+ *                                    `from` (c'est le condensé de semaine des
+ *                                    écrans 2f/2g).
  *
  * Chaque élément embarque ses pièces jointes : les cartes de l'écran « aucune
  * note ouverte » les affichent, et le détail `GET /api/notes/:id` n'est pas le
@@ -89,6 +92,7 @@ notes.get('/', async (c) => {
   const userId = c.get('userId')
   const date = c.req.query('date')
   const from = c.req.query('from')
+  const to = c.req.query('to')
   const limitParam = c.req.query('limit')
   const qParam = c.req.query('q')
   const scope = c.req.query('scope') ?? 'all'
@@ -103,6 +107,11 @@ notes.get('/', async (c) => {
   if (from !== undefined) {
     if (!isValidDate(from)) return c.json({ error: 'invalid from, expected YYYY-MM-DD' }, 400)
     query = query.where('noteDate', '>=', from)
+  }
+
+  if (to !== undefined) {
+    if (!isValidDate(to)) return c.json({ error: 'invalid to, expected YYYY-MM-DD' }, 400)
+    query = query.where('noteDate', '<=', to)
   }
 
   const q = qParam?.trim()

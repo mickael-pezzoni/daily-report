@@ -101,7 +101,7 @@
 }
 
 /* — la pièce jointe dont le nom a répondu : vignette puis nom — */
-.fileMatch {
+.file_match {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -118,7 +118,7 @@
 }
 
 /* Pas d'aperçu possible : la pastille d'extension, comme dans le tiroir. */
-.thumbFallback {
+.thumb_fallback {
   width: 56px;
   height: 40px;
   border-radius: var(--radius-sm);
@@ -130,7 +130,7 @@
   letter-spacing: 0.02em;
 }
 
-.fileName {
+.file_name {
   font-size: 11px;
   color: var(--app-text-muted);
   overflow: hidden;

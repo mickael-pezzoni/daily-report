@@ -82,14 +82,4 @@
   /* — jauge de robustesse du mot de passe — */
   --app-meter-filled: var(--color-accent-2);
   --app-meter-empty: var(--color-neutral-300);
-
-  /* — cartes « post-it » des jours récents (2f) —
-     Trois teintes qui alternent carte après carte ; « ink » habille le texte
-     et l'extrait pour rester lisible sur son propre fond. */
-  --app-note-card-a-bg: var(--color-accent-200);
-  --app-note-card-a-ink: var(--color-accent-800);
-  --app-note-card-b-bg: var(--color-accent-2-200);
-  --app-note-card-b-ink: var(--color-accent-2-800);
-  --app-note-card-c-bg: var(--color-neutral-300);
-  --app-note-card-c-ink: var(--color-neutral-800);
 }

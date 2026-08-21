@@ -108,12 +108,13 @@ export function AppShell() {
   )
 
   /**
-   * Suppression depuis une carte de l'écran 2f.
+   * Suppression depuis une carte de recherche (2c) ou de l'onglet Calendrier
+   * mobile (2b) — le condensé de semaine de 2f/2g n'en propose pas.
    *
-   * On retire la carte et la pastille du calendrier tout de suite — la réponse
+   * On retire la note et la pastille du calendrier tout de suite — la réponse
    * est un 204 sans corps, il n'y a rien à attendre pour savoir quoi peindre —
-   * puis on recharge la liste : trois cartes étaient affichées, une quatrième
-   * peut maintenant remonter.
+   * puis on recharge la liste : d'autres notes étaient masquées par la limite,
+   * une nouvelle peut maintenant remonter.
    */
   const handleNoteDeleted = useCallback(
     (note: NoteListItem) => {
@@ -148,17 +149,13 @@ export function AppShell() {
       />
 
       {/* Onglet Aujourd'hui — toujours monté : c'est la vue desktop, et sur
-          mobile `.notePane` la masque en CSS quand l'autre onglet est actif,
+          mobile `.note_pane` la masque en CSS quand l'autre onglet est actif,
           plutôt que de démonter useNote/useAttachments à chaque bascule. */}
-      <div className={`${styles.notePane} ${mobileTab === 'today' ? '' : styles.paneInactive}`}>
+      <div className={`${styles.note_pane} ${mobileTab === 'today' ? '' : styles.pane_inactive}`}>
         {date ? (
           <NoteView key={date} date={date} onNoteSaved={handleNoteSaved} />
         ) : (
-          <EmptyState
-            recent={recent}
-            onDelete={handleNoteDeleted}
-            onOpenSearch={() => setSearchOpen(true)}
-          />
+          <EmptyState onOpenSearch={() => setSearchOpen(true)} />
         )}
       </div>
 
@@ -168,10 +165,22 @@ export function AppShell() {
           partagent le même panneau.
 
           Les journées y prennent la forme en rangée de la maquette 2b — la
-          même que les résultats de recherche (2c) — et non le post-it incliné
-          de `RecentNoteCard` : à cette largeur, une colonne de cartes
-          tournées gaspille la place et tronque l'extrait. */}
-      <div className={`${styles.calendarPane} ${mobileTab === 'calendar' ? '' : styles.paneInactive}`}>
+          même que les résultats de recherche (2c) — plutôt que celle du
+          condensé de semaine de `WeekDigest` (2f/2g) : à cette largeur, une
+          rangée sans navigation de semaine reste plus simple à faire défiler. */}
+      <div className={`${styles.calendar_pane} ${mobileTab === 'calendar' ? '' : styles.pane_inactive}`}>
+        {/* La barre « chercher dans mes notes… » de la maquette 2b : la même
+            modale que Ctrl+K/⌘K et que la barre de 2f, pas un second système
+            de recherche. Un raccourci clavier n'a pas de sens ici — pas de
+            hint « ⌘K » comme sur desktop. */}
+        <button
+          type="button"
+          className={`input ${styles.calendar_search}`}
+          onClick={() => setSearchOpen(true)}
+        >
+          {t('search.placeholder')}
+        </button>
+
         <WeekStrip
           anchor={weekAnchor}
           onAnchorChange={handleWeekChange}
@@ -180,12 +189,12 @@ export function AppShell() {
           daysWithNotes={daysWithNotes}
         />
 
-        <section className={styles.calendarRecent}>
-          <h2 className={styles.calendarRecentTitle}>{t('sidebar.recentTitle')}</h2>
+        <section className={styles.calendar_recent}>
+          <h2 className={styles.calendar_recent_title}>{t('sidebar.recentTitle')}</h2>
           {recent.length === 0 ? (
-            <p className={styles.calendarRecentEmpty}>{t('sidebar.recentEmpty')}</p>
+            <p className={styles.calendar_recent_empty}>{t('sidebar.recentEmpty')}</p>
           ) : (
-            <div className={styles.calendarRecentCards}>
+            <div className={styles.calendar_recent_cards}>
               {recent.map((note) => (
                 <NoteResultCard
                   key={note.id}
