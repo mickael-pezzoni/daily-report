@@ -83,6 +83,7 @@
 
   "note": {
     "close": "Close this day",
+    "delete": "Delete this note",
     "titlePlaceholder": "Title for the day…",
     "titleLabel": "Title for the day",
     "bodyPlaceholder": "Tell us about your day…",

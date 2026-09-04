@@ -65,6 +65,15 @@
   flex: 1;
 }
 
+/* Le bouton 🗑 de la maquette 2a — un `.btn-secondary` étroit, sa seule
+   retouche étant la couleur d'alerte de l'icône. */
+.delete {
+  flex-shrink: 0;
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+  color: var(--app-link-hover);
+}
+
 /* Le bureau sur lequel repose la pile de feuilles (maquette 9c/2a). */
 .desk {
   position: relative;

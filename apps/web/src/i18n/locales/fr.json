@@ -83,6 +83,7 @@
 
   "note": {
     "close": "Fermer cette journée",
+    "delete": "Supprimer la note",
     "titlePlaceholder": "Titre de la journée…",
     "titleLabel": "Titre de la journée",
     "bodyPlaceholder": "Racontez votre journée…",

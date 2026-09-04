@@ -42,6 +42,11 @@ export function AppShell() {
   // Écran 2c — recherche globale. Ctrl+K/⌘K depuis n'importe où dans l'app,
   // pas seulement depuis un bouton ; c'est tout l'intérêt du raccourci.
   const [searchOpen, setSearchOpen] = useState(false)
+  // La dernière note supprimée ailleurs que dans la vue qui l'affiche (modale
+  // de recherche ou onglet Calendrier mobile) — `WeekDigest` s'en sert pour se
+  // retirer localement, puisqu'il charge ses notes lui-même et ne les
+  // recevrait sinon jamais.
+  const [deletedNote, setDeletedNote] = useState<DailyNote | null>(null)
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -108,8 +113,9 @@ export function AppShell() {
   )
 
   /**
-   * Suppression depuis une carte de recherche (2c) ou de l'onglet Calendrier
-   * mobile (2b) — le condensé de semaine de 2f/2g n'en propose pas.
+   * Suppression depuis une carte de recherche (2c), l'onglet Calendrier
+   * mobile (2b) ou le bouton 🗑 de la journée ouverte (2a) — le condensé de
+   * semaine de 2f/2g n'en propose pas.
    *
    * On retire la note et la pastille du calendrier tout de suite — la réponse
    * est un 204 sans corps, il n'y a rien à attendre pour savoir quoi peindre —
@@ -117,9 +123,17 @@ export function AppShell() {
    * une nouvelle peut maintenant remonter.
    */
   const handleNoteDeleted = useCallback(
-    (note: NoteListItem) => {
+    (note: DailyNote) => {
       setRecent((notes) => notes.filter((item) => item.id !== note.id))
       setDaysWithNotes((days) => days.filter((day) => day !== note.date))
+      setDeletedNote(note)
+
+      // La note supprimée est celle actuellement ouverte : rester sur cette
+      // route laisserait l'éditeur et le jour du calendrier affichés comme
+      // « ouverts » sur une note qui n'existe plus.
+      if (note.date === date) {
+        void navigate('/', { replace: true })
+      }
 
       api.notes
         .remove(note.id)
@@ -130,7 +144,7 @@ export function AppShell() {
         })
         .finally(loadRecent)
     },
-    [loadMonth, loadRecent, month],
+    [loadMonth, loadRecent, month, date, navigate],
   )
 
   // Une date bricolée dans l'URL ramène à aujourd'hui plutôt qu'à un écran cassé.
@@ -153,9 +167,14 @@ export function AppShell() {
           plutôt que de démonter useNote/useAttachments à chaque bascule. */}
       <div className={`${styles.note_pane} ${mobileTab === 'today' ? '' : styles.pane_inactive}`}>
         {date ? (
-          <NoteView key={date} date={date} onNoteSaved={handleNoteSaved} />
+          <NoteView
+            key={date}
+            date={date}
+            onNoteSaved={handleNoteSaved}
+            onNoteDeleted={handleNoteDeleted}
+          />
         ) : (
-          <EmptyState onOpenSearch={() => setSearchOpen(true)} />
+          <EmptyState onOpenSearch={() => setSearchOpen(true)} deletedNote={deletedNote} />
         )}
       </div>
 

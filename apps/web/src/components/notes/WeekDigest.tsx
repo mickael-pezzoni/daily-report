@@ -1,4 +1,4 @@
-import type { NoteListItem } from '@daily-report/types'
+import type { DailyNote, NoteListItem } from '@daily-report/types'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -6,6 +6,16 @@ import { api } from '../../api/client'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { addDays, addWeeks, startOfWeek, todayISO } from '../../lib/dates'
 import styles from './WeekDigest.module.css'
+
+interface WeekDigestProps {
+  /**
+   * Une note supprimée depuis la recherche, l'onglet Calendrier mobile ou le
+   * bouton 🗑 de la journée ouverte — `WeekDigest` charge ses notes lui-même
+   * et ne les recevrait sinon jamais. Le retrait est local, sur le modèle du
+   * filtre de `SearchModal.handleDelete`.
+   */
+  deletedNote: DailyNote | null
+}
 
 /**
  * Le condensé de semaine des écrans 2f et 2g — le remplaçant des post-it
@@ -17,7 +27,7 @@ import styles from './WeekDigest.module.css'
  * affichée n'a pas besoin de suivre une note ouverte — il n'y en a pas — donc
  * son ancre vit ici plutôt que dans `AppShell`.
  */
-export function WeekDigest() {
+export function WeekDigest({ deletedNote }: WeekDigestProps) {
   const { t } = useTranslation()
   const format = useDateFormat()
   const currentWeek = startOfWeek(todayISO())
@@ -30,6 +40,11 @@ export function WeekDigest() {
       .then(setNotes)
       .catch(() => setNotes([]))
   }, [anchor])
+
+  useEffect(() => {
+    if (!deletedNote) return
+    setNotes((items) => items.filter((item) => item.id !== deletedNote.id))
+  }, [deletedNote])
 
   // Déjà triées par date décroissante : `api.notes.week` n'envoie pas de `q`,
   // et sans lui l'API trie par `noteDate desc` (voir `routes/notes.ts`).

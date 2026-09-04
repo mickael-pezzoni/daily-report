@@ -1,3 +1,4 @@
+import type { DailyNote } from '@daily-report/types'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { todayISO } from '../../lib/dates'
@@ -8,10 +9,12 @@ import styles from './EmptyState.module.css'
 
 interface EmptyStateProps {
   onOpenSearch: () => void
+  /** Une note supprimée depuis la recherche ou l'onglet mobile — voir `WeekDigest`. */
+  deletedNote: DailyNote | null
 }
 
 /** Les écrans 2f/2g : aucune note ouverte, la semaine en condensé. */
-export function EmptyState({ onOpenSearch }: EmptyStateProps) {
+export function EmptyState({ onOpenSearch, deletedNote }: EmptyStateProps) {
   const { t } = useTranslation()
 
   return (
@@ -43,7 +46,7 @@ export function EmptyState({ onOpenSearch }: EmptyStateProps) {
             récents vivent dans l'onglet Calendrier — les répéter ici ferait
             double emploi sur un écran déjà à l'étroit. */}
         <div className={styles.desktop_week}>
-          <WeekDigest />
+          <WeekDigest deletedNote={deletedNote} />
         </div>
 
         {/* Le pendant du « ＋ Note » de la barre latérale desktop, qui
