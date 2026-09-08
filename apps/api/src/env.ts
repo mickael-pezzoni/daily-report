@@ -50,6 +50,13 @@ export const env = {
   WEB_URL: process.env.WEB_URL ?? 'http://localhost:5173',
   PORT: Number(process.env.PORT ?? 3001),
 
+  /**
+   * Racine du build web à servir (image de production uniquement), relative
+   * au répertoire de travail du process — `serveStatic` ne supporte pas les
+   * chemins absolus. Vide en dev : Vite sert le web sur son propre port.
+   */
+  WEB_DIST_DIR: process.env.WEB_DIST_DIR ?? '',
+
   // — Stockage des pièces jointes —
   STORAGE_DRIVER,
   /** Taille maximale d'un fichier déposé. 25 Mio par défaut. */

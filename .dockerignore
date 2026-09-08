@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+apps/api/uploads
+.git
+.direnv
+.env
+.env.*
+!.env.*.example
+*.log
+*.tsbuildinfo
