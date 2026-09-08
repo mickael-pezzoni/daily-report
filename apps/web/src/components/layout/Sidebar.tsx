@@ -1,6 +1,6 @@
 import type { DailyNote } from '@daily-report/types'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { todayISO } from '../../lib/dates'
 import { MonthCalendar } from '../calendar/MonthCalendar'
@@ -25,13 +25,14 @@ export function Sidebar({
   const { t } = useTranslation()
   const format = useDateFormat()
   const navigate = useNavigate()
+  const { projectId } = useParams<{ projectId: string }>()
 
   return (
     <aside className={styles.sidebar}>
       {/* Le menu utilisateur vivait ici ; la maquette l'a déplacé dans
           l'en-tête de droite. La barre latérale ne porte plus que le titre. */}
       <div className={styles.brand_row}>
-        <Link to="/" className={styles.brand}>
+        <Link to={`/projets/${projectId}`} className={styles.brand}>
           {t('app.name')}
         </Link>
       </div>
@@ -40,7 +41,7 @@ export function Sidebar({
         month={month}
         onMonthChange={onMonthChange}
         selected={selected}
-        onSelect={(date) => void navigate(`/notes/${date}`)}
+        onSelect={(date) => void navigate(`/projets/${projectId}/notes/${date}`)}
         daysWithNotes={daysWithNotes}
       />
 
@@ -50,7 +51,7 @@ export function Sidebar({
           <p className={styles.recent_empty}>{t('sidebar.recentEmpty')}</p>
         ) : (
           recent.map((note) => (
-            <Link key={note.id} to={`/notes/${note.date}`} className={styles.recent_item}>
+            <Link key={note.id} to={`/projets/${projectId}/notes/${note.date}`} className={styles.recent_item}>
               {format.dayShort(note.date)}
               {note.title ? ` — ${note.title}` : ''}
             </Link>
@@ -60,7 +61,7 @@ export function Sidebar({
 
       <span className={styles.spacer} />
 
-      <Link to={`/notes/${todayISO()}`} className="btn btn-primary btn-block">
+      <Link to={`/projets/${projectId}/notes/${todayISO()}`} className="btn btn-primary btn-block">
         {t('sidebar.newNote')}
       </Link>
     </aside>

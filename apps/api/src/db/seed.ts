@@ -4,26 +4,31 @@ import { flattenRichText } from '../lib/rich-text.js'
 import { db, pool } from './index.js'
 
 /**
- * Remplit le journal de fausses notes, pour travailler sur des écrans qui ont
- * quelque chose à montrer — cartes de 2f, pastilles du calendrier, navigation
- * entre plusieurs mois.
+ * Fills the journal with fake notes, so there's something to work with on
+ * screens that need real content — 2f's cards, the calendar's dots,
+ * navigation across several months.
  *
- * Deux sources, mises bout à bout dans `ALL_NOTES` : `NOTES`, écrites à la
- * main, qui racontent la construction de ce projet depuis son premier jour ;
- * et `generateFillerNotes()`, qui pioche au hasard dans une banque de phrases
- * pour couvrir les semaines plus anciennes sans les rédiger une à une.
+ * Two sources, concatenated into `ALL_NOTES`: `NOTES`, hand-written, telling
+ * the story of building this project from day one; and `generateFillerNotes()`,
+ * which draws at random from a bank of sentences to cover older weeks without
+ * writing each one by hand.
  *
- * Rejouable : les jours déjà rédigés sont laissés intacts (`ON CONFLICT DO
- * NOTHING` sur la contrainte `UNIQUE (user_id, note_date)`), donc une vraie
- * note ne sera jamais écrasée.
+ * An account now has several projects: `ALL_NOTES` goes into the first one
+ * (the one sign-up — or `seed-account.ts` — created), and `LAMBERT_NOTES`
+ * into a second, created here if it's missing, so there are genuinely two
+ * separate journals to browse rather than one project with an extra name.
  *
- * `content_text` passe par `flattenRichText`, comme les routes : c'est la même
- * règle ici que là-bas — le texte aplati est toujours calculé, jamais écrit à
- * la main, sinon les extraits mentiraient sur le contenu.
+ * Replayable: days already written are left untouched (`ON CONFLICT DO
+ * NOTHING` on the `UNIQUE (project_id, note_date)` constraint), so a real note
+ * is never overwritten.
+ *
+ * `content_text` goes through `flattenRichText`, same as the routes: the same
+ * rule applies here as there — the flattened text is always computed, never
+ * hand-written, or excerpts would lie about the content.
  */
 
-// ── Petits constructeurs de nœuds TipTap, pour que les notes ci-dessous se
-//    lisent comme du texte et non comme du JSON. ─────────────────────────────
+// ── Small TipTap node builders, so the notes below read like text rather
+//    than JSON. ──────────────────────────────────────────────────────────────
 
 type Node = Record<string, unknown>
 
@@ -46,7 +51,7 @@ const bullets = (...items: string[]): Node => ({
   })),
 })
 
-/** Cases à cocher — `checked` dit lesquelles sont faites. */
+/** Checkboxes — `checked` says which ones are done. */
 const tasks = (...items: [string, boolean][]): Node => ({
   type: 'taskList',
   content: items.map(([text, checked]) => ({
@@ -63,7 +68,7 @@ const quote = (text: string): Node => ({
 
 const doc = (...content: Node[]): RichTextDoc => ({ type: 'doc', content })
 
-// ── Les journées ────────────────────────────────────────────────────────────
+// ── The days ─────────────────────────────────────────────────────────────────
 
 interface SeedNote {
   date: string
@@ -449,20 +454,111 @@ const NOTES: SeedNote[] = [
   },
 ]
 
-// ── Remplissage procédural des semaines plus anciennes ──────────────────────
+// ── A second project's journal, for the same account ─────────────────────────
 //
-// Le récit écrit à la main ci-dessus commence le 8 juin (arrivée sur le
-// projet) : avant cette date, il n'y a rien de particulier à raconter — mais
-// un calendrier de test gagne à couvrir plusieurs mois, avec de vrais trous
-// plutôt qu'un damier parfait. `@faker-js/faker` ne sert qu'à tirer au sort
-// (quelle date, quelle phrase, quel jour sauter) : le texte lui-même vient
-// d'une banque écrite à la main, sinon `lorem.sentence()` produirait du faux
-// latin qui jurerait avec le reste du journal.
+// A freelance side engagement, running alongside the notes above rather than
+// inside them — the whole point of seeding a second project is to have a
+// genuinely different journal to switch to, not more entries in the same one.
+// Deliberately shorter than `NOTES`: this is the demo of a second project,
+// not a second novel. 2026-08-05 echoes `NOTES`' "Point client Lambert" entry
+// on purpose — the same day, seen from inside the client project instead of
+// from the outside.
+
+const LAMBERT_NOTES: SeedNote[] = [
+  {
+    date: '2026-07-14',
+    title: 'Cadrage avec Lambert',
+    content: doc(
+      p("Premier rendez-vous avec Lambert pour le site vitrine. Périmètre : une page d'accueil, une page services, un formulaire de contact."),
+      bullets(
+        'Pas de back-office demandé — du contenu statique, mis à jour par nous',
+        'Deadline souhaitée : fin août',
+      ),
+    ),
+  },
+  {
+    date: '2026-07-21',
+    title: 'Première proposition visuelle',
+    content: doc(
+      p('Envoyé deux pistes de direction graphique.'),
+      quote("Lambert préfère la version sobre, avec plus de blanc — l'autre \"fait trop agence\"."),
+    ),
+  },
+  {
+    date: '2026-07-28',
+    title: 'Retours sur les maquettes',
+    content: doc(
+      p('Deuxième aller-retour sur les maquettes.'),
+      bullets(
+        'Palette resserrée à deux couleurs plus le noir',
+        'Le formulaire de contact passe en pied de page plutôt qu\'en page à part',
+      ),
+    ),
+  },
+  {
+    date: '2026-08-05',
+    title: 'Point client Lambert',
+    content: doc(
+      p("Même visio que côté journal principal, vue de ce côté-ci : Lambert demande l'export PDF des fiches services avant même que le site ne soit en ligne."),
+      quote("Poli mais ferme : pas de PDF dans ce forfait. On le chiffrera à part s'il y tient après la mise en ligne."),
+    ),
+  },
+  {
+    date: '2026-08-11',
+    title: 'Intégration',
+    content: doc(
+      p('Débuté l\'intégration des maquettes validées la semaine dernière.'),
+      tasks(
+        ['Page d\'accueil', true],
+        ['Page services', true],
+        ['Formulaire de contact', false],
+      ),
+    ),
+  },
+  {
+    date: '2026-08-18',
+    title: 'Recette avec Lambert',
+    content: doc(
+      p('Première recette en sa présence, sur un environnement de test.'),
+      bullets(
+        "Une faute dans le texte de la page d'accueil",
+        'Le logo est trop petit sur mobile',
+      ),
+      p('Corrections mineures, rien qui décale la date de mise en ligne.'),
+    ),
+  },
+  {
+    date: '2026-08-25',
+    title: 'Mise en ligne',
+    content: doc(
+      p('Site déployé. DNS basculé en fin de matinée, propagé sans accroc.'),
+      quote('Lambert content du résultat — parti sur la version sobre, finalement la bonne idée.'),
+    ),
+  },
+  {
+    date: '2026-09-01',
+    title: 'Suivi post-lancement',
+    content: doc(
+      p('Une semaine après la mise en ligne : analytics posées, aucune erreur remontée.'),
+      p("Rien à ce stade sur l'export PDF — peut-être qu'il n'y tenait pas tant que ça."),
+    ),
+  },
+]
+
+// ── Procedurally filling in older weeks ───────────────────────────────────────
+//
+// The hand-written story above starts on June 8 (joining the project): before
+// that date, there's nothing particular to tell — but a test calendar
+// benefits from covering several months, with real gaps rather than a perfect
+// checkerboard. `@faker-js/faker` is only used to draw at random (which date,
+// which sentence, which day to skip): the text itself comes from a
+// hand-written bank, or `lorem.sentence()` would produce fake Latin that would
+// clash with the rest of the journal.
 
 const FILLER_START = '2026-03-02'
 const FILLER_END = '2026-06-05'
 
-/** Un jour ouvré sur trois n'est simplement pas rédigé — un vrai journal a des trous. */
+/** One weekday out of three is simply left unwritten — a real journal has gaps. */
 const SKIP_PROBABILITY = 0.3
 
 const FILLER_SENTENCES = [
@@ -486,10 +582,10 @@ const FILLER_SENTENCES = [
   'Séance de debug à deux avec Sophie, cause trouvée après coup.',
 ]
 
-/** Une entrée sur trois n'a pas de titre — comme certaines des notes réelles. */
+/** One entry out of three has no title — like some of the real notes. */
 const FILLER_TITLES = ['Journée de routine', 'Petits correctifs', 'Suivi de projet', 'Maintenance', '']
 
-/** Vraies dates calendaires `YYYY-MM-DD`, jours ouvrés, entre deux bornes incluses. */
+/** Real calendar dates `YYYY-MM-DD`, weekdays only, between two inclusive bounds. */
 function weekdaysBetween(start: string, end: string): string[] {
   const days: string[] = []
   const cursor = new Date(`${start}T12:00:00Z`)
@@ -504,7 +600,7 @@ function weekdaysBetween(start: string, end: string): string[] {
   return days
 }
 
-/** Graine fixe : le script reste reproductible d'un lancement à l'autre. */
+/** Fixed seed: the script stays reproducible from one run to the next. */
 function generateFillerNotes(): SeedNote[] {
   faker.seed(20260302)
 
@@ -519,11 +615,44 @@ function generateFillerNotes(): SeedNote[] {
 
 const ALL_NOTES: SeedNote[] = [...generateFillerNotes(), ...NOTES]
 
-// ── Insertion ───────────────────────────────────────────────────────────────
+/** Created if the account's second project doesn't exist yet — see `seed()`. */
+const SECOND_PROJECT_NAME = 'Client Lambert'
+
+// ── Insertion ──────────────────────────────────────────────────────────────
+
+async function insertNotesInto(userId: string, projectId: string, projectName: string, notes: SeedNote[]) {
+  const inserted = await db
+    .insertInto('dailyNotes')
+    .values(
+      notes.map((note) => ({
+        userId,
+        projectId,
+        noteDate: note.date,
+        title: note.title,
+        content: note.content,
+        contentText: flattenRichText(note.content),
+        // A note written at the end of the day, rather than all at the
+        // instant the seed runs: the displayed dates stay plausible.
+        createdAt: new Date(`${note.date}T17:30:00Z`),
+        updatedAt: new Date(`${note.date}T17:30:00Z`),
+      })),
+    )
+    // A day already written is left as-is — replaying the script must never
+    // overwrite a real note.
+    .onConflict((oc) => oc.columns(['projectId', 'noteDate']).doNothing())
+    .returning('noteDate')
+    .execute()
+
+  const skipped = notes.length - inserted.length
+  console.log(`✓ ${inserted.length} note(s) seeded into "${projectName}"`)
+  if (skipped > 0) {
+    console.log(`  ${skipped} day(s) already written, left untouched`)
+  }
+}
 
 async function seed() {
-  // Espace mono-compte : on rattache tout au seul utilisateur existant. Requête
-  // brute, la table `user` appartient à better-auth et ne passe pas par Kysely.
+  // Single-account space: everything attaches to the one existing user. Raw
+  // query: the `user` table belongs to better-auth and doesn't go through Kysely.
   const { rows } = await pool.query<{ id: string; name: string }>(
     'SELECT id, name FROM "user" ORDER BY "createdAt" LIMIT 1',
   )
@@ -531,36 +660,37 @@ async function seed() {
 
   if (!user) {
     throw new Error(
-      "Aucun compte dans la base : créez-en un via l'écran de premier lancement avant de semer des notes.",
+      'No account in the database: create one through the first-launch screen before seeding notes.',
     )
   }
 
-  const inserted = await db
-    .insertInto('dailyNotes')
-    .values(
-      ALL_NOTES.map((note) => ({
-        userId: user.id,
-        noteDate: note.date,
-        title: note.title,
-        content: note.content,
-        contentText: flattenRichText(note.content),
-        // Une note écrite en fin de journée, plutôt que toutes à l'instant du
-        // seed : les dates affichées restent plausibles.
-        createdAt: new Date(`${note.date}T17:30:00Z`),
-        updatedAt: new Date(`${note.date}T17:30:00Z`),
-      })),
-    )
-    // Un jour déjà rédigé est laissé tel quel — on ne veut pas écraser une
-    // vraie note en rejouant le script.
-    .onConflict((oc) => oc.columns(['userId', 'noteDate']).doNothing())
-    .returning('noteDate')
+  const projects = await db
+    .selectFrom('projects')
+    .select(['id', 'name'])
+    .where('userId', '=', user.id)
+    .orderBy('createdAt', 'asc')
     .execute()
 
-  const skipped = ALL_NOTES.length - inserted.length
-  console.log(`✓ ${inserted.length} note(s) semée(s) pour ${user.name}`)
-  if (skipped > 0) {
-    console.log(`  ${skipped} jour(s) déjà rédigé(s), laissé(s) intact(s)`)
+  const mainProject = projects[0]
+  if (!mainProject) {
+    throw new Error(
+      'This account has no project: go through sign-up to the end before seeding notes.',
+    )
   }
+
+  // A second project to actually demonstrate switching between them — created
+  // here if missing, since accounts seeded through `seed-account.ts` only get
+  // the first one.
+  const secondProject =
+    projects[1] ??
+    (await db
+      .insertInto('projects')
+      .values({ userId: user.id, name: SECOND_PROJECT_NAME })
+      .returning(['id', 'name'])
+      .executeTakeFirstOrThrow())
+
+  await insertNotesInto(user.id, mainProject.id, mainProject.name, ALL_NOTES)
+  await insertNotesInto(user.id, secondProject.id, secondProject.name, LAMBERT_NOTES)
 }
 
 try {

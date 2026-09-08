@@ -70,6 +70,7 @@ export interface DailyNote {
 /** Corps de `POST /api/notes`. */
 export interface NoteDraft {
   date: string
+  projectId: string
   title: string
   content: RichTextDoc
 }
@@ -110,4 +111,30 @@ export interface CalendarMonth {
   month: string
   /** Dates `YYYY-MM-DD` portant une note. */
   daysWithNotes: string[]
+}
+
+/**
+ * Un projet — range les notes d'un compte (un chantier, un client...). Un
+ * compte en a toujours au moins un.
+ */
+export interface Project {
+  id: string
+  name: string
+  createdAt: string
+  /** Date d'archivage, `null` si le projet est actif — un archivage se défait. */
+  archivedAt: string | null
+  /** Nombre de notes écrites dans ce projet. */
+  noteCount: number
+  /** Date de la note la plus récente, `null` si le projet est encore vide. */
+  lastNoteDate: string | null
+}
+
+/** Corps de `POST /api/projects`. */
+export interface ProjectDraft {
+  name: string
+}
+
+/** Corps de `PATCH /api/projects/:id` — pour l'instant, seul l'archivage. */
+export interface ProjectPatch {
+  archived: boolean
 }

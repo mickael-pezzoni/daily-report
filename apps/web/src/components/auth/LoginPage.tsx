@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { signIn } from '../../api/auth-client'
 import { authErrorKeys } from '../../i18n/api-errors'
-import { todayISO } from '../../lib/dates'
 import { AuthShell } from './AuthShell'
 import { PasswordField } from './PasswordField'
 import styles from './AuthForm.module.css'
@@ -32,8 +31,9 @@ export function LoginPage() {
       setErrorKeys(authErrorKeys(signInError, 'auth.errors.signInFailed'))
       return
     }
-    // L'application ouvre directement sur la note du jour.
-    void navigate(`/notes/${todayISO()}`, { replace: true })
+    // `/` resolves to the right project (the last visited one, or the sole
+    // active one) and opens directly on today's note — see `RootRedirect` in App.tsx.
+    void navigate('/', { replace: true })
   }
 
   return (

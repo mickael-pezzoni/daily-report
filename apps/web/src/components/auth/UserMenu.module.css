@@ -125,3 +125,9 @@
 .sign_out {
   color: var(--app-link-hover);
 }
+
+.divider {
+  height: 1px;
+  margin: 5px 4px;
+  background: var(--app-border);
+}

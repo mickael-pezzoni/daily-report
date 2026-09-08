@@ -58,6 +58,50 @@
   outline-offset: 2px;
 }
 
+/* Les lignes « Vos projets » de l'écran 10a. */
+.project_list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.project_row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.project_row .input {
+  flex: 1;
+}
+
+.project_dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.project_remove {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  color: var(--app-text-subtle);
+  cursor: pointer;
+}
+
+.project_remove:hover {
+  color: var(--app-danger);
+}
+
+.add_project {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 12px;
+}
+
 /* Erreur renvoyée par l'API, au-dessus du bouton d'envoi. */
 .error {
   margin: 0;

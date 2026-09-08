@@ -24,9 +24,14 @@
     "signup": {
       "title": "Create your account",
       "subtitle": "No account on this space yet — this screen won't appear again.",
-      "footnote": "Your notes stay on this space.",
+      "footnote": "At least one project is required; the first in the list opens by default.",
       "submit": "Create my account",
-      "submitPending": "Creating…"
+      "submitPending": "Creating…",
+      "projectsLabel": "Your projects",
+      "projectPlaceholder": "Project name",
+      "addProject": "＋ Add a project",
+      "removeProject": "Remove this project",
+      "projectsRequired": "Give at least one project a name."
     },
     "fields": {
       "name": "First name",
@@ -46,7 +51,8 @@
     "signOut": "Sign out",
     "menu": {
       "open": "User menu",
-      "language": "Language"
+      "language": "Language",
+      "manageProjects": "Manage projects"
     },
     "errors": {
       "signInFailed": "Could not sign in. Check your email and password.",
@@ -55,6 +61,34 @@
       "USER_ALREADY_EXISTS": "An account already exists for this address.",
       "PASSWORD_TOO_SHORT": "The password must be at least 8 characters.",
       "SIGNUP_CLOSED": "This space already has an account: sign-up is closed."
+    }
+  },
+
+  "projectSelect": {
+    "greeting": "Hi {{name}}",
+    "subtitle": "Choose the project you're writing in today.",
+    "noteCount_one": "{{count}} note",
+    "noteCount_other": "{{count}} notes",
+    "noNotes": "No notes yet",
+    "lastNote": "last {{day}}",
+    "newProject": "＋ New project",
+    "newProjectPlaceholder": "Project name",
+    "create": "Create",
+    "projectCount_one": "{{count}} project",
+    "projectCount_other": "{{count}} projects",
+    "footerHint": "You can switch projects at any time from the header.",
+    "archived": "archived",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "archiveNamed": "Archive “{{name}}”",
+    "unarchiveNamed": "Unarchive “{{name}}”",
+    "delete": "Delete",
+    "deleteNamed": "Delete “{{name}}”",
+    "confirmDelete": {
+      "title": "Delete “{{name}}”?",
+      "body": "This project will be permanently deleted. This cannot be undone.",
+      "bodyWithNotes": "This project and its {{notes}} will be permanently deleted, attachments included. This cannot be undone.",
+      "confirm": "Delete"
     }
   },
 
@@ -84,6 +118,7 @@
   "note": {
     "close": "Close this day",
     "delete": "Delete this note",
+    "archivedReadOnly": "Archived project — read-only",
     "titlePlaceholder": "Title for the day…",
     "titleLabel": "Title for the day",
     "bodyPlaceholder": "Tell us about your day…",
@@ -192,6 +227,7 @@
     "notFound": "Not found.",
     "unauthorized": "Session expired. Please sign in again.",
     "fileTooLarge": "File too large.",
-    "noteExists": "A note already exists for this day."
+    "noteExists": "A note already exists for this day.",
+    "projectArchived": "This project is archived: read-only."
   }
 }

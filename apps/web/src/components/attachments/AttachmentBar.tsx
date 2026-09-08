@@ -15,6 +15,8 @@ interface AttachmentBarProps {
   onRemove: (id: string) => void
   /** Un fichier survole la journée : la bande le signale même repliée. */
   dragging: boolean
+  /** Projet archivé : plus d'ajout, mais retirer une pièce déjà jointe reste possible. */
+  readOnly?: boolean
 }
 
 /**
@@ -32,6 +34,7 @@ export function AttachmentBar({
   onUpload,
   onRemove,
   dragging,
+  readOnly,
 }: AttachmentBarProps) {
   const { t } = useTranslation()
   const count = items.length
@@ -73,7 +76,7 @@ export function AttachmentBar({
             {items.map((attachment) => (
               <AttachmentChip key={attachment.id} attachment={attachment} onRemove={onRemove} />
             ))}
-            <DropZone onFiles={onUpload} />
+            {readOnly ? null : <DropZone onFiles={onUpload} />}
           </div>
         </div>
       ) : null}

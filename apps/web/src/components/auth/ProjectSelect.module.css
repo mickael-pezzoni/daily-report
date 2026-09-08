@@ -1,0 +1,242 @@
+/* Écran 10b de la maquette — sélection de projet après connexion, en grille
+   de cartes. Cadre proche d'AuthShell, mais plus large : la grille de deux
+   colonnes a besoin de la place. */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--app-page-bg);
+}
+
+.card {
+  width: 560px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 34px 34px 28px;
+  background: var(--app-panel-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--app-elevation-panel);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 24px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 12.5px;
+  color: var(--app-text-subtle);
+  margin: 0;
+}
+
+.identity {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  height: 42px;
+  padding: 0 18px 0 8px;
+  border-radius: 999px;
+  background: var(--app-control-bg);
+  font-size: 15px;
+  color: var(--app-text-subtle);
+  flex-shrink: 0;
+}
+
+.identity_dot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* Position relative : `.tile_open` s'y étire en `::after`, et `.tile_actions`
+   doit repasser au-dessus en z-index pour rester cliquable par-dessus lui. */
+.tile {
+  position: relative;
+  border-radius: var(--radius-md);
+  background: var(--app-paper-bg);
+  box-shadow: var(--app-elevation-card);
+}
+
+.tile:has(.tile_open:hover) {
+  background: var(--app-day-hover);
+}
+
+.tile:has(.tile_open:focus-visible) {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Le bouton de sélection couvre toute la tuile — même principe que
+   `NoteResultCard` : un bouton dans un bouton n'existe pas, donc les actions
+   ci-dessous sont des frères qui repassent au-dessus en z-index. */
+.tile_open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4);
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  outline: none;
+}
+
+.tile_open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.tile_actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+}
+
+.tile_action {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--app-text-subtle);
+}
+
+.tile_action:hover {
+  background: var(--app-control-bg);
+  color: var(--app-text);
+}
+
+.tile_action:focus-visible {
+  outline: 2px solid var(--app-focus-ring);
+  outline-offset: 1px;
+}
+
+.tile_head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  /* Sinon la place réservée à `.tile_actions` déborde sur le nom. */
+  padding-right: 56px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.tile_name {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+}
+
+.tile_meta {
+  font-size: 12px;
+  color: var(--app-text-subtle);
+}
+
+.new_tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 92px;
+  padding: var(--space-4);
+  border: 1px dashed var(--app-border-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--app-text-subtle);
+}
+
+.new_tile:hover {
+  border-color: var(--app-link);
+  color: var(--app-text);
+}
+
+.new_icon {
+  font-size: 20px;
+  color: var(--app-link);
+}
+
+.new_form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  padding: var(--space-3);
+  border: 1px dashed var(--app-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.footer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.footer_hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--app-text-muted);
+}

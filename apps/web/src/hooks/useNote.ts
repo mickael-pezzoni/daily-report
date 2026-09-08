@@ -1,5 +1,6 @@
 import type { DailyNote, RichTextDoc } from '@daily-report/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router'
 import { api, ApiError } from '../api/client'
 import { apiErrorKey } from '../i18n/api-errors'
 
@@ -24,6 +25,7 @@ interface Draft {
  * changement de langue.
  */
 export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
+  const { projectId: currentProjectId } = useParams<{ projectId: string }>()
   const [note, setNote] = useState<DailyNote | null>(null)
   const [draft, setDraft] = useState<Draft>({ title: '', content: EMPTY_DOC })
   const [state, setState] = useState<SaveState>('loading')
@@ -53,20 +55,23 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
   const createOnce = useCallback(
     (payload: Draft): Promise<DailyNote> => {
       const currentDate = date
+      const projectId = currentProjectId
+      if (!projectId) return Promise.reject(new Error('no current project'))
+
       creatingRef.current ??= api.notes
-        .create({ date: currentDate, ...payload })
+        .create({ date: currentDate, projectId, ...payload })
         .catch(async (cause) => {
           // 409 : la note existe déjà (autre onglet, requête rejouée). Ce n'est
           // pas une erreur à montrer — on récupère et on continue.
           if (cause instanceof ApiError && cause.status === 409) {
-            const existing = await api.notes.byDate(currentDate)
+            const existing = await api.notes.byDate(currentDate, projectId)
             if (existing) return api.notes.update(existing.id, payload)
           }
           throw cause
         })
       return creatingRef.current
     },
-    [date],
+    [date, currentProjectId],
   )
 
   const flush = useCallback(async (): Promise<void> => {
@@ -125,9 +130,12 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     flushRef.current = flush
   }, [flush])
 
-  // Chargement, et vidage de la file d'attente au changement de jour : une note
-  // en cours ne doit pas disparaître parce qu'on a cliqué sur le 4 août.
+  // Chargement, et vidage de la file d'attente au changement de jour ou de
+  // projet : une note en cours ne doit pas disparaître parce qu'on a cliqué
+  // sur le 4 août, et changer de projet doit relire ce jour-là dans le nouveau.
   useEffect(() => {
+    if (!currentProjectId) return
+
     let cancelled = false
     const previousFlush = flushRef.current
     void previousFlush()
@@ -139,7 +147,7 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     dirtyRef.current = false
 
     api.notes
-      .byDate(date)
+      .byDate(date, currentProjectId)
       .then((found) => {
         if (cancelled) return
         noteIdRef.current = found?.id ?? null
@@ -158,7 +166,7 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     return () => {
       cancelled = true
     }
-  }, [date])
+  }, [date, currentProjectId])
 
   // Dernière chance : au démontage complet du composant.
   useEffect(() => () => void flushRef.current(), [])

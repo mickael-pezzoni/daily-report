@@ -7,10 +7,12 @@ import styles from './UserMenu.module.css'
 
 /**
  * L'écran 6a de la maquette : la puce « 👤 Prénom » de l'en-tête et son menu
- * — langue, puis déconnexion.
+ * — changer de projet, puis langue, puis déconnexion.
  *
  * C'est la maquette qui place le choix de langue ici plutôt qu'en réglage à
- * part ; le bouton ⏻ autonome qui existait avant s'y range.
+ * part ; le bouton ⏻ autonome qui existait avant s'y range. « Changer de
+ * projet » ne fait qu'ouvrir `/projects` (écran 10b) — la liste, la bascule et
+ * la création d'un projet vivent toutes là-bas, pas dans ce menu.
  */
 export function UserMenu() {
   const { t, i18n } = useTranslation()
@@ -69,6 +71,11 @@ export function UserMenu() {
     setOpen(false)
   }
 
+  function handleChangeProject() {
+    setOpen(false)
+    void navigate('/projets')
+  }
+
   return (
     <div className={styles.root} ref={rootRef}>
       <button
@@ -91,6 +98,13 @@ export function UserMenu() {
 
       {open ? (
         <div className={`card elev-lg ${styles.menu}`} role="menu">
+          <button type="button" className={styles.item} onClick={handleChangeProject}>
+            <span aria-hidden="true">⇄</span>
+            {t('auth.menu.manageProjects')}
+          </button>
+
+          <div className={styles.divider} />
+
           <button
             type="button"
             className={styles.item}

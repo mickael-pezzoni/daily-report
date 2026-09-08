@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { api } from '../../api/client'
+import { useCurrentProject } from '../../hooks/useCurrentProject'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { isValidISODate, monthOf, startOfWeek, todayISO } from '../../lib/dates'
 import { WeekStrip } from '../calendar/WeekStrip'
@@ -10,6 +11,7 @@ import { EmptyState } from '../notes/EmptyState'
 import { NoteView } from '../notes/NoteView'
 import { NoteResultCard } from '../notes/NoteResultCard'
 import { SearchModal } from '../search/SearchModal'
+import { Splash } from '../ui/Splash'
 import { MobileTabBar, type MobileTab } from './MobileTabBar'
 import { Sidebar } from './Sidebar'
 import styles from './AppShell.module.css'
@@ -27,7 +29,8 @@ const RECENT_LIMIT = 10
 export function AppShell() {
   const { t } = useTranslation()
   const format = useDateFormat()
-  const { date } = useParams<{ date?: string }>()
+  const { projectId, date } = useParams<{ projectId: string; date?: string }>()
+  const { project, isPending: projectPending } = useCurrentProject()
   const navigate = useNavigate()
   const [month, setMonth] = useState(() => monthOf(date ?? todayISO()))
   const [daysWithNotes, setDaysWithNotes] = useState<string[]>([])
@@ -83,22 +86,27 @@ export function AppShell() {
   /** Un jour choisi dans la bande de semaine ouvre sa note et revient sur l'onglet Aujourd'hui. */
   function handleWeekSelect(day: string) {
     setMobileTab('today')
-    void navigate(`/notes/${day}`)
+    void navigate(`/projets/${projectId}/notes/${day}`)
   }
 
-  const loadMonth = useCallback((target: string) => {
-    api.calendar
-      .month(target)
-      .then((calendar) => setDaysWithNotes(calendar.daysWithNotes))
-      .catch(() => setDaysWithNotes([]))
-  }, [])
+  const loadMonth = useCallback(
+    (target: string) => {
+      if (!projectId) return
+      api.calendar
+        .month(target, projectId)
+        .then((calendar) => setDaysWithNotes(calendar.daysWithNotes))
+        .catch(() => setDaysWithNotes([]))
+    },
+    [projectId],
+  )
 
   const loadRecent = useCallback(() => {
+    if (!projectId) return
     api.notes
-      .recent(RECENT_LIMIT)
+      .recent(RECENT_LIMIT, projectId)
       .then(setRecent)
       .catch(() => setRecent([]))
-  }, [])
+  }, [projectId])
 
   useEffect(() => loadMonth(month), [month, loadMonth])
   useEffect(() => loadRecent(), [loadRecent])
@@ -132,7 +140,7 @@ export function AppShell() {
       // route laisserait l'éditeur et le jour du calendrier affichés comme
       // « ouverts » sur une note qui n'existe plus.
       if (note.date === date) {
-        void navigate('/', { replace: true })
+        void navigate(`/projets/${projectId}`, { replace: true })
       }
 
       api.notes
@@ -144,12 +152,17 @@ export function AppShell() {
         })
         .finally(loadRecent)
     },
-    [loadMonth, loadRecent, month, date, navigate],
+    [loadMonth, loadRecent, month, date, projectId, navigate],
   )
+
+  // The project in the URL doesn't exist (or no longer does) for this
+  // account: off to the management screen rather than a shell with nothing to load.
+  if (projectPending) return <Splash />
+  if (!project) return <Navigate to="/projets" replace />
 
   // Une date bricolée dans l'URL ramène à aujourd'hui plutôt qu'à un écran cassé.
   if (date !== undefined && !isValidISODate(date)) {
-    return <Navigate to={`/notes/${todayISO()}`} replace />
+    return <Navigate to={`/projets/${projectId}/notes/${todayISO()}`} replace />
   }
 
   return (
@@ -239,7 +252,7 @@ export function AppShell() {
           onNavigate={(day) => {
             setSearchOpen(false)
             setMobileTab('today')
-            void navigate(`/notes/${day}`)
+            void navigate(`/projets/${projectId}/notes/${day}`)
           }}
           onDelete={handleNoteDeleted}
         />

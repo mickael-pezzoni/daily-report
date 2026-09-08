@@ -1,6 +1,6 @@
 import type { DailyNote } from '@daily-report/types'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { todayISO } from '../../lib/dates'
 import { shortcutHint } from '../../lib/platform'
 import { UserMenu } from '../auth/UserMenu'
@@ -16,6 +16,7 @@ interface EmptyStateProps {
 /** Les écrans 2f/2g : aucune note ouverte, la semaine en condensé. */
 export function EmptyState({ onOpenSearch, deletedNote }: EmptyStateProps) {
   const { t } = useTranslation()
+  const { projectId } = useParams<{ projectId: string }>()
 
   return (
     <div className={styles.view}>
@@ -56,7 +57,7 @@ export function EmptyState({ onOpenSearch, deletedNote }: EmptyStateProps) {
         <div className={styles.mobile_create}>
           <p className={styles.mobile_create_hint}>{t('empty.mobileNoNote')}</p>
           <Link
-            to={`/notes/${todayISO()}`}
+            to={`/projets/${projectId}/notes/${todayISO()}`}
             className={`btn btn-primary ${styles.mobile_create_button}`}
             aria-label={t('empty.mobileCreate')}
           >

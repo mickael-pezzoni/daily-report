@@ -1,9 +1,10 @@
 import type { DailyNote } from '@daily-report/types'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { api } from '../../api/client'
 import { useAttachments } from '../../hooks/useAttachments'
+import { useCurrentProject } from '../../hooks/useCurrentProject'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { useNote } from '../../hooks/useNote'
 import { AttachmentBar } from '../attachments/AttachmentBar'
@@ -35,9 +36,16 @@ function carriesFiles(event: React.DragEvent): boolean {
 export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   const { t } = useTranslation()
   const format = useDateFormat()
+  const { projectId } = useParams<{ projectId: string }>()
+  const { project: currentProject } = useCurrentProject()
   const { note, draft, state, errorKey, edit, ensureNoteId } = useNote(date, onNoteSaved)
   const attachments = useAttachments(note?.id ?? null, ensureNoteId)
   const { confirm, dialog: confirmDialog } = useConfirm()
+
+  // Un projet archivé n'accepte plus d'écriture — l'API le refuse (403
+  // PROJECT_ARCHIVED), l'éditeur se met en lecture seule pour ne pas laisser
+  // taper dans le vide.
+  const readOnly = !!currentProject?.archivedAt
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -49,7 +57,7 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   const dragDepth = useRef(0)
 
   function handleDragEnter(event: React.DragEvent) {
-    if (!carriesFiles(event)) return
+    if (readOnly || !carriesFiles(event)) return
     dragDepth.current += 1
     if (dragDepth.current === 1) {
       setDragging(true)
@@ -59,13 +67,13 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   }
 
   function handleDragLeave(event: React.DragEvent) {
-    if (!carriesFiles(event)) return
+    if (readOnly || !carriesFiles(event)) return
     dragDepth.current = Math.max(0, dragDepth.current - 1)
     if (dragDepth.current === 0) setDragging(false)
   }
 
   function handleDragOver(event: React.DragEvent) {
-    if (!carriesFiles(event)) return
+    if (readOnly || !carriesFiles(event)) return
     // Sans ce preventDefault, l'événement `drop` n'arrive jamais.
     event.preventDefault()
     event.dataTransfer.dropEffect = 'copy'
@@ -73,10 +81,12 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
 
   function handleDrop(event: React.DragEvent) {
     if (!carriesFiles(event)) return
-    // Sinon le navigateur remplace la page par le fichier lâché.
+    // Sinon le navigateur remplace la page par le fichier lâché — y compris
+    // en lecture seule, où le dépôt n'a jamais été activé plus haut.
     event.preventDefault()
     dragDepth.current = 0
     setDragging(false)
+    if (readOnly) return
 
     const files = Array.from(event.dataTransfer.files)
     if (files.length > 0) void attachments.upload(files)
@@ -133,11 +143,15 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
           {format.dayLong(date)}
           {/* Referme la journée et ramène à l'écran « aucune note ouverte ».
               Ce qui est en attente d'enregistrement part au démontage. */}
-          <Link to="/" className={styles.close} title={t('note.close')} aria-label={t('note.close')}>
+          <Link to={`/projets/${projectId}`} className={styles.close} title={t('note.close')} aria-label={t('note.close')}>
             ✕
           </Link>
         </span>
-        <SaveStatus state={state} errorKey={errorKey} />
+        {readOnly ? (
+          <span className="tag tag-neutral">{t('note.archivedReadOnly')}</span>
+        ) : (
+          <SaveStatus state={state} errorKey={errorKey} />
+        )}
         <span className={styles.spacer} />
         {/* Absent sur un jour vierge : sans note enregistrée, il n'y a rien à
             supprimer côté serveur. `⌕` et « Exporter ▾ » de la maquette
@@ -173,6 +187,7 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
                 onChange={(event) => edit({ title: event.target.value })}
                 placeholder={t('note.titlePlaceholder')}
                 aria-label={t('note.titleLabel')}
+                disabled={readOnly}
               />
               <NoteEditor
                 documentKey={date}
@@ -180,13 +195,14 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
                 onChange={(content) => edit({ content })}
                 onUploadImages={uploadFromEditor}
                 attachments={attachments.items}
+                editable={!readOnly}
               />
             </>
           )}
         </article>
       </div>
 
-      <DayNav date={date} />
+      <DayNav date={date} projectId={projectId} />
 
       <AttachmentBar
         items={attachments.items}
@@ -197,6 +213,7 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
         onUpload={(files) => void attachments.upload(files)}
         onRemove={(id) => void attachments.remove(id)}
         dragging={dragging}
+        readOnly={readOnly}
       />
     </div>
   )

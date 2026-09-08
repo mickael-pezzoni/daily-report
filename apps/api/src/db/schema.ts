@@ -16,13 +16,24 @@ import type { RichTextDoc } from '@daily-report/types'
  * `daily__notes` en SQL.
  */
 export interface Database {
+  projects: ProjectsTable
   dailyNotes: DailyNotesTable
   attachments: AttachmentsTable
+}
+
+export interface ProjectsTable {
+  id: Generated<string>
+  userId: string
+  name: string
+  /** `NULL` tant que le projet est actif — voir migration 001. */
+  archivedAt: Date | null
+  createdAt: Generated<Date>
 }
 
 export interface DailyNotesTable {
   id: Generated<string>
   userId: string
+  projectId: string
   /**
    * `DATE` côté Postgres, chaîne `YYYY-MM-DD` côté TypeScript — le parseur posé
    * dans `src/db/index.ts` empêche `pg` d'en faire un objet `Date`.

@@ -6,6 +6,9 @@ import type {
   NoteDraft,
   NoteListItem,
   NotePatch,
+  Project,
+  ProjectDraft,
+  ProjectPatch,
   SearchScope,
   SessionUser,
 } from '@daily-report/types'
@@ -72,16 +75,18 @@ export const api = {
   me: () => request<SessionUser>('/me'),
 
   notes: {
-    /** La note d'un jour, ou `null` si le jour est vierge. */
-    byDate: async (date: string): Promise<DailyNote | null> => {
-      const found = await request<NoteListItem[]>(`/notes?date=${date}`)
+    /** La note d'un jour dans un projet, ou `null` si le jour est vierge. */
+    byDate: async (date: string, projectId: string): Promise<DailyNote | null> => {
+      const found = await request<NoteListItem[]>(`/notes?date=${date}&projectId=${projectId}`)
       return found[0] ?? null
     },
-    /** Les derniers jours rédigés, pièces jointes comprises — la colonne latérale et l'onglet Calendrier mobile. */
-    recent: (limit: number) => request<NoteListItem[]>(`/notes?limit=${limit}`),
-    /** Les notes d'une semaine, bornes incluses — le condensé des écrans 2f/2g. */
-    week: (from: string, to: string) => request<NoteListItem[]>(`/notes?from=${from}&to=${to}&limit=7`),
-    /** Recherche plein texte (titre, contenu, noms de pièces jointes) — écran 2c. */
+    /** Les derniers jours rédigés d'un projet, pièces jointes comprises — la colonne latérale et l'onglet Calendrier mobile. */
+    recent: (limit: number, projectId: string) =>
+      request<NoteListItem[]>(`/notes?limit=${limit}&projectId=${projectId}`),
+    /** Les notes d'une semaine dans un projet, bornes incluses — le condensé des écrans 2f/2g. */
+    week: (from: string, to: string, projectId: string) =>
+      request<NoteListItem[]>(`/notes?from=${from}&to=${to}&limit=7&projectId=${projectId}`),
+    /** Recherche plein texte, tous projets confondus (titre, contenu, noms de pièces jointes) — écran 2c. */
     search: (q: string, options: SearchOptions = {}) => {
       const params = new URLSearchParams({ q })
       if (options.scope && options.scope !== 'all') params.set('scope', options.scope)
@@ -96,7 +101,19 @@ export const api = {
   },
 
   calendar: {
-    month: (month: string) => request<CalendarMonth>(`/calendar/${month}`),
+    month: (month: string, projectId: string) =>
+      request<CalendarMonth>(`/calendar/${month}?projectId=${projectId}`),
+  },
+
+  projects: {
+    /** Les projets du compte, dans l'ordre de création — écrans 10b et 6a. */
+    list: () => request<Project[]>('/projects'),
+    create: (draft: ProjectDraft) =>
+      request<Project>('/projects', { method: 'POST', body: JSON.stringify(draft) }),
+    archive: (id: string, patch: ProjectPatch) =>
+      request<Project>(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+    /** Supprime le projet, ses notes et leurs pièces jointes. */
+    remove: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
   },
 
   attachments: {

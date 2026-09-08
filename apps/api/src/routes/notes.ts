@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { sql } from 'kysely'
 import { db } from '../db/index.js'
 import { ATTACHMENT_COLUMNS, toAttachment } from '../lib/attachments.js'
+import { checkProjectAccess } from '../lib/projects.js'
 import { excerptOf, flattenRichText } from '../lib/rich-text.js'
 import { isRichTextDoc, isSearchScope, isUuid, isValidDate } from '../lib/validate.js'
 import type { AuthedEnv } from '../middleware/require-auth.js'
@@ -83,6 +84,9 @@ async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachm
  * `GET /api/notes?to=YYYY-MM-DD`   — borne haute incluse, cumulable avec
  *                                    `from` (c'est le condensé de semaine des
  *                                    écrans 2f/2g).
+ * `GET /api/notes?projectId=…`     — restreint à un projet ; cumulable avec
+ *                                    tout le reste sauf `q`, qui fouille tous
+ *                                    les projets du compte (recherche globale).
  *
  * Chaque élément embarque ses pièces jointes : les cartes de l'écran « aucune
  * note ouverte » les affichent, et le détail `GET /api/notes/:id` n'est pas le
@@ -93,11 +97,17 @@ notes.get('/', async (c) => {
   const date = c.req.query('date')
   const from = c.req.query('from')
   const to = c.req.query('to')
+  const projectId = c.req.query('projectId')
   const limitParam = c.req.query('limit')
   const qParam = c.req.query('q')
   const scope = c.req.query('scope') ?? 'all'
 
   let query = db.selectFrom('dailyNotes').select(COLUMNS).where('userId', '=', userId)
+
+  if (projectId !== undefined) {
+    if (!isUuid(projectId)) return c.json({ error: 'invalid projectId' }, 400)
+    query = query.where('projectId', '=', projectId)
+  }
 
   if (date !== undefined) {
     if (!isValidDate(date)) return c.json({ error: 'invalid date, expected YYYY-MM-DD' }, 400)
@@ -168,7 +178,12 @@ notes.get('/', async (c) => {
   return c.json(items)
 })
 
-/** `POST /api/notes` — crée la note d'un jour. `409` si ce jour en a déjà une. */
+/**
+ * `POST /api/notes` — crée la note d'un jour, dans le projet donné. `409` si
+ * ce projet a déjà une note ce jour-là, `404` si `projectId` n'appartient pas
+ * au compte (une ressource d'autrui n'existe pas de notre point de vue), `403`
+ * s'il est archivé — un projet rangé n'accepte plus de nouvelles notes.
+ */
 notes.post('/', async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json().catch(() => null)
@@ -176,16 +191,32 @@ notes.post('/', async (c) => {
   if (!body || !isValidDate(body.date)) {
     return c.json({ error: 'invalid date, expected YYYY-MM-DD' }, 400)
   }
+  if (!isUuid(body.projectId)) {
+    return c.json({ error: 'invalid projectId' }, 400)
+  }
   if (!isRichTextDoc(body.content)) {
     return c.json({ error: 'invalid content, expected a TipTap document' }, 400)
   }
   const title = typeof body.title === 'string' ? body.title : ''
   const contentText = flattenRichText(body.content)
 
+  const access = await checkProjectAccess(userId, body.projectId)
+  if (access === 'not_found') return c.json({ error: 'project not found' }, 404)
+  if (access === 'archived') {
+    return c.json({ error: 'project is archived', code: 'PROJECT_ARCHIVED' }, 403)
+  }
+
   try {
     const row = await db
       .insertInto('dailyNotes')
-      .values({ userId, noteDate: body.date, title, content: body.content, contentText })
+      .values({
+        userId,
+        projectId: body.projectId,
+        noteDate: body.date,
+        title,
+        content: body.content,
+        contentText,
+      })
       .returning(COLUMNS)
       .executeTakeFirstOrThrow()
 
@@ -193,8 +224,8 @@ notes.post('/', async (c) => {
     c.header('Location', `/api/notes/${note.id}`)
     return c.json(note, 201)
   } catch (error) {
-    // On laisse la contrainte UNIQUE (user_id, note_date) trancher plutôt que
-    // de faire un SELECT préalable, qui laisserait une fenêtre de concurrence.
+    // On laisse la contrainte UNIQUE (project_id, note_date) trancher plutôt
+    // que de faire un SELECT préalable, qui laisserait une fenêtre de concurrence.
     if ((error as { code?: string }).code === UNIQUE_VIOLATION) {
       return c.json({ error: 'a note already exists for this day', code: 'NOTE_EXISTS' }, 409)
     }
@@ -219,7 +250,11 @@ notes.get('/:id', async (c) => {
   return c.json(toDailyNote(row))
 })
 
-/** `PATCH /api/notes/:id` — modification partielle. */
+/**
+ * `PATCH /api/notes/:id` — modification partielle. `403` si le projet de la
+ * note est archivé — au-delà du 404 d'appartenance, encore une vérification
+ * différente : la note existe bel et bien, c'est l'écriture qui est refusée.
+ */
 notes.patch('/:id', async (c) => {
   const id = c.req.param('id')
   if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
@@ -244,15 +279,27 @@ notes.patch('/:id', async (c) => {
     return c.json({ error: 'nothing to update' }, 400)
   }
 
+  const noteProject = await db
+    .selectFrom('dailyNotes')
+    .innerJoin('projects', 'projects.id', 'dailyNotes.projectId')
+    .select('projects.archivedAt as archivedAt')
+    .where('dailyNotes.id', '=', id)
+    .where('dailyNotes.userId', '=', c.get('userId'))
+    .executeTakeFirst()
+
+  if (!noteProject) return c.json({ error: 'note not found' }, 404)
+  if (noteProject.archivedAt) {
+    return c.json({ error: 'project is archived', code: 'PROJECT_ARCHIVED' }, 403)
+  }
+
   const row = await db
     .updateTable('dailyNotes')
     .set({ ...patch, updatedAt: new Date() })
     .where('id', '=', id)
     .where('userId', '=', c.get('userId'))
     .returning(COLUMNS)
-    .executeTakeFirst()
+    .executeTakeFirstOrThrow()
 
-  if (!row) return c.json({ error: 'note not found' }, 404)
   return c.json(toDailyNote(row))
 })
 

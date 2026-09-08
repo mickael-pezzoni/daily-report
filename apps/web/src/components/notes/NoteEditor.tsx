@@ -26,6 +26,8 @@ interface NoteEditorProps {
   onUploadImages: (files: File[]) => Promise<UploadedImage[]>
   /** Pièces jointes déjà envoyées à la note — pour le menu contextuel (écran 7a). */
   attachments: Attachment[]
+  /** Projet archivé : lecture seule — ni frappe, ni collage, ni dépôt d'image. */
+  editable: boolean
 }
 
 const EMPTY_DOC: RichTextDoc = { type: 'doc', content: [{ type: 'paragraph' }] }
@@ -40,6 +42,7 @@ export function NoteEditor({
   onChange,
   onUploadImages,
   attachments,
+  editable,
 }: NoteEditorProps) {
   const { t } = useTranslation()
 
@@ -48,6 +51,11 @@ export function NoteEditor({
   // rendu — et l'instance n'existe pas encore quand on les déclare.
   const editorRef = useRef<Editor | null>(null)
   const uploadRef = useRef(onUploadImages)
+  // Lu dans `handleDrop`/`handlePaste`/le clic droit, capturés eux aussi à la
+  // création de l'éditeur : `editor.isEditable` ne suffirait pas à lui seul,
+  // ces handlers appellent des commandes directement, en dehors du chemin que
+  // l'attribut `contenteditable` du DOM bloque de lui-même.
+  const editableRef = useRef(editable)
   // Position du clic droit, en coordonnées écran — `null` menu fermé. Le menu
   // lui-même n'a pas besoin de ref : il se referme via son propre effet.
   const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null)
@@ -59,6 +67,10 @@ export function NoteEditor({
   useEffect(() => {
     uploadRef.current = onUploadImages
   }, [onUploadImages])
+
+  useEffect(() => {
+    editableRef.current = editable
+  }, [editable])
 
   useEffect(() => {
     tRef.current = t
@@ -94,6 +106,7 @@ export function NoteEditor({
       Placeholder.configure({ placeholder: () => tRef.current('note.bodyPlaceholder') }),
     ],
     content: (content.content?.length ? content : EMPTY_DOC) as JSONContent,
+    editable,
     onUpdate: ({ editor: instance }) => {
       onChange(instance.getJSON() as RichTextDoc)
     },
@@ -104,8 +117,13 @@ export function NoteEditor({
        * Image lâchée sur le texte : jointe à la note ET insérée au curseur,
        * comme le décrit la maquette 2a. Un fichier non-image n'est pas traité
        * ici — il remonte à `NoteView`, qui le joint sans rien insérer.
+       *
+       * `editable: false` bloque déjà l'insertion côté ProseMirror, mais pas
+       * cet appel-ci : il pousse le fichier au serveur avant même de toucher
+       * au document, donc le garde-fou doit venir d'ici, pas de l'éditeur.
        */
       handleDrop: (view, event, _slice, moved) => {
+        if (!editableRef.current) return false
         // `moved` : déplacement interne au document, pas un fichier déposé.
         if (moved) return false
         const files = imagesFrom(event.dataTransfer?.files)
@@ -123,6 +141,7 @@ export function NoteEditor({
 
       /** Ctrl+V d'une capture d'écran : même chemin que le dépôt. */
       handlePaste: (_view, event) => {
+        if (!editableRef.current) return false
         const files = imagesFrom(event.clipboardData?.files)
         if (files.length === 0) return false
 
@@ -137,8 +156,13 @@ export function NoteEditor({
          * au point du clic que s'il tombe hors d'une sélection déjà active :
          * un clic droit à l'intérieur d'un texte sélectionné doit pouvoir le
          * couper/copier, pas l'écraser — comme le ferait tout navigateur.
+         *
+         * En lecture seule, on laisse le menu natif du navigateur s'afficher
+         * (Copier suffit) plutôt que le nôtre, qui mène à Couper/Coller/Insérer
+         * une image — rien de tout ça n'a de sens sur un projet archivé.
          */
         contextmenu: (_view, domEvent) => {
+          if (!editableRef.current) return false
           const event = domEvent as MouseEvent
           const instance = editorRef.current
           const pos = instance?.view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
@@ -168,11 +192,19 @@ export function NoteEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, documentKey])
 
+  // `editable` de `useEditor` ne pose que l'état initial : le faire varier
+  // ensuite (le projet s'archive pendant qu'on regarde) passe par cet appel.
+  useEffect(() => {
+    editor?.setEditable(editable)
+  }, [editor, editable])
+
   if (!editor) return null
 
   return (
     <div className={styles.editor}>
-      <EditorToolbar editor={editor} />
+      {/* Absente en lecture seule : ses commandes s'exécuteraient sur
+          l'éditeur qu'on vient justement de rendre non éditable. */}
+      {editable ? <EditorToolbar editor={editor} /> : null}
       <EditorContent editor={editor} />
       {menuAnchor ? (
         <EditorContextMenu

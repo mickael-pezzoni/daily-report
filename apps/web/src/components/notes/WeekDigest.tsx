@@ -1,10 +1,11 @@
 import type { DailyNote, NoteListItem } from '@daily-report/types'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { api } from '../../api/client'
 import { useDateFormat } from '../../hooks/useDateFormat'
 import { addDays, addWeeks, startOfWeek, todayISO } from '../../lib/dates'
+import { Loading } from '../ui/Loading'
 import styles from './WeekDigest.module.css'
 
 interface WeekDigestProps {
@@ -30,16 +31,24 @@ interface WeekDigestProps {
 export function WeekDigest({ deletedNote }: WeekDigestProps) {
   const { t } = useTranslation()
   const format = useDateFormat()
+  const { projectId } = useParams<{ projectId: string }>()
   const currentWeek = startOfWeek(todayISO())
   const [anchor, setAnchor] = useState(currentWeek)
   const [notes, setNotes] = useState<NoteListItem[]>([])
+  // Without it, an empty `notes` array while the fetch is still in flight
+  // would flash the "no notes this week" state (2g) before the real data —
+  // wrong on every mount and every week change, not just the first load.
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!projectId) return
+    setLoading(true)
     api.notes
-      .week(anchor, addDays(anchor, 6))
+      .week(anchor, addDays(anchor, 6), projectId)
       .then(setNotes)
       .catch(() => setNotes([]))
-  }, [anchor])
+      .finally(() => setLoading(false))
+  }, [anchor, projectId])
 
   useEffect(() => {
     if (!deletedNote) return
@@ -90,7 +99,9 @@ export function WeekDigest({ deletedNote }: WeekDigestProps) {
         </div>
       </div>
 
-      {notes.length > 0 ? (
+      {loading ? (
+        <Loading />
+      ) : notes.length > 0 ? (
         <>
           <div className={styles.tags}>
             <span className="tag tag-accent">{t('search.resultCount', { count: notes.length })}</span>
@@ -106,7 +117,7 @@ export function WeekDigest({ deletedNote }: WeekDigestProps) {
 
           <div className={styles.rows}>
             {notes.map((note) => (
-              <Link key={note.id} to={`/notes/${note.date}`} className={styles.row}>
+              <Link key={note.id} to={`/projets/${projectId}/notes/${note.date}`} className={styles.row}>
                 <span className={styles.day}>{format.weekdayShort(note.date)}</span>
                 <span className={styles.excerpt}>{note.excerpt}</span>
                 {note.attachments.length > 0 ? (
@@ -128,7 +139,7 @@ export function WeekDigest({ deletedNote }: WeekDigestProps) {
           {/* Le premier jour de la semaine **affichée**, pas forcément
               aujourd'hui : naviguer vers une semaine passée puis cliquer
               doit écrire ce jour-là, pas rouvrir la journée du jour. */}
-          <Link to={`/notes/${anchor}`} className="btn btn-primary">
+          <Link to={`/projets/${projectId}/notes/${anchor}`} className="btn btn-primary">
             {t('empty.week.emptyCta', { day: format.dayShort(anchor) })}
           </Link>
         </div>

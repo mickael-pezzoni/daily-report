@@ -17,6 +17,7 @@ const BY_CODE: Record<string, string> = {
   NOTE_EXISTS: 'errors.noteExists',
   FILE_TOO_LARGE: 'errors.fileTooLarge',
   SIGNUP_CLOSED: 'auth.errors.SIGNUP_CLOSED',
+  PROJECT_ARCHIVED: 'errors.projectArchived',
 }
 
 /** À défaut de code, le statut HTTP dit déjà quelque chose d'utile. */
