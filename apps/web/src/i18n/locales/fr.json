@@ -64,6 +64,25 @@
     }
   },
 
+  "mcp": {
+    "login": {
+      "subtitle": "Connectez-vous pour autoriser cette application."
+    },
+    "consent": {
+      "title": "Autoriser l'accès",
+      "subtitle": "Une application demande à accéder à votre compte.",
+      "prompt": "« {{client}} » demande à accéder à votre compte, avec les autorisations suivantes :",
+      "accept": "Autoriser",
+      "acceptPending": "Autorisation…",
+      "deny": "Refuser",
+      "denyPending": "Refus…",
+      "errors": {
+        "invalidLink": "Lien d'autorisation invalide ou expiré.",
+        "failed": "L'autorisation a échoué."
+      }
+    }
+  },
+
   "projectSelect": {
     "greeting": "Bonjour {{name}}",
     "subtitle": "Choisissez le projet sur lequel vous écrivez aujourd'hui.",

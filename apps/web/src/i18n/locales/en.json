@@ -64,6 +64,25 @@
     }
   },
 
+  "mcp": {
+    "login": {
+      "subtitle": "Sign in to authorize this application."
+    },
+    "consent": {
+      "title": "Authorize access",
+      "subtitle": "An application is requesting access to your account.",
+      "prompt": "“{{client}}” is requesting access to your account, with the following permissions:",
+      "accept": "Authorize",
+      "acceptPending": "Authorizing…",
+      "deny": "Deny",
+      "denyPending": "Denying…",
+      "errors": {
+        "invalidLink": "Invalid or expired authorization link.",
+        "failed": "Authorization failed."
+      }
+    }
+  },
+
   "projectSelect": {
     "greeting": "Hi {{name}}",
     "subtitle": "Choose the project you're writing in today.",

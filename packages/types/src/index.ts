@@ -1,42 +1,42 @@
 /**
- * Formes JSON échangées entre l'API et le web. Ce sont les shapes telles
- * qu'elles passent sur le fil — pas les types de lignes en base.
+ * JSON shapes exchanged between the API and the web app. These are the
+ * shapes as they travel over the wire — not the database row types.
  */
 
 /**
- * Les langues de l'interface, par leur seul code.
+ * The interface languages, by their code alone.
  *
- * Ce paquet ne porte d'ordinaire que des formes JSON, mais ces codes en sont
- * une : c'est la valeur que le web écrit sur son compte et que l'API doit
- * pouvoir refuser si elle vaut autre chose. Le libellé et le `locale` Intl,
- * eux, ne regardent que le web — ils restent dans `apps/web/src/i18n`.
+ * This package usually only carries JSON shapes, but these codes are one:
+ * it's the value the web app writes to its account and that the API must be
+ * able to reject if it's anything else. The label and the Intl `locale`,
+ * though, only concern the web app — they stay in `apps/web/src/i18n`.
  */
 export const LANGUAGE_CODES = ['fr', 'en'] as const
 
 export type LanguageCode = (typeof LANGUAGE_CODES)[number]
 
 /**
- * Ce que la recherche globale (écran 2c) accepte de fouiller.
+ * What global search (screen 2c) accepts to search through.
  *
- * Partagé pour la même raison que `LANGUAGE_CODES` : c'est la valeur que le
- * web pose dans l'URL et que l'API doit pouvoir refuser si elle vaut autre
- * chose. Les libellés, eux, ne regardent que le web.
+ * Shared for the same reason as `LANGUAGE_CODES`: it's the value the web app
+ * puts in the URL and that the API must be able to reject if it's anything
+ * else. The labels, though, only concern the web app.
  */
 export const SEARCH_SCOPES = ['all', 'text', 'files'] as const
 
 export type SearchScope = (typeof SEARCH_SCOPES)[number]
 
-/** Réponse de `GET /api/auth-state`. Public : appelé avant toute session. */
+/** Response of `GET /api/auth-state`. Public: called before any session. */
 export interface AuthState {
   /**
-   * Vrai dès qu'un compte existe sur cet espace. Le web s'en sert pour choisir
-   * entre l'écran de connexion et l'écran de premier lancement ; l'API s'en
-   * sert pour refuser toute inscription supplémentaire.
+   * True as soon as an account exists on this space. The web app uses it to
+   * choose between the sign-in screen and the first-launch screen; the API
+   * uses it to reject any further sign-up.
    */
   hasAccount: boolean
 }
 
-/** L'utilisateur connecté, tel que le renvoie `GET /api/me`. */
+/** The signed-in user, as returned by `GET /api/me`. */
 export interface SessionUser {
   id: string
   name: string
@@ -44,30 +44,41 @@ export interface SessionUser {
 }
 
 /**
- * Un document de texte riche, décrit structurellement.
+ * Response of `GET /api/oauth-clients/:clientId` — name and icon of a
+ * better-auth mcp plugin OAuth client, for the consent screen
+ * (`/mcp/consent`). A client doesn't belong to anyone in particular, hence
+ * the absence of any other field here.
+ */
+export interface OAuthClientInfo {
+  name: string
+  icon: string | null
+}
+
+/**
+ * A rich-text document, described structurally.
  *
- * Volontairement pas le `JSONContent` de TipTap : ce paquet est partagé avec
- * l'API, qui n'a aucune raison de traîner l'éditeur dans ses dépendances. Le
- * web fait le pont à la frontière de l'éditeur.
+ * Deliberately not TipTap's `JSONContent`: this package is shared with the
+ * API, which has no reason to drag the editor into its dependencies. The
+ * web app bridges the gap at the editor's boundary.
  */
 export interface RichTextDoc {
   type: 'doc'
   content?: unknown[]
 }
 
-/** Une note du journal — un jour rédigé. */
+/** A journal entry — a day written up. */
 export interface DailyNote {
   id: string
-  /** Date calendaire au format `YYYY-MM-DD`. */
+  /** Calendar date in `YYYY-MM-DD` format. */
   date: string
   title: string
   content: RichTextDoc
-  /** Début du texte aplati, pour les listes et les cartes. */
+  /** Start of the flattened text, for lists and cards. */
   excerpt: string
   updatedAt: string
 }
 
-/** Corps de `POST /api/notes`. */
+/** Body of `POST /api/notes`. */
 export interface NoteDraft {
   date: string
   projectId: string
@@ -75,66 +86,66 @@ export interface NoteDraft {
   content: RichTextDoc
 }
 
-/** Corps de `PATCH /api/notes/:id` — modification partielle. */
+/** Body of `PATCH /api/notes/:id` — partial update. */
 export interface NotePatch {
   title?: string
   content?: RichTextDoc
 }
 
-/** Une pièce jointe d'une note. Le contenu se récupère à part. */
+/** An attachment on a note. The content is fetched separately. */
 export interface Attachment {
   id: string
   noteId: string
-  /** Nom d'origine du fichier, tel que déposé. */
+  /** Original filename, as uploaded. */
   filename: string
   mimeType: string
-  /** Taille en octets. */
+  /** Size in bytes. */
   size: number
   createdAt: string
 }
 
 /**
- * Une note telle que la **collection** la renvoie (`GET /api/notes`).
+ * A note as the **collection** returns it (`GET /api/notes`).
  *
- * La liste porte ses pièces jointes, là où `GET /api/notes/:id` ne les donne
- * pas : les cartes de l'écran « aucune note ouverte » les affichent, et aller
- * les chercher carte par carte ferait une requête par jour affiché.
+ * The list carries its attachments, whereas `GET /api/notes/:id` doesn't:
+ * the cards on the "no note open" screen display them, and fetching them
+ * card by card would mean one request per displayed day.
  */
 export interface NoteListItem extends DailyNote {
-  /** Dans l'ordre de dépôt. Tableau vide si le jour n'en porte aucune. */
+  /** In upload order. Empty array if the day carries none. */
   attachments: Attachment[]
 }
 
-/** Réponse de `GET /api/calendar/:month` — quels jours du mois sont rédigés. */
+/** Response of `GET /api/calendar/:month` — which days of the month are written up. */
 export interface CalendarMonth {
   /** `YYYY-MM`. */
   month: string
-  /** Dates `YYYY-MM-DD` portant une note. */
+  /** `YYYY-MM-DD` dates carrying a note. */
   daysWithNotes: string[]
 }
 
 /**
- * Un projet — range les notes d'un compte (un chantier, un client...). Un
- * compte en a toujours au moins un.
+ * A project — groups an account's notes (a job, a client...). An account
+ * always has at least one.
  */
 export interface Project {
   id: string
   name: string
   createdAt: string
-  /** Date d'archivage, `null` si le projet est actif — un archivage se défait. */
+  /** Archival date, `null` if the project is active — archiving can be undone. */
   archivedAt: string | null
-  /** Nombre de notes écrites dans ce projet. */
+  /** Number of notes written in this project. */
   noteCount: number
-  /** Date de la note la plus récente, `null` si le projet est encore vide. */
+  /** Date of the most recent note, `null` if the project is still empty. */
   lastNoteDate: string | null
 }
 
-/** Corps de `POST /api/projects`. */
+/** Body of `POST /api/projects`. */
 export interface ProjectDraft {
   name: string
 }
 
-/** Corps de `PATCH /api/projects/:id` — pour l'instant, seul l'archivage. */
+/** Body of `PATCH /api/projects/:id` — for now, only archiving. */
 export interface ProjectPatch {
   archived: boolean
 }

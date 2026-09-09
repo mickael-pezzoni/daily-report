@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { useSession } from './api/auth-client'
 import { LoginPage } from './components/auth/LoginPage'
+import { McpConsentPage } from './components/auth/McpConsentPage'
+import { McpLoginPage } from './components/auth/McpLoginPage'
 import { ProjectSelect } from './components/auth/ProjectSelect'
 import { SignupPage } from './components/auth/SignupPage'
 import { AppShell } from './components/layout/AppShell'
@@ -55,6 +57,11 @@ export function App() {
   return (
     <ProjectProvider enabled={!!session}>
       <Routes>
+        {/* OAuth rail for the mcp plugin (see CLAUDE.md): better-auth
+            redirects a browser here directly from the API, not from SPA
+            navigation — neither route depends on `hasAccount`. */}
+        <Route path="/mcp/login" element={<McpLoginPage />} />
+        <Route path="/mcp/consent" element={<McpConsentPage />} />
         <Route
           path="/login"
           element={

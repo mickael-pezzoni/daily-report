@@ -27,6 +27,26 @@ create index "account_userId_idx" on "account" ("userId");
 
 create index "verification_identifier_idx" on "verification" ("identifier");
 
+-- better-auth's mcp plugin (OAuth rail for external MCP clients — see
+-- CLAUDE.md). Same rules as the tables above: CLI-generated, never queried
+-- through Kysely.
+
+create table "oauthApplication" ("id" text not null primary key, "name" text not null, "icon" text, "metadata" text, "clientId" text not null unique, "clientSecret" text, "redirectUrls" text not null, "type" text not null, "disabled" boolean, "userId" text references "user" ("id") on delete cascade, "createdAt" timestamptz not null, "updatedAt" timestamptz not null);
+
+create table "oauthAccessToken" ("id" text not null primary key, "accessToken" text not null unique, "refreshToken" text not null unique, "accessTokenExpiresAt" timestamptz not null, "refreshTokenExpiresAt" timestamptz not null, "clientId" text not null references "oauthApplication" ("clientId") on delete cascade, "userId" text references "user" ("id") on delete cascade, "scopes" text not null, "createdAt" timestamptz not null, "updatedAt" timestamptz not null);
+
+create table "oauthConsent" ("id" text not null primary key, "clientId" text not null references "oauthApplication" ("clientId") on delete cascade, "userId" text not null references "user" ("id") on delete cascade, "scopes" text not null, "createdAt" timestamptz not null, "updatedAt" timestamptz not null, "consentGiven" boolean not null);
+
+create index "oauthApplication_userId_idx" on "oauthApplication" ("userId");
+
+create index "oauthAccessToken_clientId_idx" on "oauthAccessToken" ("clientId");
+
+create index "oauthAccessToken_userId_idx" on "oauthAccessToken" ("userId");
+
+create index "oauthConsent_clientId_idx" on "oauthConsent" ("clientId");
+
+create index "oauthConsent_userId_idx" on "oauthConsent" ("userId");
+
 -- Full-text search: extensions and helper function, set up before the
 -- application tables since daily_notes needs them as soon as it's created.
 

@@ -6,6 +6,7 @@ import type {
   NoteDraft,
   NoteListItem,
   NotePatch,
+  OAuthClientInfo,
   Project,
   ProjectDraft,
   ProjectPatch,
@@ -13,10 +14,10 @@ import type {
   SessionUser,
 } from '@daily-report/types'
 
-/** Les filtres de l'écran 2c, tels qu'ils voyagent dans l'URL. */
+/** The filters of screen 2c, as they travel through the URL. */
 export interface SearchOptions {
   scope?: SearchScope
-  /** Borne basse sur la date — ce que pose le filtre « cette année ». */
+  /** Lower bound on the date — what the "this year" filter sets. */
   from?: string
   signal?: AbortSignal
 }
@@ -33,21 +34,21 @@ export class ApiError extends Error {
 }
 
 /**
- * Point de passage unique de toutes les requêtes HTTP de l'application.
- * `credentials: 'include'` pour que le cookie de session parte avec, et une
- * exception typée sur toute réponse non-2xx.
+ * Single passage point for all of the application's HTTP requests.
+ * `credentials: 'include'` so the session cookie travels with it, and a
+ * typed exception on every non-2xx response.
  */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  // Avec un FormData, on laisse le navigateur écrire le Content-Type lui-même :
-  // il doit y placer la frontière multipart. L'imposer ici la lui volerait, et
-  // le serveur recevrait un corps qu'il ne sait pas découper.
+  // With a FormData body, we let the browser write the Content-Type itself:
+  // it must place the multipart boundary in it. Setting it here would steal
+  // that from it, and the server would receive a body it can't parse.
   const isFormData = init?.body instanceof FormData
 
   const response = await fetch(`/api${path}`, {
     ...init,
     credentials: 'include',
-    // Après `...init` : sinon l'objet `headers` de l'appelant écraserait en bloc
-    // celui qu'on vient de composer, Content-Type compris.
+    // After `...init`: otherwise the caller's `headers` object would wholesale
+    // overwrite the one we just composed, Content-Type included.
     headers: {
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...init?.headers,
@@ -58,13 +59,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const body = await response.json().catch(() => null)
     throw new ApiError(
       response.status,
-      // `error` est la forme de notre API, `message` celle de better-auth.
+      // `error` is our API's shape, `message` is better-auth's.
       body?.error ?? body?.message ?? `La requête ${path} a échoué (${response.status}).`,
       body?.code,
     )
   }
 
-  // 204 sur DELETE : pas de corps à désérialiser.
+  // 204 on DELETE: no body to deserialize.
   if (response.status === 204) return undefined as T
 
   return response.json() as Promise<T>
@@ -75,18 +76,18 @@ export const api = {
   me: () => request<SessionUser>('/me'),
 
   notes: {
-    /** La note d'un jour dans un projet, ou `null` si le jour est vierge. */
+    /** The note for a day within a project, or `null` if the day is blank. */
     byDate: async (date: string, projectId: string): Promise<DailyNote | null> => {
       const found = await request<NoteListItem[]>(`/notes?date=${date}&projectId=${projectId}`)
       return found[0] ?? null
     },
-    /** Les derniers jours rédigés d'un projet, pièces jointes comprises — la colonne latérale et l'onglet Calendrier mobile. */
+    /** The most recent written days of a project, attachments included — the sidebar and the mobile Calendar tab. */
     recent: (limit: number, projectId: string) =>
       request<NoteListItem[]>(`/notes?limit=${limit}&projectId=${projectId}`),
-    /** Les notes d'une semaine dans un projet, bornes incluses — le condensé des écrans 2f/2g. */
+    /** A project's notes for a week, bounds included — the digest for screens 2f/2g. */
     week: (from: string, to: string, projectId: string) =>
       request<NoteListItem[]>(`/notes?from=${from}&to=${to}&limit=7&projectId=${projectId}`),
-    /** Recherche plein texte, tous projets confondus (titre, contenu, noms de pièces jointes) — écran 2c. */
+    /** Full-text search across all projects (title, content, attachment names) — screen 2c. */
     search: (q: string, options: SearchOptions = {}) => {
       const params = new URLSearchParams({ q })
       if (options.scope && options.scope !== 'all') params.set('scope', options.scope)
@@ -106,13 +107,13 @@ export const api = {
   },
 
   projects: {
-    /** Les projets du compte, dans l'ordre de création — écrans 10b et 6a. */
+    /** The account's projects, in creation order — screens 10b and 6a. */
     list: () => request<Project[]>('/projects'),
     create: (draft: ProjectDraft) =>
       request<Project>('/projects', { method: 'POST', body: JSON.stringify(draft) }),
     archive: (id: string, patch: ProjectPatch) =>
       request<Project>(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
-    /** Supprime le projet, ses notes et leurs pièces jointes. */
+    /** Deletes the project, its notes and their attachments. */
     remove: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
   },
 
@@ -121,7 +122,7 @@ export const api = {
 
     upload: (noteId: string, files: File[]) => {
       const form = new FormData()
-      // Champ répété : c'est ainsi que l'API accepte un envoi groupé.
+      // Repeated field: this is how the API accepts a batch upload.
       for (const file of files) form.append('file', file)
       return request<Attachment[]>(`/notes/${noteId}/attachments`, {
         method: 'POST',
@@ -132,12 +133,30 @@ export const api = {
     remove: (id: string) => request<void>(`/attachments/${id}`, { method: 'DELETE' }),
 
     /**
-     * URL du contenu — pas une requête, mais ce que consomment `<img src>`, le
-     * lien de téléchargement et les images insérées dans le document.
+     * URL of the content — not a request, but what `<img src>`, the download
+     * link, and images inserted into the document consume.
      *
-     * Requête same-origin : le cookie de session part avec. Avec le driver S3,
-     * la redirection vers l'URL signée est suivie de façon transparente.
+     * Same-origin request: the session cookie travels with it. With the S3
+     * driver, the redirect to the signed URL is followed transparently.
      */
     contentUrl: (id: string) => `/api/attachments/${id}/content`,
+  },
+
+  oauthClients: {
+    /** Name and icon of an mcp plugin OAuth client — consent screen. */
+    get: (clientId: string) => request<OAuthClientInfo>(`/oauth-clients/${clientId}`),
+  },
+
+  mcp: {
+    /**
+     * `POST /api/auth/oauth2/consent` — a better-auth endpoint, not the
+     * application API, but reached through the same `request()`: the `/api`
+     * prefix lands on `/api/auth/oauth2/consent`, which `auth.handler` serves.
+     */
+    consent: (params: { accept: boolean; consentCode: string }) =>
+      request<{ redirectURI: string }>('/auth/oauth2/consent', {
+        method: 'POST',
+        body: JSON.stringify({ accept: params.accept, consent_code: params.consentCode }),
+      }),
   },
 }
