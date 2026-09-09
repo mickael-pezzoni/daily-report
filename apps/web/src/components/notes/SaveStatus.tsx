@@ -3,13 +3,13 @@ import type { SaveState } from '../../hooks/useNote'
 import styles from './SaveStatus.module.css'
 
 /**
- * Le couple « tag + bouton » de l'en-tête 2a.
+ * The "tag + button" pair from header 2a.
  *
- * Il n'y a pas de notion de brouillon en base : ce que montre ce composant est
- * l'état de l'enregistrement automatique, rien d'autre.
+ * There's no notion of a draft in the database: what this component shows
+ * is the state of autosave, nothing else.
  *
- * `errorKey` est une clé de traduction, pas un message : l'infobulle doit
- * suivre la langue même si l'échec date d'avant le changement.
+ * `errorKey` is a translation key, not a message: the tooltip must follow
+ * the language even if the failure predates the language change.
  */
 export function SaveStatus({ state, errorKey }: { state: SaveState; errorKey: string | null }) {
   const { t } = useTranslation()

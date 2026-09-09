@@ -1,44 +1,44 @@
 /**
- * Le contrat de stockage des fichiers.
+ * The file storage contract.
  *
- * Tout ce que l'application sait d'un fichier déposé, c'est une **clé opaque**
- * qu'elle a elle-même fabriquée. Comment cette clé devient un chemin sur disque
- * ou un objet dans un bucket ne regarde que le driver — aucune route, aucune
- * requête SQL ne doit contenir de `fs` ni de `S3Client`.
+ * All the application knows about an uploaded file is an **opaque key** it
+ * built itself. How that key becomes a path on disk or an object in a
+ * bucket is the driver's business alone — no route, no SQL query should
+ * ever contain `fs` or `S3Client`.
  *
- * C'est ce qui permet de passer d'un déploiement on-premise à S3, R2, MinIO ou
- * Backblaze en changeant une variable d'environnement.
+ * This is what makes it possible to move from an on-premise deployment to
+ * S3, R2, MinIO, or Backblaze by changing one environment variable.
  */
 export interface StorageDriver {
-  /** Nom du driver, pour les journaux et le diagnostic. */
+  /** Driver name, for logs and diagnostics. */
   readonly name: string
 
   /**
-   * Écrit un objet.
+   * Writes an object.
    *
-   * Le corps est un `Uint8Array` et non un flux, volontairement : les pièces
-   * jointes sont plafonnées (`MAX_UPLOAD_BYTES`), et travailler sur un tampon
-   * déjà complet évite toute une famille de bugs de flux — longueur inconnue,
-   * interruption en cours d'écriture, réessai impossible.
+   * The body is a `Uint8Array`, not a stream, deliberately: attachments are
+   * capped (`MAX_UPLOAD_BYTES`), and working on an already-complete buffer
+   * avoids a whole family of streaming bugs — unknown length, interruption
+   * mid-write, no possible retry.
    */
   put(key: string, body: Uint8Array, meta: { contentType: string }): Promise<void>
 
   /**
-   * Lit un objet. En flux, cette fois : une lecture se relaie telle quelle vers
-   * la réponse HTTP sans jamais charger le fichier entier en mémoire.
+   * Reads an object. As a stream this time: a read is relayed as-is to the
+   * HTTP response without ever loading the whole file into memory.
    */
   get(key: string): Promise<ReadableStream<Uint8Array>>
 
-  /** Supprime un objet. Ne doit pas échouer si la clé n'existe plus. */
+  /** Deletes an object. Must not fail if the key no longer exists. */
   delete(key: string): Promise<void>
 
   /**
-   * **Optionnel.** Une URL temporaire par laquelle le client télécharge en
-   * direct, sans passer par l'API.
+   * **Optional.** A temporary URL through which the client downloads
+   * directly, without going through the API.
    *
-   * C'est la charnière prévue au plan : la route de téléchargement redirige
-   * quand le driver sait le faire, et relaie le flux sinon. Le driver local ne
-   * l'implémente pas — il n'a pas de domaine public à signer.
+   * This is the hinge planned from the start: the download route redirects
+   * when the driver knows how, and relays the stream otherwise. The local
+   * driver doesn't implement it — it has no public domain to sign against.
    */
   getSignedUrl?(
     key: string,

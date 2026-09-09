@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { extname } from 'node:path'
 
 /**
- * Les colonnes qui suffisent à composer un `Attachment`. Partagées par les
- * routes des pièces jointes et par la liste des notes, qui les embarque.
+ * The columns that suffice to build an `Attachment`. Shared by the
+ * attachment routes and by the note list, which embeds them.
  */
 export const ATTACHMENT_COLUMNS = [
   'id',
@@ -30,7 +30,7 @@ export function toAttachment(row: AttachmentRow): Attachment {
     noteId: row.noteId,
     filename: row.filename,
     mimeType: row.mimeType,
-    // BIGINT arrive en chaîne depuis `pg` ; les tailles restent bien en deçà de
+    // BIGINT arrives as a string from `pg`; sizes stay well under
     // Number.MAX_SAFE_INTEGER.
     size: Number(row.sizeBytes),
     createdAt: row.createdAt.toISOString(),
@@ -38,13 +38,13 @@ export function toAttachment(row: AttachmentRow): Attachment {
 }
 
 /**
- * Types servis **en ligne** dans le navigateur. Tout le reste est renvoyé en
- * pièce jointe téléchargée.
+ * Types served **inline** in the browser. Everything else comes back as a
+ * downloadable attachment.
  *
- * C'est une mesure de sécurité, pas de confort : servir un `.html` ou un `.svg`
- * déposé par un tiers avec `inline` exécuterait son script dans l'origine de
- * l'application. La liste ne contient donc que des formats inertes — et pas
- * `image/svg+xml`, qui n'en est pas un.
+ * This is a security measure, not a convenience: serving a third-party
+ * `.html` or `.svg` with `inline` would execute its script in the
+ * application's origin. The list therefore only contains inert formats —
+ * and not `image/svg+xml`, which isn't one.
  */
 const INLINE_TYPES = new Set([
   'image/png',
@@ -60,13 +60,13 @@ export function isInlineType(mimeType: string): boolean {
 }
 
 /**
- * Fabrique la clé de stockage d'un fichier.
+ * Builds a file's storage key.
  *
- * Le nom d'origine n'entre jamais dedans : il est conservé en base et rendu au
- * téléchargement. La clé, elle, est un UUID — pas de collision entre deux
- * `capture.png`, pas de caractère hostile à échapper, et rien à deviner pour
- * qui listerait un bucket. Seule l'extension est reprise, filtrée, pour que le
- * répertoire reste lisible en exploitation.
+ * The original name never enters it: it's kept in the database and returned
+ * on download. The key itself is a UUID — no collision between two
+ * `capture.png` files, no hostile character to escape, and nothing to guess
+ * for anyone listing a bucket. Only the extension is carried over, filtered,
+ * so the directory stays readable in operations.
  */
 export function buildStorageKey(userId: string, noteId: string, filename: string): string {
   const raw = extname(filename).toLowerCase()
@@ -75,11 +75,11 @@ export function buildStorageKey(userId: string, noteId: string, filename: string
 }
 
 /**
- * En-tête `Content-Disposition`.
+ * `Content-Disposition` header.
  *
- * Deux formes de nom : une repliée en ASCII pour les clients anciens, et la
- * version UTF-8 encodée (RFC 5987) que comprennent les navigateurs actuels —
- * sans quoi « réunion-équipe.pdf » arriverait mutilé.
+ * Two forms of the name: one folded to ASCII for older clients, and the
+ * encoded UTF-8 version (RFC 5987) that current browsers understand —
+ * without which "réunion-équipe.pdf" would arrive mangled.
  */
 export function contentDisposition(filename: string, mimeType: string): string {
   const disposition = isInlineType(mimeType) ? 'inline' : 'attachment'
@@ -87,7 +87,7 @@ export function contentDisposition(filename: string, mimeType: string): string {
   return `${disposition}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(filename)}`
 }
 
-/** Nom de fichier sain à stocker en base : sans chemin ni caractère de contrôle. */
+/** A clean filename to store in the database: no path, no control character. */
 export function sanitizeFilename(filename: string): string {
   const base = filename.split(/[/\\]/).pop() ?? filename
   const clean = base.replace(/[\u0000-\u001f\u007f]/g, '').trim()

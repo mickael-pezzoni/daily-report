@@ -11,9 +11,9 @@ import { useConfirm } from '../ui/ConfirmDialog'
 import styles from './ProjectSelect.module.css'
 
 /**
- * Écran 10b — la route `/projects`. `App` y renvoie quand aucun choix récent
- * (`localStorage`) ne départage plusieurs projets ; le menu utilisateur (6a) y
- * renvoie aussi, sur un simple clic sur « Changer de projet ».
+ * Screen 10b — the `/projects` route. `App` redirects here when no recent
+ * choice (`localStorage`) picks out one project among several; the user
+ * menu (6a) also redirects here, on a simple click on "Change project".
  */
 export function ProjectSelect() {
   const { t } = useTranslation()
@@ -41,7 +41,7 @@ export function ProjectSelect() {
     setPending(false)
     setCreating(false)
     setName('')
-    // Un projet qu'on vient de créer, on veut aussitôt écrire dedans.
+    // A project we just created is one we want to start writing in right away.
     chooseProject(project.id)
   }
 
@@ -110,10 +110,10 @@ export function ProjectSelect() {
                 </button>
               </div>
 
-              {/* Le bouton de sélection couvre toute la tuile (::after) — même
-                  principe que `NoteResultCard` : un bouton dans un bouton
-                  n'existe pas, donc les actions ci-dessus doivent être des
-                  frères, pas des enfants, et repasser au-dessus en z-index. */}
+              {/* The selection button covers the whole tile (::after) — same
+                  principle as `NoteResultCard`: a button inside a button
+                  doesn't exist, so the actions above must be siblings, not
+                  children, and go back above it in z-index. */}
               <button
                 type="button"
                 className={styles.tile_open}

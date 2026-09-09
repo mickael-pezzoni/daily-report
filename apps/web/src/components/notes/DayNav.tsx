@@ -3,7 +3,7 @@ import { useDateFormat } from '../../hooks/useDateFormat'
 import { addDays } from '../../lib/dates'
 import styles from './DayNav.module.css'
 
-/** Le pied de l'écran 2a : ‹ dim. 2 août · lun. 3 août · mar. 4 août › */
+/** The footer of screen 2a: ‹ Sun Aug 2 · Mon Aug 3 · Tue Aug 4 › */
 export function DayNav({ date, projectId }: { date: string; projectId: string | undefined }) {
   const format = useDateFormat()
   const previous = addDays(date, -1)

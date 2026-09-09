@@ -66,7 +66,7 @@
 .menu {
   position: absolute;
   right: 6px;
-  /* Au-dessus : la vignette est déjà en bas de l'écran. */
+  /* Above: the thumbnail is already at the bottom of the screen. */
   bottom: calc(100% + 4px);
   z-index: 10;
   padding: var(--space-1);

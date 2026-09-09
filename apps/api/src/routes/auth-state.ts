@@ -3,8 +3,8 @@ import { Hono } from 'hono'
 import { hasAccount } from '../db/index.js'
 
 /**
- * Route publique, appelée par le web avant toute session : elle décide si on
- * montre l'écran de connexion ou celui du premier lancement.
+ * Public route, called by the web app before any session exists: it decides
+ * whether to show the sign-in screen or the first-launch screen.
  */
 const authState = new Hono()
 

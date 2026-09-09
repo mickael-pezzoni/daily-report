@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 
 /**
- * Un compte existe-t-il sur cet espace ? Détermine si l'application ouvre sur
- * l'écran de connexion ou sur celui de premier lancement.
+ * Does an account exist on this space? Determines whether the app opens on
+ * the sign-in screen or on the first-launch screen.
  *
- * `undefined` tant que la réponse n'est pas arrivée : les routes attendent
- * plutôt que de rediriger vers le mauvais écran puis de se corriger.
+ * `undefined` until the response arrives: routes wait instead of redirecting
+ * to the wrong screen and then correcting themselves.
  *
- * `revalidateKey` doit changer à chaque bascule de session — sans quoi, après
- * la création du tout premier compte puis une déconnexion, on garderait un
- * `hasAccount: false` périmé et on renverrait vers un écran d'inscription que
- * le serveur refuse désormais.
+ * `revalidateKey` must change on every session switch — otherwise, after the
+ * very first account is created and then a sign-out, we'd keep a stale
+ * `hasAccount: false` and redirect to a sign-up screen the server now refuses.
  */
 export function useAuthState(revalidateKey?: string | null) {
   const [hasAccount, setHasAccount] = useState<boolean | undefined>(undefined)
@@ -24,8 +23,8 @@ export function useAuthState(revalidateKey?: string | null) {
         if (!cancelled) setHasAccount(state.hasAccount)
       })
       .catch(() => {
-        // API injoignable : on suppose qu'un compte existe, donc écran de
-        // connexion — c'est là que l'erreur réseau sera visible et actionnable.
+        // API unreachable: assume an account exists, so the sign-in screen —
+        // that's where the network error will be visible and actionable.
         if (!cancelled) setHasAccount(true)
       })
     return () => {

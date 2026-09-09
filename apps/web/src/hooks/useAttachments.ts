@@ -4,20 +4,19 @@ import { api } from '../api/client'
 import { apiErrorKey } from '../i18n/api-errors'
 
 /**
- * Les pièces jointes d'une journée.
+ * The attachments for a day.
  *
- * `noteId` peut être `null` — un jour vierge n'a pas encore de note. L'envoi
- * passe alors par `ensureNoteId`, fourni par `useNote`, qui la crée à la volée.
+ * `noteId` can be `null` — a blank day doesn't have a note yet. Upload then
+ * goes through `ensureNoteId`, provided by `useNote`, which creates it on the fly.
  *
- * L'état vit ici plutôt que dans le tiroir : l'éditeur ajoute lui aussi des
- * fichiers (images collées ou déposées dans le texte), et les deux doivent voir
- * la même liste.
+ * The state lives here rather than in the drawer: the editor also adds files
+ * (images pasted or dropped into the text), and both must see the same list.
  */
 export function useAttachments(noteId: string | null, ensureNoteId: () => Promise<string>) {
   const [items, setItems] = useState<Attachment[]>([])
   const [uploading, setUploading] = useState(false)
-  // Une clé de traduction, pas un message : l'API répond en anglais technique
-  // et un texte figé ne suivrait pas un changement de langue.
+  // A translation key, not a message: the API responds in technical English,
+  // and a frozen piece of text wouldn't follow a language change.
   const [errorKey, setErrorKey] = useState<string | null>(null)
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export function useAttachments(noteId: string | null, ensureNoteId: () => Promis
     }
   }, [noteId])
 
-  /** Envoie des fichiers et renvoie ce que l'API a réellement créé. */
+  /** Uploads files and returns what the API actually created. */
   const upload = useCallback(
     async (files: File[]): Promise<Attachment[]> => {
       if (files.length === 0) return []
@@ -48,8 +47,8 @@ export function useAttachments(noteId: string | null, ensureNoteId: () => Promis
       try {
         const id = await ensureNoteId()
         const created = await api.attachments.upload(id, files)
-        // On repart de la réponse du serveur plutôt que de deviner : c'est lui
-        // qui attribue les identifiants et le vrai type.
+        // We start from the server's response rather than guessing: it's the
+        // one that assigns the ids and the actual type.
         setItems((current) => [...current, ...created])
         return created
       } catch (cause) {

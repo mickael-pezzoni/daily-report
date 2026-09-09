@@ -1,5 +1,5 @@
-/* Positionné au point du clic droit, corrigé par le composant s'il déborde du
-   viewport — voir le useLayoutEffect dans EditorContextMenu.tsx. */
+/* Positioned at the right-click point, corrected by the component if it
+   overflows the viewport — see the useLayoutEffect in EditorContextMenu.tsx. */
 .menu {
   position: fixed;
   z-index: 20;
@@ -46,7 +46,7 @@
   margin: 4px 2px;
 }
 
-/* Le sous-menu d'images, en retrait comme celui des langues dans UserMenu. */
+/* The images submenu, indented like the language one in UserMenu. */
 .images {
   display: flex;
   flex-direction: column;

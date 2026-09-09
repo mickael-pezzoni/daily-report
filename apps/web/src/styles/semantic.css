@@ -1,33 +1,32 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   Couche 2 — RÔLES APPLICATIFS.
+   Layer 2 — APPLICATION ROLES.
 
-   Renomme les tokens de la couche 1 en rôles qui parlent du produit. Les
-   *.module.css consomment ces noms-là, jamais un palier de rampe brut : un
-   futur thème n'a ainsi qu'à réaffecter des rôles ici, sans qu'on ait à
-   traquer des `--color-neutral-300` disséminés dans dix composants.
+   Renames layer 1's tokens into roles that speak the product's language.
+   The *.module.css files consume these names, never a raw ramp step: a
+   future theme then only needs to reassign roles here, without having to
+   track down `--color-neutral-300` scattered across ten components.
 
-   RÈGLE : chaque valeur de ce fichier est un `var(--…)` de tokens.css.
-   Aucun hex, aucune police, aucun px en dur.
+   RULE: every value in this file is a `var(--…)` from tokens.css.
+   No hex, no font, no hardcoded px.
    ══════════════════════════════════════════════════════════════════════ */
 
 :root {
   /* — surfaces — */
-  --app-page-bg: var(--color-neutral-200); /* fond général de l'application */
-  --app-panel-bg: var(--color-bg); /* barre latérale, en-têtes, pieds */
-  --app-paper-bg: var(--color-neutral-100); /* la « feuille » de note, les cartes */
-  --app-sheet-bg: var(--color-neutral-100); /* feuille mobile des écrans d'auth */
-  /* Fond des petits éléments arrondis (pilule de date, puces de menu…). Ne
-     désigne plus le bureau de 2a depuis la direction « pile » : voir
-     --app-desk-surface. */
+  --app-page-bg: var(--color-neutral-200); /* app-wide background */
+  --app-panel-bg: var(--color-bg); /* sidebar, headers, footers */
+  --app-paper-bg: var(--color-neutral-100); /* the note "sheet", the cards */
+  --app-sheet-bg: var(--color-neutral-100); /* mobile sheet of the auth screens */
+  /* Background of small rounded elements (date pill, menu items…). No longer
+     refers to 2a's desk since the "stack" direction: see --app-desk-surface. */
   --app-desk-bg: var(--color-neutral-300);
-  --app-paper-shadow: var(--shadow-lg); /* la feuille décolle du bureau */
-  /* Le bureau de 2a, derrière la pile de feuilles. */
+  --app-paper-shadow: var(--shadow-lg); /* the sheet lifts off the desk */
+  /* 2a's desk, behind the stack of sheets. */
   --app-desk-surface: var(--color-bg);
-  /* Les feuilles des jours précédents, entrevues sous la note active. */
+  /* The sheets of previous days, glimpsed under the active note. */
   --app-paper-stack-bg: var(--color-neutral-200);
   --app-paper-stack-shadow: var(--shadow-sm);
 
-  /* — texte — */
+  /* — text — */
   --app-text: var(--color-text);
   --app-text-muted: var(--color-neutral-700);
   --app-text-subtle: var(--color-neutral-800);
@@ -36,50 +35,50 @@
   --app-link: var(--color-accent-700);
   --app-link-hover: var(--color-accent-800);
 
-  /* — bordures et élévation — */
+  /* — borders and elevation — */
   --app-border: var(--color-divider);
-  --app-border-strong: var(--color-neutral-400); /* zones de dépôt en pointillés */
+  --app-border-strong: var(--color-neutral-400); /* dashed drop zones */
   --app-elevation-card: var(--shadow-sm);
   --app-elevation-panel: var(--shadow-md);
   --app-elevation-modal: var(--shadow-lg);
 
-  /* — petits contrôles ronds (déconnexion, fermeture) — */
+  /* — small round controls (sign-out, close) — */
   --app-control-bg: var(--color-neutral-300);
-  /* Un cran plus soutenu : le ✕ est posé sur une pastille déjà en
-     --app-control-bg, il lui faut ça pour s'en détacher. */
+  /* One notch stronger: the ✕ sits on a pill already in --app-control-bg, it
+     needs this to stand out from it. */
   --app-control-strong-bg: var(--color-neutral-400);
-  /* L'inverse : le rond 👤 est creusé dans la puce du menu utilisateur, elle
-     aussi en --app-control-bg — il s'en détache par le clair. */
+  /* The reverse: the 👤 circle is inset into the user-menu chip, itself also
+     in --app-control-bg — it stands out from it by being lighter. */
   --app-control-inset-bg: var(--color-neutral-100);
 
-  /* — dépôt de fichiers — */
+  /* — file drop — */
   --app-dropzone-border: var(--color-neutral-400);
-  /* Le voile qui signale la cible pendant qu'un fichier survole. */
+  /* The veil that signals the target while a file is being dragged over it. */
   --app-drop-active-bg: var(--color-accent-100);
 
-  /* — états — */
+  /* — states — */
   --app-focus-ring: var(--color-accent);
-  /* Organic n'a pas de rôle d'erreur : on prend le palier le plus sombre et le
-     plus saturé de la rampe accent plutôt qu'un rouge hors palette. */
+  /* Organic has no error role: we take the darkest, most saturated step of
+     the accent ramp rather than an off-palette red. */
   --app-danger: var(--color-accent-700);
   --app-danger-bg: var(--color-accent-100);
-  /* Le fond plein d'un bouton destructif — la modale 8b. Deux crans plus
-     sombre que --app-danger, qui sert de couleur de *texte* posée sur
-     --app-danger-bg et ne porterait pas du blanc lisible. */
+  /* The solid background of a destructive button — modal 8b. Two notches
+     darker than --app-danger, which serves as the *text* color placed on
+     --app-danger-bg and wouldn't carry readable white. */
   --app-danger-solid: var(--color-accent-800);
   --app-danger-solid-hover: var(--color-accent-900);
 
-  /* — marqueurs du produit (calendrier, recherche) — */
-  --app-day-selected: var(--color-accent); /* pastille pleine du jour ouvert */
-  --app-day-has-note: var(--color-accent-2); /* point sauge sous un jour rédigé */
-  --app-day-hover: var(--color-accent-100); /* survol d'une case de calendrier */
+  /* — product markers (calendar, search) — */
+  --app-day-selected: var(--color-accent); /* solid dot of the open day */
+  --app-day-has-note: var(--color-accent-2); /* sage dot under a written day */
+  --app-day-hover: var(--color-accent-100); /* hover on a calendar cell */
   --app-search-highlight: var(--color-accent-200);
 
-  /* — texte riche — */
+  /* — rich text — */
   --app-quote-bg: var(--color-accent-100);
   --app-code-bg: var(--color-neutral-200);
 
-  /* — jauge de robustesse du mot de passe — */
+  /* — password strength meter — */
   --app-meter-filled: var(--color-accent-2);
   --app-meter-empty: var(--color-neutral-300);
 }

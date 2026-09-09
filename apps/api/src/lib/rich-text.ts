@@ -6,7 +6,7 @@ interface RichTextNode {
   content?: RichTextNode[]
 }
 
-/** Nœuds qui séparent deux blocs de texte à l'aplatissement. */
+/** Nodes that separate two text blocks when flattening. */
 const BLOCK_TYPES = new Set([
   'paragraph',
   'heading',
@@ -18,11 +18,12 @@ const BLOCK_TYPES = new Set([
 ])
 
 /**
- * Aplatit un document TipTap en texte brut.
+ * Flattens a TipTap document into plain text.
  *
- * Toujours calculé au serveur, jamais accepté du client : `content_text` doit
- * rester le reflet exact de `content`, sinon les extraits — et demain la
- * recherche — mentiraient sur ce que contient la note.
+ * Always computed server-side, never accepted from the client:
+ * `content_text` must stay the exact reflection of `content`, otherwise
+ * excerpts — and, down the line, search — would lie about what the note
+ * contains.
  */
 export function flattenRichText(doc: RichTextDoc): string {
   const parts: string[] = []
@@ -42,7 +43,7 @@ export function flattenRichText(doc: RichTextDoc): string {
     .trim()
 }
 
-/** Les premiers caractères du texte aplati, pour les cartes et les listes. */
+/** The first characters of the flattened text, for cards and lists. */
 export function excerptOf(contentText: string, max = 160): string {
   const flat = contentText.replace(/\s+/g, ' ').trim()
   return flat.length <= max ? flat : `${flat.slice(0, max).trimEnd()}…`

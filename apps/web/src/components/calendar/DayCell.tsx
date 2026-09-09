@@ -3,7 +3,7 @@ import styles from './DayCell.module.css'
 interface DayCellProps {
   iso: string
   dayOfMonth: number
-  /** Débordement sur le mois voisin — grisé. Absent dans une bande de semaine. */
+  /** Overflow into the neighboring month — grayed out. Absent in a week strip. */
   outside?: boolean
   selected: boolean
   today: boolean
@@ -12,10 +12,10 @@ interface DayCellProps {
 }
 
 /**
- * Une case de jour — le grain commun à la grille du mois (desktop) et à la
- * bande de semaine (mobile). Trois états s'y superposent : le jour ouvert
- * (pastille pleine), aujourd'hui (cerclé) et l'existence d'une note (point
- * sauge), exactement comme dans la maquette 2a.
+ * A day cell — the shared grain of the month grid (desktop) and the week
+ * strip (mobile). Three states overlay on it: the open day (filled pill),
+ * today (circled), and the existence of a note (sage dot), exactly as in
+ * mockup 2a.
  */
 export function DayCell({ iso, dayOfMonth, outside, selected, today, hasNote, onSelect }: DayCellProps) {
   const classes = [styles.day]

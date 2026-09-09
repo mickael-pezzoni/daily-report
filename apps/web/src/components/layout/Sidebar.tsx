@@ -14,7 +14,7 @@ interface SidebarProps {
   recent: DailyNote[]
 }
 
-/** La colonne de gauche, permanente, de la maquette 2a. */
+/** The permanent left column from mockup 2a. */
 export function Sidebar({
   month,
   onMonthChange,
@@ -29,8 +29,8 @@ export function Sidebar({
 
   return (
     <aside className={styles.sidebar}>
-      {/* Le menu utilisateur vivait ici ; la maquette l'a déplacé dans
-          l'en-tête de droite. La barre latérale ne porte plus que le titre. */}
+      {/* The user menu used to live here; the mockup moved it to the right
+          header. The sidebar now only carries the title. */}
       <div className={styles.brand_row}>
         <Link to={`/projets/${projectId}`} className={styles.brand}>
           {t('app.name')}

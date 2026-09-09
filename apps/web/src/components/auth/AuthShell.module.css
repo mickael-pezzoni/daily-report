@@ -1,6 +1,6 @@
-/* Cadre partagé par les écrans 2d (connexion) et 2e (premier lancement).
-   Un seul arbre : le bandeau et l'en-tête de carte s'échangent au point de
-   rupture, plutôt que deux composants à maintenir en parallèle. */
+/* Frame shared by screens 2d (login) and 2e (first launch).
+   A single tree: the band and the card header swap at the breakpoint,
+   rather than two components to maintain in parallel. */
 
 .page {
   min-height: 100dvh;
@@ -51,7 +51,7 @@
   gap: var(--space-2);
 }
 
-/* Le bandeau mobile — masqué sur bureau, où le titre vit dans la carte. */
+/* The mobile band — hidden on desktop, where the title lives in the card. */
 .band {
   display: none;
 }
@@ -62,7 +62,7 @@
   margin: 0;
 }
 
-/* ── Mobile : bandeau coloré, puis feuille aux coins hauts arrondis ── */
+/* ── Mobile: colored band, then a sheet with rounded top corners ── */
 @media (max-width: 640px) {
   .page {
     display: block;
@@ -94,7 +94,7 @@
     background: var(--app-sheet-bg);
   }
 
-  /* Sur mobile, l'identité est dans le bandeau : la carte va droit au formulaire. */
+  /* On mobile, identity lives in the band: the card goes straight to the form. */
   .card > .head {
     display: none;
   }

@@ -11,15 +11,15 @@ import { storage } from '../storage/index.js'
 
 const notes = new Hono<AuthedEnv>()
 
-/** Code d'erreur Postgres pour une violation de contrainte d'unicité. */
+/** Postgres error code for a unique constraint violation. */
 const UNIQUE_VIOLATION = '23505'
 
 /**
- * Un fragment `LIKE` encadré de jokers, le texte de l'utilisateur échappé.
+ * A `LIKE` fragment wrapped in wildcards, with the user's text escaped.
  *
- * Sans cet échappement, un `%` tapé dans la recherche ferait tout sortir et un
- * `_` matcherait n'importe quel caractère : ce qu'on cherche est du texte, pas
- * un motif.
+ * Without this escaping, a `%` typed into the search would match everything
+ * and a `_` would match any character: what we're searching for is text, not
+ * a pattern.
  */
 function likeFragment(value: string): string {
   return `%${value.replace(/[\\%_]/g, (char) => `\\${char}`)}%`
@@ -48,10 +48,10 @@ function toDailyNote(row: NoteRow): DailyNote {
 }
 
 /**
- * Les pièces jointes de plusieurs notes, groupées par note.
+ * The attachments of several notes, grouped by note.
  *
- * Une seule requête pour toute la page : une par note ferait un N+1 dont le
- * coût grimperait avec la limite demandée.
+ * A single query for the whole page: one per note would be an N+1 whose cost
+ * would climb with the requested limit.
  */
 async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachment[]>> {
   const grouped = new Map<string, Attachment[]>()
@@ -73,24 +73,26 @@ async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachm
 }
 
 /**
- * `GET /api/notes?date=YYYY-MM-DD` — la note de ce jour, tableau vide si vierge.
- * `GET /api/notes?limit=3`        — les dernières notes, date décroissante.
- * `GET /api/notes?q=…`            — recherche plein texte (titre, contenu, noms
- *                                    de pièces jointes), triée par pertinence.
- * `GET /api/notes?q=…&scope=text` — ne fouille que le texte, ou que les noms de
- *                                    fichiers avec `files`. Défaut : `all`.
- * `GET /api/notes?from=YYYY-MM-DD` — borne basse sur la date, cumulable avec le
- *                                    reste (c'est le filtre « cette année »).
- * `GET /api/notes?to=YYYY-MM-DD`   — borne haute incluse, cumulable avec
- *                                    `from` (c'est le condensé de semaine des
- *                                    écrans 2f/2g).
- * `GET /api/notes?projectId=…`     — restreint à un projet ; cumulable avec
- *                                    tout le reste sauf `q`, qui fouille tous
- *                                    les projets du compte (recherche globale).
+ * `GET /api/notes?date=YYYY-MM-DD` — the note for that day, empty array if
+ *                                    blank.
+ * `GET /api/notes?limit=3`        — the latest notes, descending date.
+ * `GET /api/notes?q=…`            — full-text search (title, content,
+ *                                    attachment names), sorted by relevance.
+ * `GET /api/notes?q=…&scope=text` — searches only the text, or only the
+ *                                    filenames with `files`. Default: `all`.
+ * `GET /api/notes?from=YYYY-MM-DD` — lower bound on the date, stackable with
+ *                                    the rest (this is the "this year" filter).
+ * `GET /api/notes?to=YYYY-MM-DD`   — inclusive upper bound, stackable with
+ *                                    `from` (this is the week digest of
+ *                                    screens 2f/2g).
+ * `GET /api/notes?projectId=…`     — restricted to a project; stackable with
+ *                                    everything else except `q`, which
+ *                                    searches every project on the account
+ *                                    (global search).
  *
- * Chaque élément embarque ses pièces jointes : les cartes de l'écran « aucune
- * note ouverte » les affichent, et le détail `GET /api/notes/:id` n'est pas le
- * chemin qu'elles empruntent.
+ * Each item embeds its attachments: the cards on the "no note open" screen
+ * display them, and the `GET /api/notes/:id` detail isn't the path they go
+ * through.
  */
 notes.get('/', async (c) => {
   const userId = c.get('userId')
@@ -131,15 +133,16 @@ notes.get('/', async (c) => {
       return c.json({ error: `invalid scope, expected one of ${SEARCH_SCOPES.join(', ')}` }, 400)
     }
 
-    // Titre/contenu via la colonne générée `search_vector` (langue figée par
-    // compte à la création, cf. migration 004).
+    // Title/content via the generated `search_vector` column (language fixed
+    // per account at creation, see migration 004).
     //
-    // Le nom de fichier, lui, se cherche en `ILIKE` et **non** avec l'opérateur
-    // de similarité `%` : celui-ci compare les deux chaînes *entières*, si bien
-    // qu'un terme court noyé dans un nom long passe sous le seuil et ne sort
-    // jamais (« ecran » contre « Capture d'ecran_20260701_203406.png » ne vaut
-    // que 0,18). L'index `gin_trgm_ops` de la migration 004 accélère les deux ;
-    // c'est bien un `ILIKE` qu'il sert ici.
+    // The filename, on the other hand, is searched with `ILIKE` and **not**
+    // with the `%` similarity operator: the latter compares both strings in
+    // their *entirety*, so a short term buried in a long name falls under
+    // the threshold and never surfaces ("ecran" against "Capture
+    // d'ecran_20260701_203406.png" only scores 0.18). The `gin_trgm_ops`
+    // index from migration 004 speeds up both cases; it's indeed an `ILIKE`
+    // it serves here.
     const matchesText = sql<boolean>`search_vector @@ websearch_to_tsquery(search_language, ${q})`
     const noteIdsWithMatchingFile = db
       .selectFrom('attachments')
@@ -159,8 +162,9 @@ notes.get('/', async (c) => {
     return c.json({ error: 'invalid limit, expected an integer between 1 and 100' }, 400)
   }
 
-  // Par pertinence si `q` est fourni — une note qui ne matche que par une
-  // pièce jointe a un rang de 0 et retombe en fin de liste, triée par date.
+  // By relevance if `q` is provided — a note that only matches through an
+  // attachment has a rank of 0 and falls back to the end of the list, sorted
+  // by date.
   const rows = await (q
     ? query
         .orderBy(sql<number>`ts_rank(search_vector, websearch_to_tsquery(search_language, ${q}))`, 'desc')
@@ -179,10 +183,11 @@ notes.get('/', async (c) => {
 })
 
 /**
- * `POST /api/notes` — crée la note d'un jour, dans le projet donné. `409` si
- * ce projet a déjà une note ce jour-là, `404` si `projectId` n'appartient pas
- * au compte (une ressource d'autrui n'existe pas de notre point de vue), `403`
- * s'il est archivé — un projet rangé n'accepte plus de nouvelles notes.
+ * `POST /api/notes` — creates the note for a day, in the given project.
+ * `409` if that project already has a note for that day, `404` if
+ * `projectId` doesn't belong to the account (a resource belonging to someone
+ * else doesn't exist from our point of view), `403` if it's archived — an
+ * archived project no longer accepts new notes.
  */
 notes.post('/', async (c) => {
   const userId = c.get('userId')
@@ -224,8 +229,8 @@ notes.post('/', async (c) => {
     c.header('Location', `/api/notes/${note.id}`)
     return c.json(note, 201)
   } catch (error) {
-    // On laisse la contrainte UNIQUE (project_id, note_date) trancher plutôt
-    // que de faire un SELECT préalable, qui laisserait une fenêtre de concurrence.
+    // We let the UNIQUE (project_id, note_date) constraint decide rather
+    // than doing a prior SELECT, which would leave a race window.
     if ((error as { code?: string }).code === UNIQUE_VIOLATION) {
       return c.json({ error: 'a note already exists for this day', code: 'NOTE_EXISTS' }, 409)
     }
@@ -245,15 +250,15 @@ notes.get('/:id', async (c) => {
     .where('userId', '=', c.get('userId'))
     .executeTakeFirst()
 
-  // 404 et non 403 : la note d'autrui n'existe pas de notre point de vue.
+  // 404, not 403: someone else's note doesn't exist from our point of view.
   if (!row) return c.json({ error: 'note not found' }, 404)
   return c.json(toDailyNote(row))
 })
 
 /**
- * `PATCH /api/notes/:id` — modification partielle. `403` si le projet de la
- * note est archivé — au-delà du 404 d'appartenance, encore une vérification
- * différente : la note existe bel et bien, c'est l'écriture qui est refusée.
+ * `PATCH /api/notes/:id` — partial update. `403` if the note's project is
+ * archived — beyond the 404 for ownership, yet another, different check:
+ * the note does exist, it's the write that's refused.
  */
 notes.patch('/:id', async (c) => {
   const id = c.req.param('id')
@@ -303,15 +308,15 @@ notes.patch('/:id', async (c) => {
   return c.json(toDailyNote(row))
 })
 
-/** `DELETE /api/notes/:id` — emporte les pièces jointes avec la note. */
+/** `DELETE /api/notes/:id` — takes the attachments down with the note. */
 notes.delete('/:id', async (c) => {
   const id = c.req.param('id')
   if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
 
-  // Relever les clés AVANT la suppression : le `ON DELETE CASCADE` emporte les
-  // lignes `attachments`, et avec elles la seule trace des objets stockés. Sans
-  // ça, chaque note supprimée laisserait des fichiers orphelins que plus rien
-  // ne référence — donc impossibles à retrouver.
+  // Collect the keys BEFORE deleting: the `ON DELETE CASCADE` takes the
+  // `attachments` rows with it, and with them the only trace of the stored
+  // objects. Without this, every deleted note would leave behind orphan
+  // files that nothing references anymore — hence impossible to find.
   const keys = await db
     .selectFrom('attachments')
     .select('storageKey')
@@ -326,8 +331,8 @@ notes.delete('/:id', async (c) => {
 
   if (result.numDeletedRows === 0n) return c.json({ error: 'note not found' }, 404)
 
-  // Après la base : un objet qui survit est du déchet silencieux, une ligne qui
-  // survit serait un lien mort. On préfère le premier.
+  // After the database: an object that survives is silent waste, a row that
+  // survives would be a dead link. We prefer the former.
   await Promise.allSettled(keys.map((row) => storage.delete(row.storageKey)))
 
   return c.body(null, 204)

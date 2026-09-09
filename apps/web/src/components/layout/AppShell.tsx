@@ -19,12 +19,12 @@ import styles from './AppShell.module.css'
 const RECENT_LIMIT = 10
 
 /**
- * La coquille de l'écran principal : barre latérale permanente à gauche,
- * journée ouverte ou état vide à droite.
+ * The shell of the main screen: permanent sidebar on the left, open day or
+ * empty state on the right.
  *
- * C'est ici que vivent les données partagées par les deux colonnes — le
- * calendrier du mois affiché et les derniers jours — pour qu'un enregistrement
- * dans l'éditeur allume la pastille du calendrier sans rechargement.
+ * This is where the data shared by the two columns lives — the displayed
+ * month calendar and the recent days — so a save in the editor lights up the
+ * calendar dot without a reload.
  */
 export function AppShell() {
   const { t } = useTranslation()
@@ -35,20 +35,20 @@ export function AppShell() {
   const [month, setMonth] = useState(() => monthOf(date ?? todayISO()))
   const [daysWithNotes, setDaysWithNotes] = useState<string[]>([])
   const [recent, setRecent] = useState<NoteListItem[]>([])
-  // Écran mobile 2b : lequel des deux onglets est affiché. Pas de troisième
-  // onglet « Exporter » — il n'a rien derrière lui côté API.
+  // Mobile screen 2b: which of the two tabs is shown. No third "Export" tab
+  // — there's nothing behind it on the API side.
   const [mobileTab, setMobileTab] = useState<MobileTab>('today')
-  // La semaine affichée dans l'onglet Calendrier — l'équivalent mobile de
-  // `month`, en plus court : la maquette montre un mois entier, ça ne tient
-  // pas sur un écran de téléphone sans faire défiler.
+  // The week shown in the Calendar tab — the mobile equivalent of `month`,
+  // shorter: the mockup shows a whole month, which doesn't fit on a phone
+  // screen without scrolling.
   const [weekAnchor, setWeekAnchor] = useState(() => startOfWeek(date ?? todayISO()))
-  // Écran 2c — recherche globale. Ctrl+K/⌘K depuis n'importe où dans l'app,
-  // pas seulement depuis un bouton ; c'est tout l'intérêt du raccourci.
+  // Screen 2c — global search. Ctrl+K/⌘K from anywhere in the app, not just
+  // from a button; that's the whole point of the shortcut.
   const [searchOpen, setSearchOpen] = useState(false)
-  // La dernière note supprimée ailleurs que dans la vue qui l'affiche (modale
-  // de recherche ou onglet Calendrier mobile) — `WeekDigest` s'en sert pour se
-  // retirer localement, puisqu'il charge ses notes lui-même et ne les
-  // recevrait sinon jamais.
+  // The last note deleted somewhere other than the view displaying it
+  // (search modal or mobile Calendar tab) — `WeekDigest` uses it to remove
+  // itself locally, since it loads its own notes and would otherwise never
+  // receive them.
   const [deletedNote, setDeletedNote] = useState<DailyNote | null>(null)
 
   useEffect(() => {
@@ -62,8 +62,8 @@ export function AppShell() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  // Le mois affiché (desktop) et la semaine affichée (mobile) suivent tous
-  // les deux la journée ouverte.
+  // The displayed month (desktop) and the displayed week (mobile) both
+  // follow the open day.
   useEffect(() => {
     if (date) {
       setMonth(monthOf(date))
@@ -72,10 +72,9 @@ export function AppShell() {
   }, [date])
 
   /**
-   * Naviguer la bande de semaine peut faire passer son lundi dans un autre
-   * mois que celui déjà chargé — sans quoi les pastilles de la nouvelle
-   * semaine resteraient à plat, `daysWithNotes` ne portant que le mois
-   * affiché par ailleurs.
+   * Navigating the week strip can move its Monday into a different month
+   * than the one already loaded — otherwise the new week's dots would stay
+   * flat, since `daysWithNotes` only carries the month displayed elsewhere.
    */
   function handleWeekChange(nextAnchor: string) {
     setWeekAnchor(nextAnchor)
@@ -83,7 +82,7 @@ export function AppShell() {
     if (nextMonth !== month) setMonth(nextMonth)
   }
 
-  /** Un jour choisi dans la bande de semaine ouvre sa note et revient sur l'onglet Aujourd'hui. */
+  /** A day chosen in the week strip opens its note and switches back to the Today tab. */
   function handleWeekSelect(day: string) {
     setMobileTab('today')
     void navigate(`/projets/${projectId}/notes/${day}`)
@@ -111,7 +110,7 @@ export function AppShell() {
   useEffect(() => loadMonth(month), [month, loadMonth])
   useEffect(() => loadRecent(), [loadRecent])
 
-  /** Un enregistrement peut créer un jour rédigé : les deux vues se rafraîchissent. */
+  /** A save can create a written day: both views refresh. */
   const handleNoteSaved = useCallback(
     (note: DailyNote) => {
       setDaysWithNotes((days) => (days.includes(note.date) ? days : [...days, note.date]))
@@ -121,14 +120,14 @@ export function AppShell() {
   )
 
   /**
-   * Suppression depuis une carte de recherche (2c), l'onglet Calendrier
-   * mobile (2b) ou le bouton 🗑 de la journée ouverte (2a) — le condensé de
-   * semaine de 2f/2g n'en propose pas.
+   * Deletion from a search card (2c), the mobile Calendar tab (2b), or the
+   * 🗑 button of the open day (2a) — the week digest in 2f/2g doesn't offer
+   * one.
    *
-   * On retire la note et la pastille du calendrier tout de suite — la réponse
-   * est un 204 sans corps, il n'y a rien à attendre pour savoir quoi peindre —
-   * puis on recharge la liste : d'autres notes étaient masquées par la limite,
-   * une nouvelle peut maintenant remonter.
+   * We remove the note and the calendar dot right away — the response is a
+   * bodiless 204, there's nothing to wait for to know what to paint — then
+   * reload the list: other notes were hidden by the limit, a new one can now
+   * surface.
    */
   const handleNoteDeleted = useCallback(
     (note: DailyNote) => {
@@ -136,9 +135,9 @@ export function AppShell() {
       setDaysWithNotes((days) => days.filter((day) => day !== note.date))
       setDeletedNote(note)
 
-      // La note supprimée est celle actuellement ouverte : rester sur cette
-      // route laisserait l'éditeur et le jour du calendrier affichés comme
-      // « ouverts » sur une note qui n'existe plus.
+      // The deleted note is the one currently open: staying on this route
+      // would leave the editor and the calendar day displayed as "open" on a
+      // note that no longer exists.
       if (note.date === date) {
         void navigate(`/projets/${projectId}`, { replace: true })
       }
@@ -146,8 +145,9 @@ export function AppShell() {
       api.notes
         .remove(note.id)
         .catch(() => {
-          // La suppression a échoué : on remet la vue en accord avec le serveur
-          // plutôt que de laisser une note disparue de l'écran mais bien vivante.
+          // The deletion failed: we bring the view back in line with the
+          // server rather than leaving a note gone from the screen but still
+          // alive.
           loadMonth(month)
         })
         .finally(loadRecent)
@@ -160,7 +160,7 @@ export function AppShell() {
   if (projectPending) return <Splash />
   if (!project) return <Navigate to="/projets" replace />
 
-  // Une date bricolée dans l'URL ramène à aujourd'hui plutôt qu'à un écran cassé.
+  // A tampered-with date in the URL falls back to today rather than to a broken screen.
   if (date !== undefined && !isValidISODate(date)) {
     return <Navigate to={`/projets/${projectId}/notes/${todayISO()}`} replace />
   }
@@ -175,9 +175,9 @@ export function AppShell() {
         recent={recent}
       />
 
-      {/* Onglet Aujourd'hui — toujours monté : c'est la vue desktop, et sur
-          mobile `.note_pane` la masque en CSS quand l'autre onglet est actif,
-          plutôt que de démonter useNote/useAttachments à chaque bascule. */}
+      {/* Today tab — always mounted: it's the desktop view, and on mobile
+          `.note_pane` hides it in CSS when the other tab is active, rather
+          than unmounting useNote/useAttachments on every switch. */}
       <div className={`${styles.note_pane} ${mobileTab === 'today' ? '' : styles.pane_inactive}`}>
         {date ? (
           <NoteView
@@ -191,20 +191,19 @@ export function AppShell() {
         )}
       </div>
 
-      {/* Onglet Calendrier — n'existe que sur mobile, voir AppShell.module.css.
-          La maquette 2b y met la bande de semaine ET les derniers jours : sur
-          desktop les deux vivent dans `Sidebar` faute d'onglets, ici ils
-          partagent le même panneau.
+      {/* Calendar tab — only exists on mobile, see AppShell.module.css.
+          Mockup 2b puts the week strip AND the recent days here: on desktop
+          both live in `Sidebar` for lack of tabs, here they share the same
+          pane.
 
-          Les journées y prennent la forme en rangée de la maquette 2b — la
-          même que les résultats de recherche (2c) — plutôt que celle du
-          condensé de semaine de `WeekDigest` (2f/2g) : à cette largeur, une
-          rangée sans navigation de semaine reste plus simple à faire défiler. */}
+          Days take the row form of mockup 2b here — the same as search
+          results (2c) — rather than the week digest form of `WeekDigest`
+          (2f/2g): at this width, a row without week navigation stays simpler
+          to scroll. */}
       <div className={`${styles.calendar_pane} ${mobileTab === 'calendar' ? '' : styles.pane_inactive}`}>
-        {/* La barre « chercher dans mes notes… » de la maquette 2b : la même
-            modale que Ctrl+K/⌘K et que la barre de 2f, pas un second système
-            de recherche. Un raccourci clavier n'a pas de sens ici — pas de
-            hint « ⌘K » comme sur desktop. */}
+        {/* The "search my notes…" bar from mockup 2b: the same modal as
+            Ctrl+K/⌘K and the 2f bar, not a second search system. A keyboard
+            shortcut doesn't make sense here — no "⌘K" hint like on desktop. */}
         <button
           type="button"
           className={`input ${styles.calendar_search}`}

@@ -6,8 +6,8 @@
   min-height: 0;
 }
 
-/* `position: relative` : ancre du menu utilisateur, que la maquette pose à
-   24 px du bord droit de l'en-tête. */
+/* `position: relative`: anchor for the user menu, which the mockup places
+   24px from the right edge of the header. */
 .header {
   position: relative;
   display: flex;
@@ -30,7 +30,7 @@
   font-size: 18px;
   background: var(--app-desk-bg);
   border-radius: 999px;
-  /* Moins de marge à droite : la croix apporte la sienne. */
+  /* Less margin on the right: the close cross brings its own. */
   padding: 6px 8px 6px 14px;
 }
 
@@ -42,7 +42,7 @@
   flex: none;
   margin-left: 2px;
   border-radius: 999px;
-  /* La croix est du chrome : elle ne doit pas peser autant que la date. */
+  /* The cross is chrome: it must not carry as much visual weight as the date. */
   font-family: var(--font-body);
   font-size: 11px;
   line-height: 1;
@@ -65,8 +65,8 @@
   flex: 1;
 }
 
-/* Le bouton 🗑 de la maquette 2a — un `.btn-secondary` étroit, sa seule
-   retouche étant la couleur d'alerte de l'icône. */
+/* The 🗑 button from mockup 2a — a narrow `.btn-secondary`, its only tweak
+   being the icon's alert color. */
 .delete {
   flex-shrink: 0;
   padding-left: var(--space-3);
@@ -74,12 +74,12 @@
   color: var(--app-link-hover);
 }
 
-/* Le bureau sur lequel repose la pile de feuilles (maquette 9c/2a). */
+/* The desk the stack of sheets rests on (mockup 9c/2a). */
 .desk {
   position: relative;
-  /* Ferme le contexte d'empilement ici : les feuilles fantômes ci-dessous,
-     en z-index négatif, doivent rester derrière `.paper` sans pour autant
-     passer derrière le fond de toute la page. */
+  /* Closes the stacking context here: the ghost sheets below, with negative
+     z-index, must stay behind `.paper` without falling behind the whole
+     page's background. */
   z-index: 0;
   flex: 1;
   min-height: 0;
@@ -88,8 +88,9 @@
   padding: var(--space-6);
 }
 
-/* Les deux jours précédents, entrevus sous la note active — ce qui distingue
-   « une note » de « le journal », sans rien montrer de leur contenu. */
+/* The two previous days, glimpsed beneath the active note — what
+   distinguishes "a note" from "the journal", without showing any of their
+   content. */
 .desk::before,
 .desk::after {
   content: '';
@@ -107,7 +108,7 @@
   transform: rotate(-0.7deg);
 }
 
-/* Un fichier survole : le bureau se teinte pour dire qu'on peut lâcher. */
+/* A file is hovering: the desk tints to say it's fine to drop. */
 .desk_dragging {
   background: var(--app-drop-active-bg);
 }
@@ -120,8 +121,8 @@
   gap: var(--space-3);
   padding: var(--space-6) var(--space-8);
   background: var(--app-paper-bg);
-  /* Coins droits : la feuille du dessus de la pile, pas la carte arrondie du
-     reste de l'interface. */
+  /* Sharp corners: the top sheet of the stack, not the rounded card from the
+     rest of the interface. */
   border-radius: 0;
   box-shadow: var(--app-paper-shadow);
 }

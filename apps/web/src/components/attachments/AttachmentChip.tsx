@@ -11,7 +11,7 @@ interface AttachmentChipProps {
   onRemove: (id: string) => void
 }
 
-/** Une vignette du tiroir : aperçu, nom, menu ⋯. */
+/** A drawer thumbnail: preview, name, menu ⋯. */
 export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
   const { t } = useTranslation()
   const { confirm, dialog } = useConfirm()
@@ -20,8 +20,8 @@ export function AttachmentChip({ attachment, onRemove }: AttachmentChipProps) {
   const isImage = isPreviewableImage(attachment.mimeType)
   const url = api.attachments.contentUrl(attachment.id)
 
-  // Referme le menu au clic ailleurs et à Échap — sans ça, il resterait ouvert
-  // pendant qu'on travaille dans la note.
+  // Closes the menu on an outside click or Escape — without this, it would stay
+  // open while working in the note.
   useEffect(() => {
     if (!menuOpen) return
     function onPointerDown(event: PointerEvent) {

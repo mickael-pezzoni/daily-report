@@ -1,6 +1,6 @@
-/* Écran 10b de la maquette — sélection de projet après connexion, en grille
-   de cartes. Cadre proche d'AuthShell, mais plus large : la grille de deux
-   colonnes a besoin de la place. */
+/* Screen 10b of the mockup — project selection after login, as a grid
+   of cards. A frame close to AuthShell, but wider: the two-column grid
+   needs the room. */
 
 .page {
   min-height: 100dvh;
@@ -85,8 +85,8 @@
   width: 100%;
 }
 
-/* Position relative : `.tile_open` s'y étire en `::after`, et `.tile_actions`
-   doit repasser au-dessus en z-index pour rester cliquable par-dessus lui. */
+/* Relative position: `.tile_open` stretches over it via `::after`, and
+   `.tile_actions` must go back above it in z-index to stay clickable over it. */
 .tile {
   position: relative;
   border-radius: var(--radius-md);
@@ -103,9 +103,9 @@
   outline-offset: 2px;
 }
 
-/* Le bouton de sélection couvre toute la tuile — même principe que
-   `NoteResultCard` : un bouton dans un bouton n'existe pas, donc les actions
-   ci-dessous sont des frères qui repassent au-dessus en z-index. */
+/* The selection button covers the whole tile — same principle as
+   `NoteResultCard`: a button inside a button doesn't exist, so the actions
+   below are siblings that go back above it in z-index. */
 .tile_open {
   display: flex;
   flex-direction: column;
@@ -165,7 +165,7 @@
   flex-direction: row;
   align-items: center;
   gap: 10px;
-  /* Sinon la place réservée à `.tile_actions` déborde sur le nom. */
+  /* Otherwise the room reserved for `.tile_actions` overflows onto the name. */
   padding-right: 56px;
 }
 

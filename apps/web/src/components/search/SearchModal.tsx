@@ -19,18 +19,17 @@ type Status = 'idle' | 'loading' | 'ready' | 'error'
 const DEBOUNCE_MS = 250
 
 /**
- * Écran 2c de la maquette — recherche globale, ouverte au Ctrl+K/⌘K.
+ * Mockup screen 2c — global search, opened with Ctrl+K/⌘K.
  *
- * Les filtres sont ceux de la maquette et agissent pour de vrai, côté serveur :
- * `tout`/`texte`/`pièces jointes` deviennent le `scope` de `GET /api/notes`,
- * `cette année` sa borne `from`. Titre et contenu passent par `search_vector`
- * (plein texte, dans la langue du compte), les noms de fichiers par un `ILIKE`
- * servi par l'index trigramme.
+ * The filters are the mockup's and act for real, server-side:
+ * `all`/`text`/`attachments` become the `scope` of `GET /api/notes`,
+ * `this year` its `from` bound. Title and content go through `search_vector`
+ * (full text, in the account's language), file names through an `ILIKE`
+ * served by the trigram index.
  *
- * Un seul écart assumé avec la maquette : elle annonce que le **contenu des
- * PDF** est fouillé. Rien ne l'extrait aujourd'hui — la mention ne parle donc
- * que du nom de fichier, plutôt que de promettre ce que la recherche ne fait
- * pas.
+ * One deliberate gap with the mockup: it states that **PDF content** is
+ * searched. Nothing extracts it today — the note therefore only mentions
+ * the file name, rather than promising what the search doesn't do.
  */
 export function SearchModal({ onNavigate, onClose, onDelete }: SearchModalProps) {
   const { t } = useTranslation()
@@ -106,9 +105,9 @@ export function SearchModal({ onNavigate, onClose, onDelete }: SearchModalProps)
   }
 
   /**
-   * `onDelete` agit sur l'état d'`AppShell` (derniers jours, calendrier) ; la
-   * liste de résultats, elle, n'appartient qu'à cette modale — d'où le retrait
-   * local en plus.
+   * `onDelete` acts on `AppShell`'s state (recent days, calendar); the
+   * results list, meanwhile, belongs only to this modal — hence the extra
+   * local removal.
    */
   function handleDelete(note: NoteListItem) {
     setResults((items) => items.filter((item) => item.id !== note.id))
@@ -116,12 +115,11 @@ export function SearchModal({ onNavigate, onClose, onDelete }: SearchModalProps)
   }
 
   return (
-    // La confirmation de suppression est un <dialog> rendu par chaque carte,
-    // donc imbriqué dans celui-ci. C'est valide — le contenu d'un <dialog> est
-    // du flow content, dont <dialog> fait partie — et les deux s'empilent dans
-    // la couche supérieure, la dernière ouverte au-dessus. Le clic sur son fond
-    // ne referme pas la recherche : il a pour cible la modale de confirmation,
-    // pas celle-ci.
+    // The delete confirmation is a <dialog> rendered by each card, so it's
+    // nested inside this one. That's valid — a <dialog>'s content is flow
+    // content, which <dialog> is part of — and the two stack in the top
+    // layer, the most recently opened on top. Clicking its backdrop doesn't
+    // close the search: its target is the confirmation modal, not this one.
     <dialog
       ref={dialogRef}
       className={`dialog ${styles.dialog}`}

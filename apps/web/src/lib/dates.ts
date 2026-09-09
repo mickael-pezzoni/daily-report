@@ -1,28 +1,28 @@
 /**
- * Dates du journal, sans dépendance.
+ * Journal dates, with no dependency.
  *
- * Convention tenue partout : une date de note est **une chaîne `YYYY-MM-DD`**,
- * jamais un objet `Date`. Les rares calculs passent par un `Date` construit à
- * midi UTC, ce qui met les changements d'heure hors de portée — un `+1 jour` ne
- * peut pas retomber sur le même jour ou en sauter un. Seul `todayISO()` lit
- * l'heure locale, pour qu'« aujourd'hui » soit celui de l'utilisateur.
+ * Convention held everywhere: a note date is **a `YYYY-MM-DD` string**, never
+ * a `Date` object. The rare calculations go through a `Date` built at noon
+ * UTC, which puts daylight-saving shifts out of reach — a `+1 day` can never
+ * land back on the same day or skip one. Only `todayISO()` reads the local
+ * time, so that "today" is the user's today.
  *
- * Ce module ne fait que du **calcul**, identique dans toutes les langues. Tout
- * ce qui produit du texte lisible vit dans `date-format.ts`, qui dépend de la
- * langue courante.
+ * This module only does **calculation**, identical across all languages.
+ * Anything that produces human-readable text lives in `date-format.ts`,
+ * which depends on the current language.
  */
 
-/** `YYYY-MM-DD` → `Date` à midi UTC. */
+/** `YYYY-MM-DD` → `Date` at noon UTC. */
 export function toUtcNoon(iso: string): Date {
   return new Date(`${iso}T12:00:00Z`)
 }
 
-/** `Date` → `YYYY-MM-DD`, lu en UTC. */
+/** `Date` → `YYYY-MM-DD`, read in UTC. */
 function toIso(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
-/** La date du jour, dans le fuseau de l'utilisateur. */
+/** Today's date, in the user's time zone. */
 export function todayISO(): string {
   const now = new Date()
   const year = now.getFullYear()
@@ -37,10 +37,10 @@ export function addDays(iso: string, days: number): string {
   return toIso(date)
 }
 
-/** Le lundi de la semaine contenant `iso`. */
+/** The Monday of the week containing `iso`. */
 export function startOfWeek(iso: string): string {
   const date = toUtcNoon(iso)
-  // getUTCDay() : 0 = dimanche. On veut 0 = lundi, comme `monthGrid`.
+  // getUTCDay(): 0 = Sunday. We want 0 = Monday, like `monthGrid`.
   const leading = (date.getUTCDay() + 6) % 7
   date.setUTCDate(date.getUTCDate() - leading)
   return toIso(date)
@@ -50,7 +50,7 @@ export function addWeeks(iso: string, weeks: number): string {
   return addDays(iso, weeks * 7)
 }
 
-/** Les sept jours (lundi → dimanche) de la semaine contenant `iso`. */
+/** The seven days (Monday → Sunday) of the week containing `iso`. */
 export function weekOf(iso: string): CalendarDay[] {
   const monday = startOfWeek(iso)
   return Array.from({ length: 7 }, (_, index) => {
@@ -79,25 +79,25 @@ export function isValidISODate(value: string): boolean {
 export interface CalendarDay {
   iso: string
   dayOfMonth: number
-  /** Débordement sur le mois précédent ou suivant — grisé dans la grille. */
+  /** Overflow into the previous or next month — grayed out in the grid. */
   outside: boolean
 }
 
 /**
- * La grille d'un mois, en semaines commençant le lundi (L M M J V S D), avec le
- * débordement des mois voisins pour que chaque semaine soit complète.
+ * A month's grid, in weeks starting on Monday (L M M J V S D), with overflow
+ * from neighboring months so every week is complete.
  */
 export function monthGrid(month: string): CalendarDay[][] {
   const first = new Date(`${month}-01T12:00:00Z`)
 
-  // getUTCDay() : 0 = dimanche. On veut 0 = lundi.
+  // getUTCDay(): 0 = Sunday. We want 0 = Monday.
   const leading = (first.getUTCDay() + 6) % 7
   const cursor = new Date(first)
   cursor.setUTCDate(cursor.getUTCDate() - leading)
 
   const weeks: CalendarDay[][] = []
-  // 6 semaines couvrent tous les mois possibles ; on élague celles qui sont
-  // entièrement hors du mois.
+  // 6 weeks cover every possible month; we prune the ones that are entirely
+  // outside the month.
   for (let week = 0; week < 6; week++) {
     const days: CalendarDay[] = []
     for (let day = 0; day < 7; day++) {

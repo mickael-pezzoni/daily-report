@@ -8,11 +8,11 @@ import type { AuthedEnv } from '../middleware/require-auth.js'
 const calendar = new Hono<AuthedEnv>()
 
 /**
- * `GET /api/calendar/:month?projectId=…` — quels jours du mois portent une
- * note dans ce projet.
+ * `GET /api/calendar/:month?projectId=…` — which days of the month carry a
+ * note in this project.
  *
- * Modèle de lecture à part entière : « le calendrier d'août 2026 ». C'est ce
- * qui allume les pastilles sauge de la barre latérale.
+ * A read model in its own right: "the calendar for August 2026". It's what
+ * lights up the sage dots in the sidebar.
  */
 calendar.get('/:month', async (c) => {
   const month = c.req.param('month')
@@ -27,8 +27,8 @@ calendar.get('/:month', async (c) => {
     .selectFrom('dailyNotes')
     .select('noteDate')
     .where('userId', '=', c.get('userId'))
-    // Borne haute exclusive : l'intervalle reste calculé par Postgres, et
-    // l'index (user_id, note_date) est utilisable.
+    // Exclusive upper bound: the interval stays computed by Postgres, and
+    // the (user_id, note_date) index remains usable.
     .where('noteDate', '>=', sql<string>`${`${month}-01`}::date`)
     .where('noteDate', '<', sql<string>`${`${month}-01`}::date + interval '1 month'`)
 

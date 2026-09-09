@@ -1,5 +1,5 @@
-/* Masqué visuellement, mais toujours dans l'ordre de tabulation : c'est lui qui
-   reçoit le focus, et le label ci-dessous qui en montre l'anneau. */
+/* Visually hidden, but still in tab order: it's the one that receives focus,
+   and the label below shows its focus ring. */
 .input {
   position: absolute;
   width: 1px;

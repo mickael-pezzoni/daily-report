@@ -7,15 +7,15 @@ import { AuthShell } from './AuthShell'
 import { PasswordField } from './PasswordField'
 import styles from './AuthForm.module.css'
 
-/** Écran 2d de la maquette. */
+/** Screen 2d of the mockup. */
 export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
-  // La clé, pas le texte : changer de langue doit aussi retraduire l'erreur
-  // déjà affichée.
+  // The key, not the text: changing language must also retranslate the
+  // error already shown.
   const [errorKeys, setErrorKeys] = useState<string[] | null>(null)
   const [pending, setPending] = useState(false)
 

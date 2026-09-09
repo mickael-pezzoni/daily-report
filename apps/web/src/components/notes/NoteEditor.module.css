@@ -5,8 +5,8 @@
   min-height: 0;
 }
 
-/* La zone d'édition elle-même. Le rendu est du HTML produit par TipTap : on
-   style donc des balises, pas des classes. */
+/* The editing area itself. The rendered output is HTML produced by TipTap,
+   so we style tags, not classes. */
 .surface {
   flex: 1;
   outline: none;
@@ -45,7 +45,7 @@
   margin-bottom: var(--space-1);
 }
 
-/* Les puces reprennent l'accent, comme dans la maquette. */
+/* Bullets pick up the accent color, as in the mockup. */
 .surface :global(ul:not([data-type='taskList']) li)::marker {
   color: var(--app-day-selected);
 }
@@ -119,7 +119,7 @@
   margin: var(--space-4) 0;
 }
 
-/* Le texte fantôme du document vide, posé par l'extension Placeholder. */
+/* The ghost text for the empty document, set by the Placeholder extension. */
 .surface :global(p.is-editor-empty:first-child)::before {
   content: attr(data-placeholder);
   float: left;

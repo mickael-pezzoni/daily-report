@@ -9,21 +9,21 @@ interface AttachmentBarProps {
   open: boolean
   onToggle: () => void
   uploading: boolean
-  /** Clé de traduction, pas un message : elle doit suivre la langue. */
+  /** Translation key, not a message: it must follow the language. */
   errorKey: string | null
   onUpload: (files: File[]) => void
   onRemove: (id: string) => void
-  /** Un fichier survole la journée : la bande le signale même repliée. */
+  /** A file is hovering over the day: the bar signals it even while collapsed. */
   dragging: boolean
-  /** Projet archivé : plus d'ajout, mais retirer une pièce déjà jointe reste possible. */
+  /** Archived project: no more adding, but removing an already-attached file remains possible. */
   readOnly?: boolean
 }
 
 /**
- * La bande de pied de l'écran 2a, repliée, et le tiroir 2a-open déplié.
+ * The footer bar of screen 2a, collapsed, and the 2a-open drawer, expanded.
  *
- * Un seul composant pour les deux états : c'est la même bande, et l'en-tête sert
- * de bouton de bascule.
+ * A single component for both states: it's the same bar, and the header acts
+ * as the toggle button.
  */
 export function AttachmentBar({
   items,

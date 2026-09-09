@@ -59,7 +59,7 @@
   color: var(--app-link);
 }
 
-/* ── Sélecteur mois / année ── */
+/* ── Month / year picker ── */
 .picker {
   position: absolute;
   top: 34px;
@@ -116,7 +116,7 @@
   color: var(--app-text-muted);
 }
 
-/* ── Grille des jours ── */
+/* ── Day grid ── */
 .weekdays,
 .grid {
   display: grid;
@@ -130,9 +130,9 @@
   text-align: center;
 }
 
-/* Les états d'une case de jour (.day, .day_outside, .day_today, .day_selected,
-   .dot) vivent dans DayCell.module.css — partagés avec la bande de semaine
-   mobile, voir WeekStrip. */
+/* The states of a day cell (.day, .day_outside, .day_today, .day_selected,
+   .dot) live in DayCell.module.css — shared with the mobile week strip,
+   see WeekStrip. */
 
 .legend {
   margin: 0;

@@ -3,26 +3,26 @@ import { useTranslation } from 'react-i18next'
 import { updateUser } from '../api/auth-client'
 import { isLanguageCode, type LanguageCode } from '../i18n'
 
-/** La forme minimale attendue de `useSession().data`. */
+/** The minimal shape expected of `useSession().data`. */
 type SyncableSession = { user: { language?: LanguageCode | null } } | null | undefined
 
 /**
- * Accorde la langue de l'interface sur celle du compte.
+ * Aligns the interface language with the account's.
  *
- * i18next s'initialise avant toute session — sur `localStorage` puis le
- * navigateur. C'est le bon repli tant qu'on ne sait pas qui regarde l'écran :
- * ce hook ne fait que reprendre la main dès que la session arrive, pour que se
- * connecter depuis un autre navigateur restitue la langue choisie.
+ * i18next initializes before any session — from `localStorage`, then the
+ * browser. That's the right fallback while we don't yet know who's looking at
+ * the screen: this hook just takes over as soon as the session arrives, so
+ * signing in from another browser restores the chosen language.
  *
- * `changeLanguage()` réécrit `localStorage` au passage (`caches` de la
- * détection) : le cache local finit donc par refléter le compte, et le prochain
- * démarrage part déjà dans la bonne langue, avant même la session.
+ * `changeLanguage()` rewrites `localStorage` along the way (the detector's
+ * `caches`): the local cache thus ends up reflecting the account, and the next
+ * startup already begins in the right language, even before the session.
  */
 export function useLanguageSync(session: SyncableSession) {
   const { i18n } = useTranslation()
-  // La dernière valeur de compte qu'on a appliquée. Sans elle, un effet rejoué
-  // avec une session encore périmée rebasculerait la langue que l'utilisateur
-  // vient de choisir dans le menu.
+  // The last account value we applied. Without it, an effect re-run with a
+  // still-stale session would switch back the language the user just chose
+  // in the menu.
   const appliedRef = useRef<LanguageCode | null>(null)
 
   const signedIn = Boolean(session)
@@ -30,8 +30,9 @@ export function useLanguageSync(session: SyncableSession) {
 
   useEffect(() => {
     if (!signedIn) {
-      // Hors session, le navigateur gouverne. On oublie ce qu'on a appliqué :
-      // la prochaine connexion doit pouvoir réimposer sa langue, fût-ce la même.
+      // Outside a session, the browser is in charge. Forget what we applied:
+      // the next sign-in must be able to reimpose its language, even if it's
+      // the same one.
       appliedRef.current = null
       return
     }
@@ -39,10 +40,10 @@ export function useLanguageSync(session: SyncableSession) {
     const local = i18n.resolvedLanguage ?? i18n.language
 
     if (!accountLanguage) {
-      // Compte sans préférence : le tout premier lancement, ou un compte créé
-      // avant que la colonne existe. On y sème la langue courante plutôt que de
-      // laisser la colonne vide — sinon rien ne la remplirait jamais tant que
-      // l'utilisateur garde la langue qui lui convient déjà.
+      // Account with no preference: the very first launch, or an account
+      // created before the column existed. Seed it with the current language
+      // rather than leaving the column empty — otherwise nothing would ever
+      // fill it as long as the user keeps a language that already suits them.
       if (isLanguageCode(local)) void updateUser({ language: local }).catch(() => {})
       return
     }

@@ -11,25 +11,25 @@ import styles from './NoteResultCard.module.css'
 interface NoteResultCardProps {
   note: NoteListItem
   /**
-   * Le terme cherché : resserre l'extrait autour de lui, le surligne, et fait
-   * apparaître les pièces jointes dont le nom répond. Absent — la liste du
-   * calendrier mobile — l'extrait s'affiche tel quel.
+   * The search term: tightens the excerpt around it, highlights it, and
+   * surfaces attachments whose name matches. Absent — the mobile calendar
+   * list — the excerpt displays as-is.
    */
   query?: string
-  /** Ligne courante de la navigation ↑ ↓ de la recherche. */
+  /** Current row of the search's ↑ ↓ navigation. */
   selected?: boolean
   onOpen: (date: string) => void
-  /** Appelé **après** confirmation : la carte pose la question elle-même. */
+  /** Called **after** confirmation: the card asks the question itself. */
   onDelete: (note: NoteListItem) => void
   onMouseEnter?: () => void
   ref?: Ref<HTMLDivElement>
 }
 
-/** Ce qu'on garde de part et d'autre du terme trouvé, dans l'extrait. */
+/** What we keep on each side of the found term, in the excerpt. */
 const LEAD_CHARS = 40
 const TRAIL_CHARS = 90
 
-/** Sans accent et sans casse — l'équivalent client de `f_unaccent` côté serveur. */
+/** Unaccented and case-insensitive — the client-side equivalent of the server's `f_unaccent`. */
 function fold(value: string): string {
   return value
     .normalize('NFD')
@@ -38,13 +38,13 @@ function fold(value: string): string {
 }
 
 /**
- * Comme `fold`, mais en retenant de quel caractère d'origine vient chaque
- * caractère replié.
+ * Like `fold`, but keeping track of which original character each folded
+ * character came from.
  *
- * Indispensable pour surligner : `'é'.normalize('NFD')` fait **deux**
- * caractères, donc un index trouvé dans la chaîne repliée ne désigne pas le
- * même endroit dans la chaîne d'origine dès qu'un accent le précède. On replie
- * caractère par caractère pour garder la correspondance exacte.
+ * Essential for highlighting: `'é'.normalize('NFD')` makes **two**
+ * characters, so an index found in the folded string doesn't point to the
+ * same spot in the original string once an accent precedes it. We fold
+ * character by character to keep the exact correspondence.
  */
 function foldWithMap(value: string): { folded: string; map: number[] } {
   let folded = ''
@@ -59,13 +59,13 @@ function foldWithMap(value: string): { folded: string; map: number[] } {
 }
 
 /**
- * L'extrait, resserré autour du terme cherché et surligné — le « …la *latence*
- * a chuté après le cache… » de la maquette 2c.
+ * The excerpt, tightened around the search term and highlighted — the "…the
+ * *latency* dropped after the cache…" from mockup 2c.
  *
- * Purement esthétique, et travaillant sur l'extrait **déjà tronqué** par le
- * serveur : un terme trouvé par racinisation (« latences » pour « latence ») ou
- * situé plus loin dans la note ne s'y retrouve pas littéralement. L'extrait
- * s'affiche alors tel quel, sans surlignage, plutôt que de deviner.
+ * Purely cosmetic, and working on the excerpt **already truncated** by the
+ * server: a term found by stemming ("latencies" for "latency") or located
+ * further away in the note isn't found there literally. The excerpt then
+ * displays as-is, without highlighting, rather than guessing.
  */
 function excerptAroundMatch(text: string, query: string): ReactNode {
   const term = query.trim()
@@ -95,17 +95,16 @@ function excerptAroundMatch(text: string, query: string): ReactNode {
 }
 
 /**
- * Une journée en **rangée pleine largeur** : date, étiquettes, extrait.
+ * A day as a **full-width row**: date, tags, excerpt.
  *
- * C'est la carte de résultat de l'écran 2c, et celle des « derniers jours » de
- * l'onglet Calendrier mobile (2b) — la maquette leur donne la même forme. À ne
- * pas confondre avec les rangées de `WeekDigest` (2f/2g), plus simples — pas
- * de bouton « supprimer » — et sans bordure.
+ * This is the result card for screen 2c, and the one for "recent days" in
+ * the mobile Calendar tab (2b) — the mockup gives them the same shape. Not
+ * to be confused with `WeekDigest` rows (2f/2g), which are simpler — no
+ * "delete" button — and borderless.
  *
- * Toute la carte ouvre la journée : le bouton de la date est étiré en
- * `::after` par-dessus, et « supprimer » repasse au-dessus de lui en
- * `z-index`. Un bouton dans un bouton n'existe pas — c'est ce qui interdit la
- * solution évidente.
+ * The whole card opens the day: the date button is stretched via `::after`
+ * over it, and "delete" sits back above it via `z-index`. A button inside a
+ * button doesn't exist — that's what rules out the obvious solution.
  */
 export function NoteResultCard({
   note,

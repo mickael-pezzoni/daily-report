@@ -1,6 +1,6 @@
-/* Partagé entre la grille du mois (desktop) et la bande de semaine (mobile) :
-   les trois états d'un jour — ouvert, aujourd'hui, rédigé — ne doivent pas
-   diverger entre les deux. */
+/* Shared between the month grid (desktop) and the week strip (mobile):
+   the three states of a day — open, today, written — must not diverge
+   between the two. */
 .day {
   aspect-ratio: 1;
   display: flex;
@@ -28,7 +28,7 @@
   color: var(--app-text-placeholder);
 }
 
-/* Aujourd'hui, quand ce n'est pas le jour ouvert : cerclé, pas rempli. */
+/* Today, when it isn't the open day: circled, not filled. */
 .day_today {
   border-color: var(--app-day-selected);
   font-weight: 700;
@@ -50,7 +50,7 @@
   background: var(--app-day-has-note);
 }
 
-/* Sur la pastille pleine, le point sauge disparaîtrait dans le terracotta. */
+/* On the filled pill, the sage dot would disappear into the terracotta. */
 .day_selected .dot {
   background: var(--app-text-on-accent);
 }

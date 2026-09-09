@@ -10,7 +10,7 @@ function required(name: string): string {
   return value
 }
 
-/** Requis seulement quand le driver de stockage choisi en a besoin. */
+/** Required only when the chosen storage driver needs it. */
 function requiredFor(driver: string, name: string): string {
   const value = process.env[name]
   if (!value) {
@@ -51,28 +51,28 @@ export const env = {
   PORT: Number(process.env.PORT ?? 3001),
 
   /**
-   * Racine du build web à servir (image de production uniquement), relative
-   * au répertoire de travail du process — `serveStatic` ne supporte pas les
-   * chemins absolus. Vide en dev : Vite sert le web sur son propre port.
+   * Root of the web build to serve (production image only), relative to the
+   * process's working directory — `serveStatic` doesn't support absolute
+   * paths. Empty in dev: Vite serves the web app on its own port.
    */
   WEB_DIST_DIR: process.env.WEB_DIST_DIR ?? '',
 
-  // — Stockage des pièces jointes —
+  // — Attachment storage —
   STORAGE_DRIVER,
-  /** Taille maximale d'un fichier déposé. 25 Mio par défaut. */
+  /** Maximum size of an uploaded file. 25 MiB by default. */
   MAX_UPLOAD_BYTES: integer('MAX_UPLOAD_BYTES', 25 * 1024 * 1024),
 
-  // Driver « local »
+  // "local" driver
   STORAGE_LOCAL_DIR: process.env.STORAGE_LOCAL_DIR ?? './uploads',
 
-  // Driver « s3 » — vérifiés seulement s'il est actif, pour qu'un déploiement
-  // on-premise n'ait pas à renseigner des variables qui ne le concernent pas.
+  // "s3" driver — only checked when it's the active one, so an on-premise
+  // deployment doesn't have to fill in variables that don't concern it.
   S3_BUCKET: usesS3 ? requiredFor(STORAGE_DRIVER, 'S3_BUCKET') : '',
   S3_REGION: process.env.S3_REGION ?? 'auto',
   S3_ENDPOINT: process.env.S3_ENDPOINT ?? '',
   S3_ACCESS_KEY_ID: usesS3 ? requiredFor(STORAGE_DRIVER, 'S3_ACCESS_KEY_ID') : '',
   S3_SECRET_ACCESS_KEY: usesS3 ? requiredFor(STORAGE_DRIVER, 'S3_SECRET_ACCESS_KEY') : '',
   S3_FORCE_PATH_STYLE: boolean('S3_FORCE_PATH_STYLE', false),
-  /** Durée de validité des URL signées, quand le driver sait en produire. */
+  /** Validity duration of signed URLs, when the driver knows how to produce them. */
   SIGNED_URL_TTL_SECONDS: integer('SIGNED_URL_TTL_SECONDS', 300),
 }

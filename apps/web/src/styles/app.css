@@ -1,5 +1,6 @@
-/* Le peu de global propre à l'application, en aval des trois couches du
-   design system. Tout est exprimé en rôles de semantic.css. */
+/* The small amount of global styling specific to the application, downstream
+   of the design system's three layers. Everything is expressed via
+   semantic.css roles. */
 
 body {
   background: var(--app-page-bg);

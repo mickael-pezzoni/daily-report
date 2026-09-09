@@ -3,15 +3,15 @@
   flex-shrink: 0;
 }
 
-/* La puce du menu, telle que la maquette la dessine en 2a, 2f et 6a : un rond
-   👤 suivi du prénom, l'ensemble dans une pastille allongée. */
+/* The menu chip, as the mockup draws it in 2a, 2f and 6a: a 👤 circle
+   followed by the first name, the whole thing in an elongated pill. */
 .avatar {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 9px;
-  /* Le retrait de droite est porté par `.name` : sans prénom, la pastille se
-     referme d'elle-même en un rond symétrique autour du 👤. */
+  /* The right-side inset is carried by `.name`: without a first name, the pill
+     closes back up into a circle symmetric around the 👤. */
   padding: 0 8px;
   height: 42px;
   max-width: 220px;
@@ -41,7 +41,7 @@
   font-size: 15px;
 }
 
-/* Un prénom trop long tronque plutôt que de pousser l'en-tête. */
+/* A first name that's too long truncates rather than pushing the header. */
 .name {
   min-width: 0;
   padding-right: 10px;
@@ -59,7 +59,7 @@
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  /* Au-dessus du calendrier, qu'il recouvre en partie. */
+  /* Above the calendar, which it partly covers. */
   z-index: 6;
   width: 190px;
   padding: var(--space-1);
@@ -107,8 +107,8 @@
   color: var(--app-text-muted);
 }
 
-/* Le sous-menu est en retrait du sien : c'est ce décalage qui dit qu'il
-   appartient à la ligne « Langue » et non à la liste principale. */
+/* The submenu is indented relative to it: this offset is what says it
+   belongs to the "Language" row and not to the main list. */
 .languages {
   display: flex;
   flex-direction: column;

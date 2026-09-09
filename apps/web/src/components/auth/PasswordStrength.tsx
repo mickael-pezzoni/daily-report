@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next'
 import styles from './PasswordStrength.module.css'
 
 /**
- * Les trois barres de la maquette 2e. Indication visuelle seulement : la règle
- * qui fait foi est celle du serveur (better-auth impose 8 caractères minimum).
+ * The three bars from mockup screen 2e. Visual indication only: the rule
+ * that actually counts is the server's (better-auth requires 8 characters
+ * minimum).
  */
 function score(password: string): 0 | 1 | 2 | 3 {
   if (password.length < 8) return password.length === 0 ? 0 : 1

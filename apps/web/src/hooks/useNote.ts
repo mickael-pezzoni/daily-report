@@ -15,14 +15,14 @@ interface Draft {
 }
 
 /**
- * Charge la note d'un jour et l'enregistre toute seule.
+ * Loads the note for a day and saves it on its own.
  *
- * L'écriture est en deux temps, puisque la note n'existe pas tant que rien n'a
- * été écrit : `POST` à la première sauvegarde d'un jour vierge, `PATCH` ensuite.
+ * Writing happens in two steps, since the note doesn't exist until something
+ * has been written: `POST` on the first save of a blank day, `PATCH` afterwards.
  *
- * En cas d'échec, le hook expose une **clé de traduction** et non un message :
- * l'API répond en anglais technique, et un message figé ne suivrait pas un
- * changement de langue.
+ * On failure, the hook exposes a **translation key**, not a message: the API
+ * responds in technical English, and a frozen message wouldn't follow a
+ * language change.
  */
 export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
   const { projectId: currentProjectId } = useParams<{ projectId: string }>()
@@ -31,13 +31,13 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
   const [state, setState] = useState<SaveState>('loading')
   const [errorKey, setErrorKey] = useState<string | null>(null)
 
-  // Refs, et non state : le minuteur d'enregistrement doit lire les valeurs
-  // courantes sans se relancer à chaque frappe.
+  // Refs, not state: the save timer must read the current values without
+  // restarting on every keystroke.
   const draftRef = useRef(draft)
   const noteIdRef = useRef<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dirtyRef = useRef(false)
-  /** Création en vol — évite deux POST sur un même jour vierge. */
+  /** In-flight creation — avoids two POSTs on the same blank day. */
   const creatingRef = useRef<Promise<DailyNote> | null>(null)
   const onSavedRef = useRef(onSaved)
 
@@ -46,11 +46,11 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
   })
 
   /**
-   * Crée la note du jour, une seule fois.
+   * Creates the day's note, exactly once.
    *
-   * Deux appels rapprochés sur un jour vierge — typiquement une frappe et un
-   * dépôt de fichier — partagent la même promesse au lieu de partir en deux
-   * `POST` concurrents.
+   * Two calls close together on a blank day — typically a keystroke and a
+   * file drop — share the same promise instead of firing two concurrent
+   * `POST`s.
    */
   const createOnce = useCallback(
     (payload: Draft): Promise<DailyNote> => {
@@ -61,8 +61,8 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
       creatingRef.current ??= api.notes
         .create({ date: currentDate, projectId, ...payload })
         .catch(async (cause) => {
-          // 409 : la note existe déjà (autre onglet, requête rejouée). Ce n'est
-          // pas une erreur à montrer — on récupère et on continue.
+          // 409: the note already exists (another tab, a replayed request).
+          // This isn't an error to show — we fetch it and carry on.
           if (cause instanceof ApiError && cause.status === 409) {
             const existing = await api.notes.byDate(currentDate, projectId)
             if (existing) return api.notes.update(existing.id, payload)
@@ -105,11 +105,10 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
   }, [createOnce])
 
   /**
-   * L'identifiant de la note, en la créant si le jour est encore vierge.
+   * The note's id, creating it if the day is still blank.
    *
-   * Nécessaire pour joindre un fichier : l'API rattache les pièces jointes à
-   * une note, or déposer un fichier sur une journée blanche est un geste
-   * parfaitement légitime.
+   * Needed to attach a file: the API attaches attachments to a note, and
+   * dropping a file on a blank day is a perfectly legitimate action.
    */
   const ensureNoteId = useCallback(async (): Promise<string> => {
     if (noteIdRef.current) return noteIdRef.current
@@ -118,21 +117,21 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     creatingRef.current = null
     noteIdRef.current = saved.id
     setNote(saved)
-    // La journée existe désormais : la pastille du calendrier doit s'allumer,
-    // même si c'est un fichier et non du texte qui l'a fait naître.
+    // The day now exists: the calendar dot must light up, even though it was
+    // a file, not text, that brought it into being.
     onSavedRef.current?.(saved)
     return saved.id
   }, [createOnce])
 
-  // Garde une référence stable vers le dernier `flush` pour les nettoyages.
+  // Keeps a stable reference to the latest `flush` for cleanups.
   const flushRef = useRef(flush)
   useEffect(() => {
     flushRef.current = flush
   }, [flush])
 
-  // Chargement, et vidage de la file d'attente au changement de jour ou de
-  // projet : une note en cours ne doit pas disparaître parce qu'on a cliqué
-  // sur le 4 août, et changer de projet doit relire ce jour-là dans le nouveau.
+  // Loading, and flushing the pending save on day or project change: a note
+  // in progress must not disappear just because someone clicked on August
+  // 4th, and switching project must reload that same day within the new one.
   useEffect(() => {
     if (!currentProjectId) return
 
@@ -168,10 +167,10 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
     }
   }, [date, currentProjectId])
 
-  // Dernière chance : au démontage complet du composant.
+  // Last chance: on the component's full unmount.
   useEffect(() => () => void flushRef.current(), [])
 
-  // Fermeture d'onglet avec des modifications en attente.
+  // Tab closed with pending changes.
   useEffect(() => {
     function onBeforeUnload(event: BeforeUnloadEvent) {
       if (dirtyRef.current) event.preventDefault()
@@ -186,7 +185,7 @@ export function useNote(date: string, onSaved?: (note: DailyNote) => void) {
       draftRef.current = next
       setDraft(next)
 
-      // Rien à enregistrer tant qu'un jour vierge le reste.
+      // Nothing to save as long as a blank day stays blank.
       if (!noteIdRef.current && !next.title && !(next.content.content?.length ?? 0)) return
 
       dirtyRef.current = true

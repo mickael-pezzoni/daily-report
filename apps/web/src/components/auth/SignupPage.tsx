@@ -12,10 +12,10 @@ import { PasswordStrength } from './PasswordStrength'
 import styles from './AuthForm.module.css'
 
 /**
- * Écran 2e/10a de la maquette — premier lancement, projets compris.
+ * Screen 2e/10a of the mockup — first launch, projects included.
  *
- * N'est atteignable que tant qu'aucun compte n'existe : au-delà, `App` renvoie
- * vers la connexion et l'API refuse l'inscription (403 SIGNUP_CLOSED).
+ * Only reachable as long as no account exists: past that, `App` redirects
+ * to login and the API refuses sign-up (403 SIGNUP_CLOSED).
  */
 export function SignupPage() {
   const { t, i18n } = useTranslation()
@@ -23,12 +23,12 @@ export function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  // Au moins un projet, comme le dit la maquette 10a.
+  // At least one project, as screen 10a of the mockup states.
   const [projectNames, setProjectNames] = useState<string[]>([''])
-  // La langue choisie ici est celle du compte qui n'existe pas encore : il n'y
-  // a pas de session pour la porter, contrairement à `UserMenu`. Elle part de
-  // la langue déjà affichée — celle que `localStorage`/le navigateur ont
-  // choisie avant que ce compte existe.
+  // The language chosen here is that of the account that doesn't exist yet:
+  // there's no session to carry it, unlike `UserMenu`. It starts from the
+  // language already displayed — the one `localStorage`/the browser chose
+  // before this account existed.
   const [language, setLanguage] = useState<LanguageCode>(
     LANGUAGES.find((entry) => entry.code === i18n.resolvedLanguage)?.code ?? DEFAULT_LANGUAGE,
   )
@@ -37,8 +37,8 @@ export function SignupPage() {
 
   function chooseLanguage(code: LanguageCode) {
     setLanguage(code)
-    // Change l'écran tout de suite : choisir « English » ici doit se voir
-    // avant même de valider le formulaire, comme dans le menu utilisateur.
+    // Changes the screen right away: choosing "English" here must be visible
+    // even before the form is submitted, just like in the user menu.
     void i18n.changeLanguage(code)
   }
 

@@ -11,8 +11,8 @@ interface PasswordFieldProps {
 }
 
 /**
- * Champ mot de passe avec la bascule « afficher / masquer » de la maquette,
- * commun aux deux écrans d'authentification.
+ * Password field with the "show / hide" toggle from the mockup, shared by
+ * both authentication screens.
  */
 export function PasswordField({
   label,

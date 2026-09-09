@@ -7,8 +7,8 @@
   padding: var(--space-4) var(--space-4);
   background: var(--app-panel-bg);
   border-right: 1px solid var(--app-border);
-  /* Le défilement vit dans `.recent`, pas ici : la marque, le calendrier et
-     le bouton restent fixes quelle que soit la longueur des derniers jours. */
+  /* Scrolling lives in `.recent`, not here: the brand, the calendar, and the
+     button stay fixed no matter the length of recent days. */
   overflow: hidden;
 }
 
@@ -31,10 +31,10 @@
   color: var(--app-link);
 }
 
-/* Seule section qui grandit et défile : `flex:1` lui donne l'espace restant
-   entre le calendrier et le bouton. Sur une fenêtre basse, cet espace peut
-   fondre à presque rien — le `min-height` garde un plancher d'environ quatre
-   lignes visibles plutôt qu'une zone de défilement invisible. */
+/* The only section that grows and scrolls: `flex:1` gives it the remaining
+   space between the calendar and the button. On a short window, this space
+   can shrink to almost nothing — the `min-height` keeps a floor of about
+   four visible lines instead of an invisible scroll area. */
 .recent {
   flex: 1;
   min-height: 130px;
@@ -52,11 +52,11 @@
   font-weight: 700;
 }
 
-/* `overflow: hidden` (pour l'ellipse) ramène sinon la taille minimale
-   automatique de l'élément à 0 : le flex-shrink écraserait les 50 lignes à
-   une hauteur quasi nulle pour les faire tenir, plutôt que de laisser
-   `.recent` déborder et défiler normalement. `flex: none` les en empêche —
-   chaque lien garde sa hauteur naturelle, l'excédent revient au scroll. */
+/* `overflow: hidden` (for the ellipsis) otherwise brings the element's
+   automatic minimum size down to 0: flex-shrink would crush the 50 lines to
+   a near-zero height to make them fit, instead of letting `.recent` overflow
+   and scroll normally. `flex: none` prevents that — each link keeps its
+   natural height, the excess goes to the scrollbar. */
 .recent_item {
   flex: none;
   font-size: 12px;
@@ -76,15 +76,15 @@
   color: var(--app-text-muted);
 }
 
-/* Un simple espacement fixe désormais : c'est `.recent` qui absorbe l'espace
-   disponible et pousse le bouton en bas, pas ce spacer. */
+/* Just a fixed spacer now: it's `.recent` that absorbs the available space
+   and pushes the button down, not this spacer. */
 .spacer {
   flex: none;
   height: var(--space-4);
 }
 
-/* Sous 900 px, l'écran mobile 2b prend le relais : deux onglets (voir
-   MobileTabBar) plutôt que le calendrier permanent et les derniers jours. */
+/* Under 900px, mobile screen 2b takes over: two tabs (see MobileTabBar)
+   instead of the permanent calendar and recent days. */
 @media (max-width: 900px) {
   .sidebar {
     display: none;

@@ -11,22 +11,22 @@ import { EditorContextMenu } from './EditorContextMenu'
 import { EditorToolbar } from './EditorToolbar'
 import styles from './NoteEditor.module.css'
 
-/** Ce que rend un envoi d'image : de quoi l'insérer dans le document. */
+/** What an image upload returns: what's needed to insert it into the document. */
 export interface UploadedImage {
   src: string
   alt: string
 }
 
 interface NoteEditorProps {
-  /** Clé du document chargé — la date. Un changement recharge l'éditeur. */
+  /** Key of the loaded document — the date. A change reloads the editor. */
   documentKey: string
   content: RichTextDoc
   onChange: (content: RichTextDoc) => void
-  /** Joint les fichiers à la note et renvoie les images à insérer. */
+  /** Attaches the files to the note and returns the images to insert. */
   onUploadImages: (files: File[]) => Promise<UploadedImage[]>
-  /** Pièces jointes déjà envoyées à la note — pour le menu contextuel (écran 7a). */
+  /** Attachments already uploaded to the note — for the context menu (screen 7a). */
   attachments: Attachment[]
-  /** Projet archivé : lecture seule — ni frappe, ni collage, ni dépôt d'image. */
+  /** Archived project: read-only — no typing, pasting, or image dropping. */
   editable: boolean
 }
 
@@ -46,22 +46,22 @@ export function NoteEditor({
 }: NoteEditorProps) {
   const { t } = useTranslation()
 
-  // Les handlers de ProseMirror sont capturés à la création de l'éditeur. Ils
-  // passent donc par des refs, sinon ils figeraient les closures du premier
-  // rendu — et l'instance n'existe pas encore quand on les déclare.
+  // ProseMirror's handlers are captured when the editor is created. They
+  // therefore go through refs, otherwise they'd freeze the first render's
+  // closures — and the instance doesn't exist yet when they're declared.
   const editorRef = useRef<Editor | null>(null)
   const uploadRef = useRef(onUploadImages)
-  // Lu dans `handleDrop`/`handlePaste`/le clic droit, capturés eux aussi à la
-  // création de l'éditeur : `editor.isEditable` ne suffirait pas à lui seul,
-  // ces handlers appellent des commandes directement, en dehors du chemin que
-  // l'attribut `contenteditable` du DOM bloque de lui-même.
+  // Read in `handleDrop`/`handlePaste`/right-click, also captured when the
+  // editor is created: `editor.isEditable` alone wouldn't be enough, since
+  // these handlers call commands directly, outside the path that the DOM's
+  // `contenteditable` attribute blocks on its own.
   const editableRef = useRef(editable)
-  // Position du clic droit, en coordonnées écran — `null` menu fermé. Le menu
-  // lui-même n'a pas besoin de ref : il se referme via son propre effet.
+  // Right-click position, in screen coordinates — `null` means the menu is
+  // closed. The menu itself doesn't need a ref: it closes via its own effect.
   const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null)
-  // Même raison pour la traduction : le texte fantôme est lu à chaque calcul
-  // des décorations, pas figé à la création de l'éditeur, ce qui lui permet de
-  // suivre un changement de langue sans qu'on remonte l'instance.
+  // Same reason for the translation function: the ghost text is read on
+  // every decoration computation, not frozen at editor creation, which lets
+  // it follow a language change without remounting the instance.
   const tRef = useRef(t)
 
   useEffect(() => {
@@ -77,11 +77,11 @@ export function NoteEditor({
   }, [t])
 
   /**
-   * Envoie les images puis les insère.
+   * Uploads the images then inserts them.
    *
-   * ProseMirror attend une réponse synchrone alors que l'envoi ne l'est pas :
-   * on lui dit « c'est pris en charge » tout de suite, et l'insertion arrive
-   * quand le serveur a répondu.
+   * ProseMirror expects a synchronous response even though the upload isn't
+   * one: we tell it "this is handled" right away, and the insertion happens
+   * once the server has responded.
    */
   function insertUploaded(files: File[], at?: number) {
     void uploadRef.current(files).then((images) => {
@@ -89,7 +89,7 @@ export function NoteEditor({
       if (!editor || images.length === 0) return
 
       const chain = editor.chain().focus()
-      // `at` seulement au dépôt : au collage, la position courante fait foi.
+      // `at` only on drop: on paste, the current position is authoritative.
       if (at !== undefined) chain.setTextSelection(at)
       for (const image of images) chain.setImage({ src: image.src, alt: image.alt })
       chain.run()
@@ -98,7 +98,7 @@ export function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      // v3 : Link et Underline sont désormais dans StarterKit.
+      // v3: Link and Underline are now in StarterKit.
       StarterKit,
       TaskList,
       TaskItem.configure({ nested: true }),
@@ -114,24 +114,26 @@ export function NoteEditor({
       attributes: { class: styles.surface ?? '' },
 
       /**
-       * Image lâchée sur le texte : jointe à la note ET insérée au curseur,
-       * comme le décrit la maquette 2a. Un fichier non-image n'est pas traité
-       * ici — il remonte à `NoteView`, qui le joint sans rien insérer.
+       * Image dropped on the text: attached to the note AND inserted at the
+       * cursor, as described in mockup 2a. A non-image file isn't handled
+       * here — it bubbles up to `NoteView`, which attaches it without
+       * inserting anything.
        *
-       * `editable: false` bloque déjà l'insertion côté ProseMirror, mais pas
-       * cet appel-ci : il pousse le fichier au serveur avant même de toucher
-       * au document, donc le garde-fou doit venir d'ici, pas de l'éditeur.
+       * `editable: false` already blocks insertion on the ProseMirror side,
+       * but not this call: it pushes the file to the server before even
+       * touching the document, so the guard has to come from here, not the
+       * editor.
        */
       handleDrop: (view, event, _slice, moved) => {
         if (!editableRef.current) return false
-        // `moved` : déplacement interne au document, pas un fichier déposé.
+        // `moved`: a move within the document, not a dropped file.
         if (moved) return false
         const files = imagesFrom(event.dataTransfer?.files)
         if (files.length === 0) return false
 
         event.preventDefault()
-        // La racine de NoteView écoute aussi le dépôt : sans ça, le fichier
-        // partirait deux fois.
+        // NoteView's root also listens for drop: without this, the file
+        // would be sent twice.
         event.stopPropagation()
 
         const at = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
@@ -139,7 +141,7 @@ export function NoteEditor({
         return true
       },
 
-      /** Ctrl+V d'une capture d'écran : même chemin que le dépôt. */
+      /** Ctrl+V of a screenshot: same path as drop. */
       handlePaste: (_view, event) => {
         if (!editableRef.current) return false
         const files = imagesFrom(event.clipboardData?.files)
@@ -152,14 +154,14 @@ export function NoteEditor({
 
       handleDOMEvents: {
         /**
-         * Écran 7a — remplace le menu natif par le nôtre. Le curseur ne saute
-         * au point du clic que s'il tombe hors d'une sélection déjà active :
-         * un clic droit à l'intérieur d'un texte sélectionné doit pouvoir le
-         * couper/copier, pas l'écraser — comme le ferait tout navigateur.
+         * Screen 7a — replaces the native menu with ours. The cursor only
+         * jumps to the click point if it falls outside an already-active
+         * selection: a right-click inside selected text must be able to
+         * cut/copy it, not overwrite it — as any browser would.
          *
-         * En lecture seule, on laisse le menu natif du navigateur s'afficher
-         * (Copier suffit) plutôt que le nôtre, qui mène à Couper/Coller/Insérer
-         * une image — rien de tout ça n'a de sens sur un projet archivé.
+         * In read-only mode, we let the browser's native menu show (Copy is
+         * enough) rather than ours, which leads to Cut/Paste/Insert an
+         * image — none of that makes sense on an archived project.
          */
         contextmenu: (_view, domEvent) => {
           if (!editableRef.current) return false
@@ -181,9 +183,9 @@ export function NoteEditor({
   editorRef.current = editor
 
   /**
-   * Recharger le document quand on change de jour. `setContent` sans cette
-   * garde écraserait la frappe en cours à chaque rendu ; la dépendance est donc
-   * la clé du document, pas le contenu.
+   * Reload the document when the day changes. `setContent` without this
+   * guard would overwrite ongoing typing on every render; the dependency is
+   * therefore the document key, not the content.
    */
   useEffect(() => {
     if (!editor) return
@@ -192,8 +194,9 @@ export function NoteEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, documentKey])
 
-  // `editable` de `useEditor` ne pose que l'état initial : le faire varier
-  // ensuite (le projet s'archive pendant qu'on regarde) passe par cet appel.
+  // `useEditor`'s `editable` only sets the initial state: changing it
+  // afterward (the project gets archived while you're looking at it) goes
+  // through this call.
   useEffect(() => {
     editor?.setEditable(editable)
   }, [editor, editable])
@@ -202,8 +205,8 @@ export function NoteEditor({
 
   return (
     <div className={styles.editor}>
-      {/* Absente en lecture seule : ses commandes s'exécuteraient sur
-          l'éditeur qu'on vient justement de rendre non éditable. */}
+      {/* Absent in read-only mode: its commands would run on the editor we
+          just made non-editable. */}
       {editable ? <EditorToolbar editor={editor} /> : null}
       <EditorContent editor={editor} />
       {menuAnchor ? (

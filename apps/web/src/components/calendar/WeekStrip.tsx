@@ -5,7 +5,7 @@ import { DayCell } from './DayCell'
 import styles from './WeekStrip.module.css'
 
 interface WeekStripProps {
-  /** N'importe quel jour de la semaine affichée. */
+  /** Any day of the displayed week. */
   anchor: string
   onAnchorChange: (anchor: string) => void
   selected: string | null
@@ -14,10 +14,10 @@ interface WeekStripProps {
 }
 
 /**
- * La bande de semaine de l'écran mobile 2b, onglet Calendrier — la même
- * grille de jours que `MonthCalendar` (via `DayCell`), réduite à sept
- * colonnes plutôt qu'à six semaines : la maquette montre un mois entier, mais
- * ça ne tient pas sur un écran de téléphone sans faire défiler.
+ * The week strip of mobile screen 2b, Calendar tab — the same day grid
+ * as `MonthCalendar` (via `DayCell`), reduced to seven columns instead of
+ * six weeks: the mockup shows a whole month, but that doesn't fit on a
+ * phone screen without scrolling.
  */
 export function WeekStrip({ anchor, onAnchorChange, selected, onSelect, daysWithNotes }: WeekStripProps) {
   const { t } = useTranslation()

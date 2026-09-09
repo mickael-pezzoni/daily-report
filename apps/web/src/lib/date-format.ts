@@ -1,35 +1,36 @@
 import { toUtcNoon } from './dates'
 
 /**
- * Le rendu lisible des dates, pour une langue donnée.
+ * Human-readable date rendering, for a given language.
  *
- * Séparé de `dates.ts`, qui ne fait que du calcul : c'est ici, et ici seul, que
- * la langue courante entre en jeu. Tout passe par `Intl`, donc traduire une
- * langue de plus ne demande aucune liste de mois ni de jours à écrire à la main.
+ * Separate from `dates.ts`, which only does calculation: this is where, and
+ * only where, the current language comes into play. Everything goes through
+ * `Intl`, so translating one more language needs no hand-written list of
+ * months or days.
  *
- * ⚠️ `timeZone: 'UTC'` partout — les `Date` de ce module sont construits à midi
- * UTC. Sans ça, un fuseau à l'ouest ferait afficher la veille.
+ * ⚠️ `timeZone: 'UTC'` everywhere — this module's `Date`s are built at noon
+ * UTC. Without it, a western time zone would display the previous day.
  */
 export interface DateFormat {
-  /** `lun. 3 août` — l'en-tête et la navigation de l'écran 2a. */
+  /** `lun. 3 août` — the header and navigation of screen 2a. */
   dayLong(iso: string): string
-  /** `ven. 31 juil.` — les cartes et la liste « derniers jours ». */
+  /** `ven. 31 juil.` — the cards and the "recent days" list. */
   dayShort(iso: string): string
-  /** `ven. 31` — les rangées du condensé de semaine (2f/2g), le mois y est déjà dans l'en-tête. */
+  /** `ven. 31` — the rows of the week digest (2f/2g), the month is already in the header there. */
   weekdayShort(iso: string): string
-  /** `27 juil. – 2 août` — l'en-tête du condensé de semaine (2f/2g). */
+  /** `27 juil. – 2 août` — the header of the week digest (2f/2g). */
   weekRange(startIso: string, endIso: string): string
-  /** `août 2026` — l'en-tête du calendrier. */
+  /** `août 2026` — the calendar header. */
   month(month: string): string
-  /** Les douze mois abrégés, pour le sélecteur. */
+  /** The twelve abbreviated months, for the picker. */
   monthNames(): string[]
-  /** `L M M J V S D` — l'en-tête de la grille, dans l'ordre lundi → dimanche. */
+  /** `L M M J V S D` — the grid header, in Monday → Sunday order. */
   weekdayInitials(): string[]
 }
 
 /**
- * Un `Intl.DateTimeFormat` coûte cher à construire ; les vues en demandent un à
- * chaque rendu. On garde un jeu par langue.
+ * An `Intl.DateTimeFormat` is expensive to build; views request one on every
+ * render. We keep one set per language.
  */
 const cache = new Map<string, DateFormat>()
 
@@ -75,9 +76,9 @@ function build(locale: string): DateFormat {
       Array.from({ length: 12 }, (_, index) =>
         monthOnly.format(new Date(Date.UTC(2026, index, 15, 12))),
       ),
-    // Une semaine quelconque dont on sait qu'elle commence un lundi : le
-    // 5 janvier 2026 en est un. La grille de `monthGrid` part du lundi elle
-    // aussi, les deux restent donc alignées quelle que soit la langue.
+    // Any arbitrary week known to start on a Monday: January 5, 2026 is one.
+    // `monthGrid`'s grid also starts on Monday, so the two stay aligned
+    // regardless of the language.
     weekdayInitials: () =>
       Array.from({ length: 7 }, (_, index) =>
         weekdayNarrow.format(new Date(Date.UTC(2026, 0, 5 + index, 12))),

@@ -1,5 +1,5 @@
-/* Le condensé de semaine des écrans 2f/2g — colonne de droite, desktop
-   uniquement (voir `.desktop_week` dans EmptyState.module.css). */
+/* The week digest for screens 2f/2g — right column, desktop only (see
+   `.desktop_week` in EmptyState.module.css). */
 
 .digest {
   display: flex;
@@ -84,9 +84,9 @@
   overflow-y: auto;
 }
 
-/* Rangée pleine largeur : divider en pied plutôt qu'une carte élevée, et
-   toute la ligne ouvre la journée — la maquette n'y montre aucune action de
-   suppression, contrairement à `NoteResultCard`. */
+/* Full-width row: a bottom divider rather than an elevated card, and the
+   whole row opens the day — the mockup shows no delete action here, unlike
+   `NoteResultCard`. */
 .row {
   display: flex;
   flex-direction: row;

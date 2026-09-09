@@ -6,19 +6,20 @@ import { LANGUAGES, type LanguageCode } from '../../i18n'
 import styles from './UserMenu.module.css'
 
 /**
- * L'écran 6a de la maquette : la puce « 👤 Prénom » de l'en-tête et son menu
- * — changer de projet, puis langue, puis déconnexion.
+ * Screen 6a of the mockup: the "👤 First name" chip in the header and its
+ * menu — change project, then language, then sign out.
  *
- * C'est la maquette qui place le choix de langue ici plutôt qu'en réglage à
- * part ; le bouton ⏻ autonome qui existait avant s'y range. « Changer de
- * projet » ne fait qu'ouvrir `/projects` (écran 10b) — la liste, la bascule et
- * la création d'un projet vivent toutes là-bas, pas dans ce menu.
+ * It's the mockup that places the language choice here rather than in a
+ * separate setting; the standalone ⏻ button that used to exist fits in
+ * there too. "Change project" only opens `/projects` (screen 10b) — the
+ * list, switching, and creating a project all live over there, not in this
+ * menu.
  */
 export function UserMenu() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  // Le prénom vient de la session, pas d'un appel à part : better-auth le
-  // porte déjà (colonne `name` de la table `user`), comme la langue.
+  // The first name comes from the session, not a separate call: better-auth
+  // already carries it (the `name` column of the `user` table), like the language.
   const { data: session } = useSession()
   const name = session?.user.name ?? ''
   const rootRef = useRef<HTMLDivElement>(null)
@@ -28,8 +29,8 @@ export function UserMenu() {
 
   const current = LANGUAGES.find((language) => language.code === i18n.resolvedLanguage)
 
-  // Referme au clic ailleurs et à Échap : sans ça le menu resterait ouvert
-  // par-dessus le calendrier pendant qu'on travaille.
+  // Closes on an outside click or Escape: without this, the menu would stay
+  // open over the calendar while working.
   useEffect(() => {
     if (!open) return
 
@@ -47,8 +48,8 @@ export function UserMenu() {
     }
   }, [open])
 
-  // Le sous-menu des langues ne survit pas à la fermeture du menu : le rouvrir
-  // doit repartir de l'état de la maquette, replié.
+  // The language submenu doesn't survive the menu closing: reopening it
+  // must start over from the mockup's state, collapsed.
   useEffect(() => {
     if (!open) setLanguagesOpen(false)
   }, [open])
@@ -63,9 +64,9 @@ export function UserMenu() {
 
   function chooseLanguage(code: LanguageCode) {
     void i18n.changeLanguage(code)
-    // La langue est une préférence du compte, pas du navigateur : on l'y écrit
-    // sans faire attendre le menu. Un échec réseau n'annule rien — le choix
-    // tient déjà en local, et la maquette 6a n'offre aucune place pour le dire.
+    // The language is an account preference, not a browser one: we write it
+    // there without making the menu wait. A network failure cancels nothing —
+    // the choice already holds locally, and mockup 6a offers no place to say so.
     void updateUser({ language: code }).catch(() => {})
     setLanguagesOpen(false)
     setOpen(false)
@@ -85,9 +86,10 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         title={t('auth.menu.open')}
-        // Le prénom visible devient le nom accessible du bouton ; un
-        // `aria-label` fixe le masquerait, et dirait autre chose que ce qui est
-        // écrit. Il ne sert donc qu'au repli, quand il n'y a rien à lire.
+        // The visible first name becomes the button's accessible name; a
+        // fixed `aria-label` would mask it and say something other than
+        // what's written. So it only serves as a fallback, when there's
+        // nothing to read.
         aria-label={name ? undefined : t('auth.menu.open')}
       >
         <span className={styles.avatar_dot} aria-hidden="true">
@@ -132,8 +134,8 @@ export function UserMenu() {
                   <span className={styles.check} aria-hidden="true">
                     {language.code === current?.code ? '✓' : ''}
                   </span>
-                  {/* Chaque langue s'écrit dans sa propre langue : « English »
-                      reste « English » pour qui lit l'interface en français. */}
+                  {/* Each language is written in its own language: "English"
+                      stays "English" for someone reading the interface in French. */}
                   <span lang={language.code}>{language.label}</span>
                 </button>
               ))}

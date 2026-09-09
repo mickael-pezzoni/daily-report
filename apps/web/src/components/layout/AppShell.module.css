@@ -6,9 +6,9 @@
   overflow: hidden;
 }
 
-/* Panneau de l'onglet Aujourd'hui — la note ouverte ou l'état vide. Toujours
-   visible au-dessus de 900 px (c'est le contenu desktop), replié par le
-   pendant mobile de `.pane_inactive` en dessous. */
+/* Pane for the Today tab — the open note or the empty state. Always visible
+   above 900px (this is the desktop content), collapsed by the mobile
+   counterpart `.pane_inactive` below. */
 .note_pane {
   flex: 1;
   display: flex;
@@ -17,19 +17,17 @@
   min-height: 0;
 }
 
-/* Panneau de l'onglet Calendrier — n'existe que sur mobile, voir la media
-   query ci-dessous. Absent du desktop, qui a déjà son calendrier dans
-   `Sidebar`. */
+/* Pane for the Calendar tab — only exists on mobile, see the media query
+   below. Absent on desktop, which already has its calendar in `Sidebar`. */
 .calendar_pane {
   display: none;
 }
 
-/* Écran mobile 2b : deux onglets plutôt que deux colonnes. `Sidebar` (le
-   calendrier du mois + derniers jours desktop) disparaît complètement — voir
-   Sidebar.module.css — au profit de `.calendar_pane` (bande de semaine) et du
-   pied d'onglets. Hauteur fixe comme le desktop : c'est aux panneaux de
-   défiler en interne, pas à la page, pour que le pied d'onglets reste ancré
-   comme dans une vraie appli. */
+/* Mobile screen 2b: two tabs instead of two columns. `Sidebar` (the month
+   calendar + desktop recent days) disappears entirely — see
+   Sidebar.module.css — in favor of `.calendar_pane` (week strip) and the tab
+   bar. Fixed height like desktop: it's up to the panes to scroll internally,
+   not the page, so the tab bar stays anchored like in a real app. */
 @media (max-width: 900px) {
   .shell {
     flex-direction: column;
@@ -50,12 +48,12 @@
 }
 
 .calendar_search {
-  /* `.input` (global) fixe `width: 100%` : sans ce `width: auto`, les marges
-     ci-dessous s'ajouteraient à ce 100% au lieu de le réduire, et le bouton
-     déborderait de l'écran. `.calendar_pane` est en `flex-direction: column`
-     avec l'`align-items: stretch` par défaut, qui étire un item `width: auto`
-     jusqu'au bord du conteneur *en tenant compte de la marge* — c'est cette
-     étirette qui refait le plein-largeur, correctement cette fois. */
+  /* `.input` (global) sets `width: 100%`: without this `width: auto`, the
+     margins below would add to that 100% instead of reducing it, and the
+     button would overflow the screen. `.calendar_pane` is
+     `flex-direction: column` with the default `align-items: stretch`, which
+     stretches a `width: auto` item to the container's edge *accounting for
+     the margin* — this stretch redoes the full width, correctly this time. */
   width: auto;
   margin: var(--space-4) var(--space-4) 0;
   text-align: left;
@@ -88,10 +86,10 @@
   color: var(--app-text-muted);
 }
 
-/* Une pile de rangées pleine largeur, comme la maquette 2b — et non la rangée
-   de post-it qui s'enroule du desktop : ce panneau n'existe que sous 900 px,
-   où les cartes inclinées n'ont ni la place de tenir côte à côte, ni celle de
-   montrer un extrait lisible. */
+/* A stack of full-width rows, like mockup 2b — not the wrapping row of
+   sticky notes from desktop: this pane only exists under 900px, where the
+   tilted cards have neither room to sit side by side nor to show a readable
+   excerpt. */
 .calendar_recent_cards {
   display: flex;
   flex-direction: column;

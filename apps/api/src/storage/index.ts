@@ -6,8 +6,8 @@ import { S3Storage } from './s3.js'
 export type { StorageDriver } from './driver.js'
 
 /**
- * Le driver actif, choisi par `STORAGE_DRIVER`. C'est le seul endroit du dépôt
- * qui sait quels drivers existent : tout le reste ne voit qu'un
+ * The active driver, chosen by `STORAGE_DRIVER`. This is the only place in
+ * the repo that knows which drivers exist: everything else only ever sees a
  * `StorageDriver`.
  */
 export const storage: StorageDriver =

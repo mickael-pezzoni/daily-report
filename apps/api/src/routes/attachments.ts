@@ -14,10 +14,10 @@ import type { AuthedEnv } from '../middleware/require-auth.js'
 import { storage } from '../storage/index.js'
 
 /**
- * La note appartient-elle bien à cet utilisateur ?
+ * Does the note actually belong to this user?
  *
- * Rien d'autre ne garde les pièces jointes : c'est la note qui porte la
- * propriété, et toute route ci-dessous doit passer par là.
+ * Nothing else guards attachments: it's the note that carries ownership, and
+ * every route below must go through here.
  */
 async function ownsNote(noteId: string, userId: string): Promise<boolean> {
   const row = await db
@@ -29,7 +29,7 @@ async function ownsNote(noteId: string, userId: string): Promise<boolean> {
   return row !== undefined
 }
 
-/** Charge une pièce jointe **et** sa clé de stockage, en vérifiant le propriétaire. */
+/** Loads an attachment **and** its storage key, checking ownership. */
 async function findOwnedAttachment(id: string, userId: string) {
   return db
     .selectFrom('attachments')
@@ -48,11 +48,11 @@ async function findOwnedAttachment(id: string, userId: string) {
     .executeTakeFirst()
 }
 
-// ── Routes portées par une note : /api/notes/:noteId/attachments ────────────
+// ── Routes carried by a note: /api/notes/:noteId/attachments ────────────────
 
 export const noteAttachments = new Hono<AuthedEnv>()
 
-/** Liste les pièces jointes d'une note. */
+/** Lists a note's attachments. */
 noteAttachments.get('/', async (c) => {
   const noteId = c.req.param('noteId')
   if (!isUuid(noteId)) return c.json({ error: 'invalid note id' }, 400)
@@ -71,10 +71,10 @@ noteAttachments.get('/', async (c) => {
 })
 
 /**
- * Dépose un ou plusieurs fichiers sur une note.
+ * Uploads one or more files to a note.
  *
- * `multipart/form-data`, champ `file` — répétable pour un envoi groupé, ce que
- * le glisser-déposer de plusieurs fichiers produit naturellement.
+ * `multipart/form-data`, `file` field — repeatable for a batch upload, which
+ * is what dragging and dropping several files naturally produces.
  */
 noteAttachments.post('/', async (c) => {
   const noteId = c.req.param('noteId')
@@ -107,7 +107,7 @@ noteAttachments.post('/', async (c) => {
   }
 
   const saved: Attachment[] = []
-  /** Clés déjà écrites, à nettoyer si une écriture ultérieure échoue. */
+  /** Keys already written, to clean up if a later write fails. */
   const written: string[] = []
 
   try {
@@ -116,9 +116,9 @@ noteAttachments.post('/', async (c) => {
       const mimeType = file.type || 'application/octet-stream'
       const key = buildStorageKey(userId, noteId, filename)
 
-      // Le fichier part au stockage d'abord : une ligne en base sans objet
-      // derrière serait un lien mort, alors qu'un objet sans ligne n'est
-      // qu'un orphelin silencieux — rattrapable, et invisible de l'utilisateur.
+      // The file goes to storage first: a database row with no object behind
+      // it would be a dead link, whereas an object with no row is just a
+      // silent orphan — recoverable, and invisible to the user.
       await storage.put(key, new Uint8Array(await file.arrayBuffer()), { contentType: mimeType })
       written.push(key)
 
@@ -131,8 +131,8 @@ noteAttachments.post('/', async (c) => {
       saved.push(toAttachment(row))
     }
   } catch (error) {
-    // Envoi groupé interrompu : on retire ce qu'on venait d'écrire plutôt que
-    // de laisser des objets sans ligne.
+    // Batch upload interrupted: remove what was just written rather than
+    // leave objects with no row.
     await Promise.allSettled(written.map((key) => storage.delete(key)))
     throw error
   }
@@ -140,11 +140,11 @@ noteAttachments.post('/', async (c) => {
   return c.json(saved, 201)
 })
 
-// ── Routes portées par la pièce jointe : /api/attachments/:id ───────────────
+// ── Routes carried by the attachment: /api/attachments/:id ──────────────────
 
 export const attachments = new Hono<AuthedEnv>()
 
-/** Métadonnées d'une pièce jointe. */
+/** Metadata of an attachment. */
 attachments.get('/:id', async (c) => {
   const id = c.req.param('id')
   if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
@@ -155,11 +155,11 @@ attachments.get('/:id', async (c) => {
 })
 
 /**
- * Le contenu du fichier.
+ * The file's content.
  *
- * Si le driver sait signer une URL, on redirige : la bande passante ne traverse
- * pas l'API. Sinon on relaie le flux. Le contrôle d'accès a lieu ici dans les
- * deux cas — c'est la seule porte.
+ * If the driver knows how to sign a URL, we redirect: bandwidth doesn't
+ * flow through the API. Otherwise we relay the stream. Access control
+ * happens here in both cases — it's the only gate.
  */
 attachments.get('/:id/content', async (c) => {
   const id = c.req.param('id')
@@ -182,14 +182,14 @@ attachments.get('/:id/content', async (c) => {
     'Content-Type': row.mimeType,
     'Content-Length': row.sizeBytes,
     'Content-Disposition': contentDisposition(row.filename, row.mimeType),
-    // Le type déclaré fait foi : sans ça, un navigateur pourrait renifler le
-    // contenu et exécuter en HTML un fichier annoncé autrement.
+    // The declared type is authoritative: without this, a browser could
+    // sniff the content and execute as HTML a file announced as something else.
     'X-Content-Type-Options': 'nosniff',
     'Cache-Control': 'private, max-age=0, must-revalidate',
   })
 })
 
-/** Supprime une pièce jointe, ligne et objet. */
+/** Deletes an attachment, row and object. */
 attachments.delete('/:id', async (c) => {
   const id = c.req.param('id')
   if (!isUuid(id)) return c.json({ error: 'invalid id' }, 400)
@@ -197,8 +197,8 @@ attachments.delete('/:id', async (c) => {
   const row = await findOwnedAttachment(id, c.get('userId'))
   if (!row) return c.json({ error: 'attachment not found' }, 404)
 
-  // La ligne d'abord : elle est la source de vérité. Si la suppression de
-  // l'objet échoue derrière, il reste un orphelin — pas un lien mort.
+  // The row first: it's the source of truth. If deleting the object fails
+  // afterward, we're left with an orphan — not a dead link.
   await db.deleteFrom('attachments').where('id', '=', id).execute()
   await storage.delete(row.storageKey)
 

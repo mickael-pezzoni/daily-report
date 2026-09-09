@@ -5,11 +5,11 @@ import { Readable } from 'node:stream'
 import type { StorageDriver } from './driver.js'
 
 /**
- * Stockage sur le disque local — le mode on-premise.
+ * Local disk storage — the on-premise mode.
  *
- * N'implémente volontairement pas `getSignedUrl` : sans domaine public ni
- * mécanisme de signature, l'API reste le seul chemin d'accès aux fichiers, ce
- * qui est exactement ce qu'on veut ici.
+ * Deliberately doesn't implement `getSignedUrl`: with no public domain or
+ * signing mechanism, the API remains the only access path to the files,
+ * which is exactly what we want here.
  */
 export class LocalStorage implements StorageDriver {
   readonly name = 'local'
@@ -17,12 +17,13 @@ export class LocalStorage implements StorageDriver {
   constructor(private readonly root: string) {}
 
   /**
-   * Résout une clé en chemin, et **refuse toute sortie du répertoire racine**.
+   * Resolves a key to a path, and **refuses any escape from the root
+   * directory**.
    *
-   * Les clés sont fabriquées par l'application à partir d'UUID, donc sûres par
-   * construction ; cette garde existe pour que ça reste vrai le jour où une clé
-   * viendra d'ailleurs. Une traversée de chemin ici donnerait la lecture et
-   * l'écriture de n'importe quel fichier du serveur.
+   * Keys are built by the application from UUIDs, so they're safe by
+   * construction; this guard exists so that stays true the day a key comes
+   * from somewhere else. A path traversal here would grant read and write
+   * access to any file on the server.
    */
   private pathFor(key: string): string {
     const root = resolve(this.root)
@@ -45,12 +46,12 @@ export class LocalStorage implements StorageDriver {
   }
 
   async delete(key: string): Promise<void> {
-    // `force` : supprimer deux fois, ou supprimer un fichier déjà disparu du
-    // disque, n'est pas une erreur — la ligne en base fait foi.
+    // `force`: deleting twice, or deleting a file already gone from disk,
+    // is not an error — the database row is authoritative.
     await rm(this.pathFor(key), { force: true })
   }
 
-  /** Le répertoire racine, exposé pour le message de démarrage. */
+  /** The root directory, exposed for the startup message. */
   get location(): string {
     return join(resolve(this.root))
   }

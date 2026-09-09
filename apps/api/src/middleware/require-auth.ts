@@ -4,10 +4,10 @@ import { auth } from '../auth.js'
 export type AuthedEnv = { Variables: { userId: string } }
 
 /**
- * Refuse la requête sans session et pose `userId` dans le contexte.
+ * Rejects the request if there's no session, and sets `userId` in context.
  *
- * Il n'y a pas d'autre couche d'autorisation dans cette API : toute requête
- * ajoutée derrière ce middleware doit filtrer explicitement sur ce `userId`.
+ * There's no other authorization layer in this API: any route added behind
+ * this middleware must explicitly filter on this `userId`.
  */
 export const requireAuth = createMiddleware<AuthedEnv>(async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers })

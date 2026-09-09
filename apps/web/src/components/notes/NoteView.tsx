@@ -17,22 +17,22 @@ import styles from './NoteView.module.css'
 
 interface NoteViewProps {
   date: string
-  /** Remonte à la coquille pour rafraîchir calendrier et « derniers jours ». */
+  /** Bubbles up to the shell to refresh the calendar and "recent days". */
   onNoteSaved: (note: DailyNote) => void
   /**
-   * Appelé **après** confirmation — la coquille possède la suppression elle-même
-   * (appel API, retour à l'écran vide, calendrier et « derniers jours »), sur le
-   * modèle de `NoteResultCard.onDelete`.
+   * Called **after** confirmation — the shell owns the deletion itself
+   * (API call, return to the empty screen, calendar and "recent days"),
+   * following the model of `NoteResultCard.onDelete`.
    */
   onNoteDeleted: (note: DailyNote) => void
 }
 
-/** Ne réagir qu'aux fichiers — pas à une sélection de texte déplacée. */
+/** Only react to files — not to a moved text selection. */
 function carriesFiles(event: React.DragEvent): boolean {
   return Array.from(event.dataTransfer.types).includes('Files')
 }
 
-/** L'écran 2a : la journée ouverte, sa feuille et sa navigation. */
+/** Screen 2a: the open day, its sheet, and its navigation. */
 export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   const { t } = useTranslation()
   const format = useDateFormat()
@@ -42,17 +42,17 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   const attachments = useAttachments(note?.id ?? null, ensureNoteId)
   const { confirm, dialog: confirmDialog } = useConfirm()
 
-  // Un projet archivé n'accepte plus d'écriture — l'API le refuse (403
-  // PROJECT_ARCHIVED), l'éditeur se met en lecture seule pour ne pas laisser
-  // taper dans le vide.
+  // An archived project no longer accepts writes — the API refuses (403
+  // PROJECT_ARCHIVED), the editor switches to read-only so it doesn't let
+  // you type into the void.
   const readOnly = !!currentProject?.archivedAt
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
   /**
-   * `dragenter` et `dragleave` se déclenchent pour chaque enfant survolé : se
-   * fier au premier `dragleave` ferait clignoter le tiroir dès que le curseur
-   * passe d'un élément à l'autre. On compte les entrées.
+   * `dragenter` and `dragleave` fire for every child hovered over: relying
+   * on the first `dragleave` would make the drawer flicker every time the
+   * cursor moves from one element to another. We count the entries instead.
    */
   const dragDepth = useRef(0)
 
@@ -61,7 +61,7 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
     dragDepth.current += 1
     if (dragDepth.current === 1) {
       setDragging(true)
-      // Le geste demandé : survoler un fichier ouvre le tiroir.
+      // The requested behavior: hovering a file opens the drawer.
       setDrawerOpen(true)
     }
   }
@@ -74,15 +74,15 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
 
   function handleDragOver(event: React.DragEvent) {
     if (readOnly || !carriesFiles(event)) return
-    // Sans ce preventDefault, l'événement `drop` n'arrive jamais.
+    // Without this preventDefault, the `drop` event never fires.
     event.preventDefault()
     event.dataTransfer.dropEffect = 'copy'
   }
 
   function handleDrop(event: React.DragEvent) {
     if (!carriesFiles(event)) return
-    // Sinon le navigateur remplace la page par le fichier lâché — y compris
-    // en lecture seule, où le dépôt n'a jamais été activé plus haut.
+    // Otherwise the browser replaces the page with the dropped file — even
+    // in read-only mode, where drop was never enabled above.
     event.preventDefault()
     dragDepth.current = 0
     setDragging(false)
@@ -93,8 +93,8 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   }
 
   /**
-   * Le bouton 🗑 de l'en-tête (maquette 2a) — absent tant que le jour est
-   * vierge : rien n'existe encore côté serveur pour ces jours-là.
+   * The 🗑 button in the header (mockup 2a) — absent while the day is blank:
+   * nothing exists on the server yet for those days.
    */
   async function handleDelete() {
     if (!note) return
@@ -115,8 +115,8 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
   }
 
   /**
-   * Envoi depuis l'éditeur : le fichier est joint, puis rendu à l'appelant pour
-   * qu'il l'insère dans le document.
+   * Upload from the editor: the file is attached, then returned to the
+   * caller so it can insert it into the document.
    */
   const uploadFromEditor = useCallback(
     async (files: File[]) => {
@@ -141,8 +141,8 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
       <header className={styles.header}>
         <span className={styles.date_pill}>
           {format.dayLong(date)}
-          {/* Referme la journée et ramène à l'écran « aucune note ouverte ».
-              Ce qui est en attente d'enregistrement part au démontage. */}
+          {/* Closes the day and returns to the "no note open" screen.
+              Whatever's pending a save is flushed on unmount. */}
           <Link to={`/projets/${projectId}`} className={styles.close} title={t('note.close')} aria-label={t('note.close')}>
             ✕
           </Link>
@@ -153,9 +153,9 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
           <SaveStatus state={state} errorKey={errorKey} />
         )}
         <span className={styles.spacer} />
-        {/* Absent sur un jour vierge : sans note enregistrée, il n'y a rien à
-            supprimer côté serveur. `⌕` et « Exporter ▾ » de la maquette
-            restent volontairement non rendus — voir CLAUDE.md. */}
+        {/* Absent on a blank day: without a saved note, there's nothing to
+            delete server-side. The mockup's `⌕` and "Export ▾" remain
+            deliberately unrendered — see CLAUDE.md. */}
         {note ? (
           <button
             type="button"
@@ -173,10 +173,11 @@ export function NoteView({ date, onNoteSaved, onNoteDeleted }: NoteViewProps) {
 
       <div className={`${styles.desk} ${dragging ? styles.desk_dragging : ''}`}>
         <article className={styles.paper}>
-          {/* On attend la réponse avant de monter l'éditeur. TipTap prend son
-              document au montage : le monter sur un brouillon vide puis laisser
-              arriver le contenu ne l'atteindrait jamais — contrairement au
-              titre, qui est un champ contrôlé et suit la donnée. */}
+          {/* We wait for the response before mounting the editor. TipTap
+              takes its document at mount time: mounting it on an empty
+              draft and letting the content arrive afterward would never
+              reach it — unlike the title, which is a controlled field and
+              follows the data. */}
           {state === 'loading' ? (
             <p className={styles.loading}>{t('app.loading')}</p>
           ) : (

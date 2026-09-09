@@ -8,31 +8,31 @@ import fr from './locales/fr.json'
 export type { LanguageCode }
 
 /**
- * Les langues offertes, dans l'ordre du sélecteur.
+ * The offered languages, in the order shown by the picker.
  *
- * `locale` est ce qu'on passe à `Intl` — jamais le code de langue nu. `en-GB`
- * plutôt que `en-US` parce que la grille du calendrier commence le lundi
- * (maquette 2a) : `en-US` afficherait des jours de semaine dont l'ordre
- * contredirait la grille.
+ * `locale` is what gets passed to `Intl` — never the bare language code.
+ * `en-GB` rather than `en-US` because the calendar grid starts on Monday
+ * (mockup 2a): `en-US` would display weekday initials whose order would
+ * contradict the grid.
  *
- * C'est toujours la seule liste à compléter pour ajouter une langue — mais le
- * `code` est désormais typé par `LANGUAGE_CODES` de `@daily-report/types`, que
- * l'API partage. Ajouter une entrée sans son code là-bas ne compile pas : c'est
- * voulu, le serveur refuserait la valeur.
+ * This is still the only list to fill in to add a language — but the `code`
+ * is now typed by `LANGUAGE_CODES` from `@daily-report/types`, which the API
+ * shares. Adding an entry without its code there fails to compile: that's
+ * intentional, the server would refuse the value.
  */
 export const LANGUAGES = [
   { code: 'fr', locale: 'fr-FR', label: 'Français' },
   { code: 'en', locale: 'en-GB', label: 'English' },
 ] as const satisfies readonly { code: LanguageCode; locale: string; label: string }[]
 
-/** Le code appartient-il aux langues offertes ? */
+/** Does the code belong to the offered languages? */
 export function isLanguageCode(value: unknown): value is LanguageCode {
   return LANGUAGES.some((language) => language.code === value)
 }
 
 export const DEFAULT_LANGUAGE: LanguageCode = 'fr'
 
-/** Le `locale` Intl d'une langue, avec repli sur le français. */
+/** A language's Intl `locale`, falling back to French. */
 export function localeOf(code: string): string {
   return LANGUAGES.find((language) => language.code === code)?.locale ?? LANGUAGES[0].locale
 }
@@ -47,27 +47,27 @@ void i18next
     },
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: LANGUAGES.map((language) => language.code),
-    // `fr-BE`, `en-CA`… retombent sur `fr` et `en` : on ne tient qu'un
-    // catalogue par langue, pas un par région.
+    // `fr-BE`, `en-CA`… fall back to `fr` and `en`: we only keep one catalog
+    // per language, not one per region.
     nonExplicitSupportedLngs: true,
     detection: {
-      // Le choix explicite de l'utilisateur prime sur la langue du navigateur.
+      // The user's explicit choice takes priority over the browser's language.
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: 'daily-report.language',
       caches: ['localStorage'],
     },
     interpolation: {
-      // React échappe déjà tout ce qu'il rend ; échapper une seconde fois
-      // transformerait « Camille & Cie » en « Camille &amp; Cie ».
+      // React already escapes everything it renders; escaping a second time
+      // would turn "Camille & Cie" into "Camille &amp; Cie".
       escapeValue: false,
     },
   })
 
 /**
- * `<html lang>` suit la langue choisie.
+ * `<html lang>` follows the chosen language.
  *
- * Ce n'est pas cosmétique : c'est ce qui décide de la césure, des guillemets et
- * de la voix qu'emploie un lecteur d'écran.
+ * This isn't cosmetic: it's what decides hyphenation, quotation marks, and
+ * the voice a screen reader uses.
  */
 function syncDocumentLanguage(code: string) {
   document.documentElement.lang = code

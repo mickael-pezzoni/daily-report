@@ -28,11 +28,11 @@ function toProject(row: ProjectRow): Project {
 }
 
 /**
- * `GET /api/projects` — les projets du compte, dans l'ordre de création (le
- * premier est celui que l'inscription propose par défaut), actifs et archivés
- * confondus — c'est au client de les distinguer à l'affichage. Chacun porte
- * son nombre de notes et la date de la dernière : ce que les cartes de
- * l'écran de sélection affichent, sans requête à part par projet.
+ * `GET /api/projects` — the account's projects, in creation order (the first
+ * one is the one sign-up offers by default), active and archived alike —
+ * it's up to the client to distinguish them in the display. Each one carries
+ * its note count and the date of the latest one: what the cards on the
+ * selection screen display, with no separate query per project.
  */
 projects.get('/', async (c) => {
   const rows = await db
@@ -54,7 +54,7 @@ projects.get('/', async (c) => {
   return c.json(rows.map(toProject))
 })
 
-/** `POST /api/projects` — crée un projet, vide et actif. */
+/** `POST /api/projects` — creates a project, empty and active. */
 projects.post('/', async (c) => {
   const body = (await c.req.json().catch(() => null)) as ProjectDraft | null
   const name = typeof body?.name === 'string' ? body.name.trim() : ''
@@ -78,9 +78,9 @@ projects.post('/', async (c) => {
 })
 
 /**
- * `PATCH /api/projects/:id` — pour l'instant, seul l'archivage. Un bascule
- * dans les deux sens : archiver n'est qu'une préférence d'affichage, pas une
- * suppression, donc rien n'interdit d'y revenir.
+ * `PATCH /api/projects/:id` — for now, only archiving. A two-way toggle:
+ * archiving is only a display preference, not a deletion, so nothing
+ * prevents undoing it.
  */
 projects.patch('/:id', async (c) => {
   const id = c.req.param('id')
@@ -101,8 +101,9 @@ projects.patch('/:id', async (c) => {
 
   if (!row) return c.json({ error: 'project not found' }, 404)
 
-  // Pas de jointure ici : (dés)archiver ne change rien aux notes, une requête
-  // à part pour le compte et la dernière date serait pur confort d'écriture.
+  // No join here: (un)archiving doesn't change anything about the notes, a
+  // separate query for the count and the latest date would be pure writing
+  // convenience.
   const counts = await db
     .selectFrom('dailyNotes')
     .select((eb) => [eb.fn.count<string>('id').as('noteCount'), eb.fn.max<string | null>('noteDate').as('lastNoteDate')])
@@ -113,11 +114,12 @@ projects.patch('/:id', async (c) => {
 })
 
 /**
- * `DELETE /api/projects/:id` — supprime le projet, ses notes et leurs pièces
- * jointes. Les clés de stockage sont relevées AVANT la suppression : le
- * `ON DELETE CASCADE` emporte `daily_notes` puis `attachments`, et avec eux la
- * seule trace des fichiers déposés. Sans cette précaution, chaque projet
- * supprimé laisserait des objets orphelins qu'aucune ligne ne référence plus.
+ * `DELETE /api/projects/:id` — deletes the project, its notes, and their
+ * attachments. The storage keys are collected BEFORE deletion: the
+ * `ON DELETE CASCADE` takes down `daily_notes` then `attachments`, and with
+ * them the only trace of the uploaded files. Without this precaution, every
+ * deleted project would leave behind orphan objects that no row references
+ * anymore.
  */
 projects.delete('/:id', async (c) => {
   const id = c.req.param('id')
@@ -139,8 +141,8 @@ projects.delete('/:id', async (c) => {
 
   if (result.numDeletedRows === 0n) return c.json({ error: 'project not found' }, 404)
 
-  // Après la base : un objet qui survit est du déchet silencieux, une ligne
-  // qui survit serait un lien mort. On préfère le premier.
+  // After the database: an object that survives is silent waste, a row that
+  // survives would be a dead link. We prefer the former.
   await Promise.allSettled(keys.map((row) => storage.delete(row.storageKey)))
 
   return c.body(null, 204)

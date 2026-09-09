@@ -6,17 +6,17 @@ export type MobileTab = 'today' | 'calendar'
 interface MobileTabBarProps {
   active: MobileTab
   onChange: (tab: MobileTab) => void
-  /** La date affichée par l'onglet Aujourd'hui, déjà mise en forme — voir `AppShell`. */
+  /** The date shown by the Today tab, already formatted — see `AppShell`. */
   todayLabel: string
 }
 
 /**
- * Le pied d'onglets de l'écran mobile 2b.
+ * The tab bar of mobile screen 2b.
  *
- * Deux onglets, pas trois : la maquette en dessine un troisième, « Exporter »,
- * qui n'a rien derrière lui côté API. Même règle que le bouton ⌕ ou
- * « Exporter ▾ » de l'en-tête desktop, déjà absents pour ne pas livrer de
- * commande morte.
+ * Two tabs, not three: the mockup draws a third one, "Export", which has
+ * nothing behind it on the API side. Same rule as the ⌕ button or
+ * "Export ▾" in the desktop header, already absent so as not to ship a dead
+ * command.
  */
 export function MobileTabBar({ active, onChange, todayLabel }: MobileTabBarProps) {
   const { t } = useTranslation()

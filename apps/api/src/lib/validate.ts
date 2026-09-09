@@ -5,12 +5,12 @@ const ISO_MONTH = /^\d{4}-\d{2}$/
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
- * Ces valeurs partent dans des requêtes paramétrées — il n'y a pas de risque
- * d'injection. On valide pour une autre raison : sans ça, une date mal formée
- * remonterait au client une erreur Postgres brute au lieu d'un 400 clair.
+ * These values go into parameterized queries — there's no injection risk.
+ * We validate for a different reason: without it, a malformed date would
+ * surface a raw Postgres error to the client instead of a clean 400.
  */
 
-/** Vraie date calendaire — rejette aussi le 31 février. */
+/** A genuine calendar date — also rejects February 31st. */
 export function isValidDate(value: unknown): value is string {
   if (typeof value !== 'string' || !ISO_DATE.test(value)) return false
   const date = new Date(`${value}T12:00:00Z`)

@@ -7,7 +7,7 @@
 }
 
 .header {
-  /* Ancre du menu utilisateur, que la maquette pose à 24 px du bord droit. */
+  /* Anchor for the user menu, which the mockup places 24px from the right edge. */
   position: relative;
   display: flex;
   flex-direction: row;
@@ -88,8 +88,8 @@
   display: none;
 }
 
-/* Le bouton lui-même : rond, 64 px, juste le glyphe — le texte qui explique
-   l'action vit à côté (`.mobile_create_hint`), pas dedans. */
+/* The button itself: round, 64px, just the glyph — the text explaining the
+   action lives next to it (`.mobile_create_hint`), not inside it. */
 .mobile_create_button {
   flex: none;
   width: 64px;

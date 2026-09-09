@@ -1,12 +1,12 @@
-/* La rangée pleine largeur d'une journée — carte de résultat de l'écran 2c et
-   « derniers jours » de l'onglet Calendrier mobile (2b). */
+/* The full-width row for a day — the result card in screen 2c and "recent
+   days" in the mobile Calendar tab (2b). */
 
 .card {
   position: relative;
   padding: var(--space-3) var(--space-4);
   gap: var(--space-2);
-  /* Bordure toujours présente, transparente au repos : le liseré de la ligne
-     courante ne doit pas décaler la carte d'un pixel. */
+  /* Border always present, transparent at rest: the current-row outline
+     must not shift the card by a single pixel. */
   border: 2px solid transparent;
 }
 
@@ -14,8 +14,8 @@
   border-color: var(--app-focus-ring);
 }
 
-/* Le focus vit sur le bouton étiré, invisible ; c'est la carte qui doit le
-   montrer, sinon la navigation au clavier n'a plus aucun repère. */
+/* Focus lives on the stretched, invisible button; it's the card that must
+   show it, otherwise keyboard navigation has no visual landmark left. */
 .card:has(.open:focus-visible) {
   outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
@@ -35,9 +35,9 @@
   font-size: 16px;
 }
 
-/* Le bouton de la date couvre toute la carte : la maquette n'y laisse qu'une
-   action explicite, « supprimer ». Le pseudo-élément porte la surface
-   cliquable, le bouton garde la date pour nom accessible. */
+/* The date button covers the whole card: the mockup only leaves one explicit
+   action here, "delete". The pseudo-element carries the clickable surface,
+   the button keeps the date as its accessible name. */
 .open {
   border: 0;
   background: transparent;
@@ -58,8 +58,8 @@
   flex: 1;
 }
 
-/* Au-dessus du bouton étiré, sans quoi le clic ouvrirait la note au lieu de
-   demander sa suppression. */
+/* Above the stretched button, otherwise the click would open the note
+   instead of asking for its deletion. */
 .remove {
   position: relative;
   z-index: 1;
@@ -82,8 +82,9 @@
   outline-offset: 2px;
 }
 
-/* Ni l'extrait, ni les étiquettes, ni les vignettes ne sont interactifs : le
-   clic doit les traverser pour atteindre le bouton étiré, sur toute la carte. */
+/* Neither the excerpt, the tags, nor the thumbnails are interactive: the
+   click must pass through them to reach the stretched button, over the
+   whole card. */
 .excerpt {
   margin: 0;
   font-size: 12.5px;
@@ -100,7 +101,7 @@
   color: inherit;
 }
 
-/* — la pièce jointe dont le nom a répondu : vignette puis nom — */
+/* — the attachment whose name matched: thumbnail then name — */
 .file_match {
   display: flex;
   flex-direction: row;
@@ -117,7 +118,7 @@
   background: var(--app-control-bg);
 }
 
-/* Pas d'aperçu possible : la pastille d'extension, comme dans le tiroir. */
+/* No preview possible: the extension badge, like in the drawer. */
 .thumb_fallback {
   width: 56px;
   height: 40px;

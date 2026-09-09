@@ -6,9 +6,9 @@ import { pool } from './index.js'
 const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), 'migrations')
 
 /**
- * Applique les migrations SQL de `migrations/` dans l'ordre alphabétique.
- * Chaque fichier passe dans sa propre transaction et n'est joué qu'une fois —
- * ne jamais rééditer un fichier déjà appliqué, en ajouter un nouveau.
+ * Applies the SQL migrations from `migrations/` in alphabetical order. Each
+ * file runs in its own transaction and is only ever played once — never
+ * re-edit a file that's already been applied, add a new one instead.
  */
 async function migrate() {
   await pool.query(`

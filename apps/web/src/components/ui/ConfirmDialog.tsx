@@ -2,13 +2,13 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styles from './ConfirmDialog.module.css'
 
-/** Ce qu'il faut savoir pour poser une question — l'écran 8 de la maquette. */
+/** What's needed to ask a question — mockup screen 8. */
 export interface ConfirmRequest {
   title: string
   body: string
-  /** Le bouton qui confirme **nomme l'action** — « Supprimer », jamais « OK ». */
+  /** The confirm button **names the action** — "Delete", never "OK". */
   confirmLabel: string
-  /** `danger` peint ce bouton en destructif : la variante 8b. */
+  /** `danger` paints this button as destructive: the 8b variant. */
   tone?: 'neutral' | 'danger'
 }
 
@@ -23,10 +23,10 @@ function ConfirmDialog({ request, onSettle }: ConfirmDialogProps) {
   const titleId = useId()
   const bodyId = useId()
 
-  // `showModal()` plutôt que l'attribut `open` : lui seul monte la modale dans
-  // la couche supérieure — au-dessus du menu utilisateur et du tiroir sans
-  // qu'aucun z-index n'ait à s'aligner —, dessine le fond, piège le focus et
-  // rend le reste de la page inerte.
+  // `showModal()` rather than the `open` attribute: only it promotes the
+  // modal to the top layer — above the user menu and the drawer without any
+  // z-index having to line up —, draws the backdrop, traps focus, and makes
+  // the rest of the page inert.
   useEffect(() => {
     ref.current?.showModal()
   }, [])
@@ -37,14 +37,14 @@ function ConfirmDialog({ request, onSettle }: ConfirmDialogProps) {
       className={`dialog ${styles.dialog}`}
       aria-labelledby={titleId}
       aria-describedby={bodyId}
-      // Échap ferme nativement. On intercepte pour répondre « non » à
-      // l'appelant, au lieu de le laisser attendre une promesse en suspens.
+      // Escape closes natively. We intercept it to answer "no" to the
+      // caller, instead of leaving it waiting on a promise that never settles.
       onCancel={(event) => {
         event.preventDefault()
         onSettle(false)
       }}
-      // Un clic sur le fond a pour cible la modale elle-même : c'est ce qui
-      // distingue le dehors du dedans, sans écouteur posé sur le document.
+      // A click on the backdrop targets the modal itself: that's what tells
+      // outside from inside apart, without a listener on the document.
       onClick={(event) => {
         if (event.target === ref.current) onSettle(false)
       }}
@@ -56,8 +56,8 @@ function ConfirmDialog({ request, onSettle }: ConfirmDialogProps) {
         {request.body}
       </p>
       <div className="dialog-actions">
-        {/* « Annuler » vient en premier dans le DOM, et reçoit donc le focus à
-            l'ouverture : une frappe sur Entrée par réflexe ne supprime rien. */}
+        {/* "Cancel" comes first in the DOM, and therefore gets focus on
+            open: a reflexive Enter press deletes nothing. */}
         <button type="button" className="btn btn-secondary" onClick={() => onSettle(false)}>
           {t('dialog.cancel')}
         </button>
@@ -74,11 +74,11 @@ function ConfirmDialog({ request, onSettle }: ConfirmDialogProps) {
 }
 
 /**
- * La modale de confirmation, à la place de `window.confirm`.
+ * The confirmation modal, standing in for `window.confirm`.
  *
- * L'appel garde la forme du natif — `if (await confirm({…}))` — mais la
- * question est rendue par l'application : elle suit le thème, la langue, et
- * peut nommer son action au lieu d'un « OK » générique.
+ * The call keeps the native shape — `if (await confirm({…}))` — but the
+ * question is rendered by the application: it follows the theme, the
+ * language, and can name its action instead of a generic "OK".
  *
  * ```tsx
  * const { confirm, dialog } = useConfirm()
@@ -105,9 +105,9 @@ export function useConfirm() {
     resolveRef.current = null
   }, [])
 
-  // Démontage alors qu'une question est encore posée — la carte disparaît de la
-  // liste, on change de jour : on répond « non ». Sans ça l'appelant resterait
-  // suspendu à une promesse que plus personne ne peut résoudre.
+  // Unmounted while a question is still pending — the card disappears from
+  // the list, we switch days: we answer "no". Without this the caller would
+  // stay stuck on a promise nobody can resolve anymore.
   useEffect(() => () => resolveRef.current?.(false), [])
 
   return {

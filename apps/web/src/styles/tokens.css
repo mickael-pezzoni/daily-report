@@ -1,19 +1,17 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   Couche 1 — TOKENS.
+   Layer 1 — TOKENS.
 
-   Extraite telle quelle du bloc `:root` de `styles.css` du design system
-   Organic (projet Claude Design « Maquette rapport journalier »,
+   Extracted verbatim from the `:root` block of the Organic design system's
+   `styles.css` (Claude Design project "Maquette rapport journalier",
    _ds/organic-30013f41-a52c-4e2a-9c8d-8b3e823a4a29/styles.css).
 
-   C'EST LE SEUL FICHIER À ÉDITER POUR CHANGER LE THÈME. Rien d'autre dans
-   l'application ne déclare une couleur, une police, un rayon ou une ombre :
-   la couche 2 (semantic.css) ne fait que renommer ces valeurs en rôles
-   applicatifs, la couche 3 (organic.css) et les *.module.css ne font que
-   les lire.
+   THIS IS THE ONLY FILE TO EDIT TO CHANGE THE THEME. Nothing else in the
+   application declares a color, a font, a radius, or a shadow: layer 2
+   (semantic.css) only renames these values into application roles, layer 3
+   (organic.css) and the *.module.css files only read them.
 
-   Pour brancher un thème alternatif plus tard, ajouter ici un bloc
-   `:root[data-theme="…"]` qui réassigne les mêmes noms — aucun autre fichier
-   n'a besoin de bouger.
+   To plug in an alternative theme later, add a `:root[data-theme="…"]`
+   block here that reassigns the same names — no other file needs to move.
    ══════════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap');
@@ -26,8 +24,8 @@
   --color-accent-2: #7a8a5e;
   --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
 
-  /* Rampes tonales — générées en OKLCH sur une échelle de clarté partagée :
-     le même palier de deux rôles différents a le même poids visuel. */
+  /* Tonal ramps — generated in OKLCH on a shared lightness scale: the same
+     step of two different roles carries the same visual weight. */
   --color-neutral-100: #f9f4ed;
   --color-neutral-200: #eee7db;
   --color-neutral-300: #dcd3c4;
@@ -73,7 +71,7 @@
   --radius-md: 16px;
   --radius-lg: 28px;
 
-  /* Élévation — ombres teintées d'encre, calées sur le fond clair. */
+  /* Elevation — ink-tinted shadows, calibrated against the light background. */
   --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
   --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
   --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);

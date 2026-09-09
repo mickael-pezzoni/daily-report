@@ -9,20 +9,20 @@ import styles from './EmptyState.module.css'
 
 interface EmptyStateProps {
   onOpenSearch: () => void
-  /** Une note supprimée depuis la recherche ou l'onglet mobile — voir `WeekDigest`. */
+  /** A note deleted from search or the mobile tab — see `WeekDigest`. */
   deletedNote: DailyNote | null
 }
 
-/** Les écrans 2f/2g : aucune note ouverte, la semaine en condensé. */
+/** Screens 2f/2g: no note open, the week digest. */
 export function EmptyState({ onOpenSearch, deletedNote }: EmptyStateProps) {
   const { t } = useTranslation()
   const { projectId } = useParams<{ projectId: string }>()
 
   return (
     <div className={styles.view}>
-      {/* La maquette a retiré le « ＋ Note » de cet en-tête : il ne reste que le
-          titre et le menu utilisateur. Le geste vit toujours au pied de la barre
-          latérale, que 2f affiche aussi — d'où le renvoi du texte d'aide. */}
+      {/* The mockup removed the "＋ Note" from this header: only the title
+          and the user menu remain. The action still lives at the foot of the
+          sidebar, which 2f also displays — hence the hint text pointing to it. */}
       <header className={styles.header}>
         <span className={styles.title}>{t('empty.title')}</span>
         <span className={styles.spacer} />
@@ -30,10 +30,10 @@ export function EmptyState({ onOpenSearch, deletedNote }: EmptyStateProps) {
       </header>
 
       <div className={styles.body}>
-        {/* Le pendant desktop de la barre « Rechercher dans toutes mes
-            notes… » de la maquette : ouvre la même modale que Ctrl+K/⌘K.
-            L'onglet Calendrier mobile porte le sien, avec le même geste —
-            voir `AppShell`, `.calendar_search`. */}
+        {/* The desktop counterpart of the mockup's "Search all my notes…"
+            bar: opens the same modal as Ctrl+K/⌘K. The mobile Calendar tab
+            carries its own, with the same action — see `AppShell`,
+            `.calendar_search`. */}
         <button type="button" className={`card elev-sm ${styles.search}`} onClick={onOpenSearch}>
           <span aria-hidden="true">⌕</span>
           <span className={styles.search_label}>{t('search.placeholder')}</span>
@@ -42,18 +42,18 @@ export function EmptyState({ onOpenSearch, deletedNote }: EmptyStateProps) {
           </span>
         </button>
 
-        {/* Le condensé de semaine : uniquement sur desktop, où cette vue est
-            la colonne de droite à côté du calendrier. Sur mobile, les jours
-            récents vivent dans l'onglet Calendrier — les répéter ici ferait
-            double emploi sur un écran déjà à l'étroit. */}
+        {/* The week digest: only on desktop, where this view is the right
+            column next to the calendar. On mobile, recent days live in the
+            Calendar tab — repeating them here would be redundant on a
+            screen that's already cramped. */}
         <div className={styles.desktop_week}>
           <WeekDigest deletedNote={deletedNote} />
         </div>
 
-        {/* Le pendant du « ＋ Note » de la barre latérale desktop, qui
-            disparaît entièrement sous 900 px — un gros bouton rond centré,
-            pas un lien pleine largeur : c'est ce que montre l'écran mobile
-            dédié de la maquette 2b. */}
+        {/* The counterpart of the "＋ Note" from the desktop sidebar, which
+            disappears entirely under 900px — a big centered round button,
+            not a full-width link: that's what the dedicated mobile screen
+            in mockup 2b shows. */}
         <div className={styles.mobile_create}>
           <p className={styles.mobile_create_hint}>{t('empty.mobileNoNote')}</p>
           <Link

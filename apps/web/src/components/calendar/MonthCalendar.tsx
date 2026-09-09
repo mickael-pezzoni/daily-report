@@ -6,22 +6,22 @@ import { DayCell } from './DayCell'
 import styles from './MonthCalendar.module.css'
 
 interface MonthCalendarProps {
-  /** Mois affiché, `YYYY-MM`. */
+  /** Displayed month, `YYYY-MM`. */
   month: string
   onMonthChange: (month: string) => void
-  /** Jour ouvert, `YYYY-MM-DD`, ou `null` sur l'écran « aucune note ouverte ». */
+  /** Open day, `YYYY-MM-DD`, or `null` on the "no note open" screen. */
   selected: string | null
   onSelect: (date: string) => void
-  /** Jours du mois qui portent une note — les pastilles sauge. */
+  /** Days of the month that carry a note — the sage dots. */
   daysWithNotes: string[]
 }
 
 /**
- * Le calendrier permanent de la maquette 2a.
+ * The permanent calendar of mockup 2a.
  *
- * Trois informations se superposent sur une case : le jour ouvert (pastille
- * pleine), le jour d'aujourd'hui (cerclé) et l'existence d'une note (point
- * sauge sous le chiffre).
+ * Three pieces of information overlay on a cell: the open day (filled
+ * pill), today's date (circled), and the existence of a note (sage dot
+ * under the number).
  */
 export function MonthCalendar({
   month,

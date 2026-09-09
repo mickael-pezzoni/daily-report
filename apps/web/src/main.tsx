@@ -2,22 +2,22 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 
-// Ordre imposé : tokens (valeurs) → rôles applicatifs → composants du design
-// system → global de l'app. Chaque couche ne lit que les précédentes.
+// Mandatory order: tokens (values) → application roles → design system
+// components → app global. Each layer only reads the previous ones.
 //
-// ⚠️ Ces imports doivent rester AVANT celui de `App`. Le bundler émet le CSS
-// dans l'ordre où il rencontre les modules : importer `App` en premier ferait
-// sortir tous les *.module.css avant cette couche, et `.card` — une classe
-// simple, comme celles des modules — écraserait leurs surcharges au lieu d'être
-// écrasée par elles.
+// ⚠️ These imports must stay BEFORE the `App` import. The bundler emits CSS
+// in the order it encounters modules: importing `App` first would make all
+// the *.module.css files come out before this layer, and `.card` — a plain
+// class, like the modules' — would overwrite their overrides instead of
+// being overwritten by them.
 import './styles/tokens.css'
 import './styles/semantic.css'
 import './styles/organic.css'
 import './styles/app.css'
 
-// Avant `App` également, mais pour une autre raison : l'initialisation
-// d'i18next est synchrone, et les composants lisent leurs libellés dès leur
-// premier rendu. Les catalogues sont dans le bundle, il n'y a rien à attendre.
+// Also before `App`, but for a different reason: i18next's initialization is
+// synchronous, and components read their labels from their very first
+// render. The catalogs are in the bundle, so there's nothing to wait for.
 import './i18n'
 
 import { App } from './App'

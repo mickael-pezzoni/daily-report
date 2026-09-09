@@ -15,18 +15,19 @@ interface EditorContextMenuProps {
 }
 
 /**
- * Écran 7a de la maquette — clic droit dans le texte de l'éditeur.
+ * Mockup screen 7a — right-click in the editor text.
  *
- * Remplace le menu natif du navigateur (celui-ci ne le voit jamais : l'appel
- * à `preventDefault()` vit dans `NoteEditor`, avant que ce composant existe).
- * Couper/Copier/Coller passent donc par `execCommand`/le presse-papiers —
- * Ctrl+X/C/V au clavier restent la voie de repli si l'un de ces trois échoue.
+ * Replaces the browser's native menu (which never sees it: the call to
+ * `preventDefault()` lives in `NoteEditor`, before this component exists).
+ * Cut/Copy/Paste therefore go through `execCommand`/the clipboard —
+ * keyboard Ctrl+X/C/V remain the fallback if one of these three fails.
  *
- * Rendu dans un portail vers `document.body` : `.paper` (la feuille de
- * `NoteView`) porte un léger `transform: rotate()` pour l'effet « posée », et
- * un `transform` sur un ancêtre redéfinit le référentiel de tout descendant en
- * `position: fixed` — le menu suivrait alors cette rotation au lieu du
- * viewport, et n'apparaîtrait plus sous le curseur.
+ * Rendered into a portal to `document.body`: `.paper` (the sheet in
+ * `NoteView`) carries a slight `transform: rotate()` for the "laid down"
+ * effect, and a `transform` on an ancestor redefines the containing block for
+ * any `position: fixed` descendant — the menu would then follow that
+ * rotation instead of the viewport, and would no longer appear under the
+ * cursor.
  */
 export function EditorContextMenu({ editor, attachments, anchor, onClose }: EditorContextMenuProps) {
   const { t } = useTranslation()
@@ -37,7 +38,7 @@ export function EditorContextMenu({ editor, attachments, anchor, onClose }: Edit
   const hasSelection = !editor.state.selection.empty
   const images = attachments.filter((attachment) => isPreviewableImage(attachment.mimeType))
 
-  // Referme au clic ailleurs et à Échap — même pattern que `UserMenu` et
+  // Closes on click elsewhere and on Escape — same pattern as `UserMenu` and
   // `AttachmentChip`.
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
@@ -54,9 +55,9 @@ export function EditorContextMenu({ editor, attachments, anchor, onClose }: Edit
     }
   }, [onClose])
 
-  // Un clic droit près du bord droit/bas de la fenêtre ouvrirait sinon un menu
-  // partiellement invisible : on mesure sa taille réelle une fois rendu, et on
-  // le ramène dans le viewport s'il déborde.
+  // A right-click near the window's right/bottom edge would otherwise open a
+  // partially invisible menu: we measure its real size once rendered, and
+  // pull it back into the viewport if it overflows.
   useLayoutEffect(() => {
     const el = menuRef.current
     if (!el) return
@@ -82,7 +83,7 @@ export function EditorContextMenu({ editor, attachments, anchor, onClose }: Edit
       const text = await navigator.clipboard.readText()
       if (text) editor.chain().focus().insertContent(text).run()
     } catch {
-      // Ctrl+V reste disponible : rien à signaler ici.
+      // Ctrl+V remains available: nothing to report here.
     }
     onClose()
   }

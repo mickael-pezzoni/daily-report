@@ -10,23 +10,23 @@ import styles from './WeekDigest.module.css'
 
 interface WeekDigestProps {
   /**
-   * Une note supprimée depuis la recherche, l'onglet Calendrier mobile ou le
-   * bouton 🗑 de la journée ouverte — `WeekDigest` charge ses notes lui-même
-   * et ne les recevrait sinon jamais. Le retrait est local, sur le modèle du
-   * filtre de `SearchModal.handleDelete`.
+   * A note deleted from search, the mobile Calendar tab, or the open day's
+   * 🗑 button — `WeekDigest` loads its own notes and would otherwise never
+   * receive them. The removal is local, following the model of
+   * `SearchModal.handleDelete`'s filter.
    */
   deletedNote: DailyNote | null
 }
 
 /**
- * Le condensé de semaine des écrans 2f et 2g — le remplaçant des post-it
- * `RecentNoteCard` que la maquette a abandonnés : plus une colonne de cartes
- * mais une semaine navigable, avec ses jours rédigés en rangées et un état
- * dédié (2g) quand elle n'en compte aucun.
+ * The week digest for screens 2f and 2g — the replacement for the
+ * `RecentNoteCard` sticky notes that the mockup dropped: no longer a column
+ * of cards but a navigable week, with its written days as rows and a
+ * dedicated state (2g) when it has none.
  *
- * Autonome : contrairement au reste de la colonne de droite, la semaine
- * affichée n'a pas besoin de suivre une note ouverte — il n'y en a pas — donc
- * son ancre vit ici plutôt que dans `AppShell`.
+ * Self-contained: unlike the rest of the right column, the displayed week
+ * doesn't need to follow an open note — there isn't one — so its anchor
+ * lives here rather than in `AppShell`.
  */
 export function WeekDigest({ deletedNote }: WeekDigestProps) {
   const { t } = useTranslation()
@@ -55,8 +55,8 @@ export function WeekDigest({ deletedNote }: WeekDigestProps) {
     setNotes((items) => items.filter((item) => item.id !== deletedNote.id))
   }, [deletedNote])
 
-  // Déjà triées par date décroissante : `api.notes.week` n'envoie pas de `q`,
-  // et sans lui l'API trie par `noteDate desc` (voir `routes/notes.ts`).
+  // Already sorted by descending date: `api.notes.week` doesn't send a `q`,
+  // and without one the API sorts by `noteDate desc` (see `routes/notes.ts`).
   const fileCount = notes.reduce((sum, note) => sum + note.attachments.length, 0)
   const daysWithoutNote = 7 - notes.length
 
@@ -66,10 +66,10 @@ export function WeekDigest({ deletedNote }: WeekDigestProps) {
         <h2 className={styles.heading}>{t('empty.week.heading')}</h2>
         <span className={styles.spacer} />
         <div className={styles.nav}>
-          {/* À gauche des flèches, pas à droite : un bouton qui apparaît et
-              disparaît après la plage de dates la décalerait à chaque
-              franchissement de la semaine courante. Devant elle, seul le
-              texte du bouton bouge — le reste de la rangée reste en place. */}
+          {/* To the left of the arrows, not the right: a button that
+              appears and disappears after the date range would shift it
+              every time the current week is crossed. In front of it, only
+              the button's text moves — the rest of the row stays put. */}
           {anchor !== currentWeek ? (
             <button
               type="button"
@@ -136,9 +136,9 @@ export function WeekDigest({ deletedNote }: WeekDigestProps) {
           </span>
           <p className={styles.empty_title}>{t('empty.week.emptyTitle')}</p>
           <p className={styles.empty_description}>{t('empty.week.emptyDescription')}</p>
-          {/* Le premier jour de la semaine **affichée**, pas forcément
-              aujourd'hui : naviguer vers une semaine passée puis cliquer
-              doit écrire ce jour-là, pas rouvrir la journée du jour. */}
+          {/* The first day of the **displayed** week, not necessarily
+              today: navigating to a past week then clicking must write
+              that day, not reopen today's day. */}
           <Link to={`/projets/${projectId}/notes/${anchor}`} className="btn btn-primary">
             {t('empty.week.emptyCta', { day: format.dayShort(anchor) })}
           </Link>

@@ -1,18 +1,18 @@
 import { ApiError } from '../api/client'
 
 /**
- * De l'échec d'une requête à une clé de traduction.
+ * From a failed request to a translation key.
  *
- * L'API répond en **anglais technique** : ses messages sont écrits pour un
- * journal de serveur, pas pour la personne devant l'écran. On ne les affiche
- * donc jamais tels quels — on traduit ce que la réponse dit *structurellement*,
- * son `code` d'abord, son statut ensuite.
+ * The API responds in **technical English**: its messages are written for a
+ * server log, not for the person in front of the screen. So we never display
+ * them as-is — we translate what the response says *structurally*, its
+ * `code` first, its status second.
  *
- * Les vues gardent la clé et non le texte : une erreur affichée au moment où
- * l'on change de langue doit changer de langue avec le reste.
+ * Views keep the key, not the text: an error shown at the moment the
+ * language changes must change language along with everything else.
  */
 
-/** Les codes que l'API pose explicitement dans son corps de réponse. */
+/** The codes the API explicitly sets in its response body. */
 const BY_CODE: Record<string, string> = {
   NOTE_EXISTS: 'errors.noteExists',
   FILE_TOO_LARGE: 'errors.fileTooLarge',
@@ -20,7 +20,7 @@ const BY_CODE: Record<string, string> = {
   PROJECT_ARCHIVED: 'errors.projectArchived',
 }
 
-/** À défaut de code, le statut HTTP dit déjà quelque chose d'utile. */
+/** Failing a code, the HTTP status already says something useful. */
 const BY_STATUS: Record<number, string> = {
   401: 'errors.unauthorized',
   403: 'errors.unauthorized',
@@ -29,14 +29,14 @@ const BY_STATUS: Record<number, string> = {
 }
 
 /**
- * @param fallback clé à utiliser quand la réponse n'apprend rien de plus que
- *   « ça a échoué » — elle dit alors *quel geste* a échoué, ce que le statut
- *   seul ne peut pas exprimer.
+ * @param fallback key to use when the response teaches nothing more than
+ *   "it failed" — it then says *which action* failed, something the status
+ *   alone can't express.
  */
 export function apiErrorKey(cause: unknown, fallback: string): string {
-  // `fetch` rejette avec un TypeError quand la requête n'est jamais partie :
-  // serveur éteint, réseau coupé, DNS muet. Ce n'est pas la même chose qu'une
-  // réponse d'erreur, et ce n'est pas au même endroit qu'il faut agir.
+  // `fetch` rejects with a TypeError when the request never went out: server
+  // down, network cut, DNS silent. This isn't the same thing as an error
+  // response, and it's not the same place to act on it.
   if (cause instanceof TypeError) return 'errors.network'
   if (!(cause instanceof ApiError)) return fallback
 
@@ -45,13 +45,13 @@ export function apiErrorKey(cause: unknown, fallback: string): string {
 }
 
 /**
- * Idem pour better-auth, qui a ses propres codes et répond, lui aussi, en
- * anglais.
+ * Same idea for better-auth, which has its own codes and also responds in
+ * English.
  *
- * Renvoie **deux** clés, à passer telles quelles à `t()` : i18next prend la
- * première qui existe. better-auth ajoute des codes au fil de ses versions —
- * un code que le catalogue ne connaît pas encore retombe ainsi sur le message
- * générique de l'écran au lieu d'afficher `auth.errors.QUELQUE_CHOSE`.
+ * Returns **two** keys, to pass as-is to `t()`: i18next picks the first one
+ * that exists. better-auth adds codes across its versions — a code the
+ * catalog doesn't know yet thus falls back to the screen's generic message
+ * instead of displaying `auth.errors.SOMETHING`.
  */
 export function authErrorKeys(
   error: { code?: string } | undefined | null,

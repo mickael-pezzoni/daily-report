@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/react'
-// En v3, les menus flottants vivent dans leur propre point d'entrée.
+// In v3, floating menus live in their own entry point.
 import { BubbleMenu } from '@tiptap/react/menus'
 import { useTranslation } from 'react-i18next'
 import styles from './EditorToolbar.module.css'
@@ -16,8 +16,8 @@ function button(label: string, title: string, isActive: boolean, run: () => void
       aria-label={title}
       aria-pressed={isActive}
       className={isActive ? styles.item_active : styles.item}
-      // `onMouseDown` plutôt que `onClick` : sans ça, le bouton prend le focus
-      // et la sélection de texte s'efface avant l'exécution de la commande.
+      // `onMouseDown` rather than `onClick`: without this, the button takes
+      // focus and the text selection clears before the command runs.
       onMouseDown={(event) => {
         event.preventDefault()
         run()
@@ -29,8 +29,8 @@ function button(label: string, title: string, isActive: boolean, run: () => void
 }
 
 /**
- * La « barre flottante au survol » de la maquette : elle n'apparaît que sur une
- * sélection, à l'endroit où l'on travaille, plutôt qu'en ruban permanent.
+ * The mockup's "floating hover bar": it only appears on a selection, right
+ * where you're working, rather than as a permanent ribbon.
  */
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   const { t } = useTranslation()
