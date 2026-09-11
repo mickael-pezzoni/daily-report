@@ -19,7 +19,7 @@ import { storage } from '../storage/index.js'
  * Nothing else guards attachments: it's the note that carries ownership, and
  * every route below must go through here.
  */
-async function ownsNote(noteId: string, userId: string): Promise<boolean> {
+export async function ownsNote(noteId: string, userId: string): Promise<boolean> {
   const row = await db
     .selectFrom('dailyNotes')
     .select('id')

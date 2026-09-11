@@ -25,9 +25,9 @@ function likeFragment(value: string): string {
   return `%${value.replace(/[\\%_]/g, (char) => `\\${char}`)}%`
 }
 
-const COLUMNS = ['id', 'noteDate', 'title', 'content', 'contentText', 'updatedAt'] as const
+export const COLUMNS = ['id', 'noteDate', 'title', 'content', 'contentText', 'updatedAt'] as const
 
-interface NoteRow {
+export interface NoteRow {
   id: string
   noteDate: string
   title: string
@@ -36,7 +36,7 @@ interface NoteRow {
   updatedAt: Date
 }
 
-function toDailyNote(row: NoteRow): DailyNote {
+export function toDailyNote(row: NoteRow): DailyNote {
   return {
     id: row.id,
     date: row.noteDate,
@@ -53,7 +53,7 @@ function toDailyNote(row: NoteRow): DailyNote {
  * A single query for the whole page: one per note would be an N+1 whose cost
  * would climb with the requested limit.
  */
-async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachment[]>> {
+export async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachment[]>> {
   const grouped = new Map<string, Attachment[]>()
   if (noteIds.length === 0) return grouped
 
@@ -70,6 +70,41 @@ async function attachmentsByNote(noteIds: string[]): Promise<Map<string, Attachm
     else grouped.set(row.noteId, [toAttachment(row)])
   }
   return grouped
+}
+
+/**
+ * Writes the note for a day in a project — creates it if blank, replaces its
+ * title and content otherwise. An atomic `INSERT ... ON CONFLICT` rather
+ * than a check-then-act or the REST route's create/update split: those
+ * exist for REST's own reasons (resource semantics, a multi-tab browser's
+ * race window), not for this call, which only ever wants one outcome —
+ * "this is what the note says now." Caller's job: validate the project with
+ * `checkProjectAccess` first.
+ */
+export async function upsertNote(
+  userId: string,
+  projectId: string,
+  date: string,
+  title: string,
+  content: DailyNote['content'],
+): Promise<DailyNote> {
+  const contentText = flattenRichText(content)
+
+  const row = await db
+    .insertInto('dailyNotes')
+    .values({ userId, projectId, noteDate: date, title, content, contentText })
+    .onConflict((oc) =>
+      oc.columns(['projectId', 'noteDate']).doUpdateSet({
+        title: (eb) => eb.ref('excluded.title'),
+        content: (eb) => eb.ref('excluded.content'),
+        contentText: (eb) => eb.ref('excluded.contentText'),
+        updatedAt: new Date(),
+      }),
+    )
+    .returning(COLUMNS)
+    .executeTakeFirstOrThrow()
+
+  return toDailyNote(row)
 }
 
 /**

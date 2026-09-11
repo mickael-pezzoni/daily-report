@@ -12,6 +12,7 @@ import { requireAuth, type AuthedEnv } from './middleware/require-auth.js'
 import { attachments, noteAttachments } from './routes/attachments.js'
 import authState from './routes/auth-state.js'
 import calendar from './routes/calendar.js'
+import mcp from './routes/mcp.js'
 import notes from './routes/notes.js'
 import oauthClients from './routes/oauth-clients.js'
 import projects from './routes/projects.js'
@@ -71,6 +72,9 @@ app.route('/api/calendar', calendar)
 app.route('/api/attachments', attachments)
 app.route('/api/projects', projects)
 app.route('/api/oauth-clients', oauthClients)
+
+// Its own Bearer gate, not `requireAuth` — see routes/mcp.ts.
+app.route('/api/mcp', mcp)
 
 // Production image only: in dev, Vite serves the web app on its own port.
 // Mounted after all the `/api/*` routes, but the `'*'` wildcard would still

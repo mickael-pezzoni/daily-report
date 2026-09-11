@@ -16,11 +16,15 @@
     "@aws-sdk/s3-request-presigner": "^3.1104.0",
     "@daily-report/types": "workspace:*",
     "@hono/node-server": "^2.1.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "better-auth": "^1.6.26",
     "dotenv": "^17.2.4",
     "hono": "^4.13.0",
     "kysely": "^0.29.4",
-    "pg": "^8.22.0"
+    "pg": "^8.22.0",
+    "prosemirror-markdown": "^1.13.7",
+    "prosemirror-model": "^1.25.11",
+    "zod": "^4.6.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",

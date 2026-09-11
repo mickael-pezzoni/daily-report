@@ -7,7 +7,7 @@ import { storage } from '../storage/index.js'
 
 const projects = new Hono<AuthedEnv>()
 
-interface ProjectRow {
+export interface ProjectRow {
   id: string
   name: string
   createdAt: Date
@@ -16,7 +16,7 @@ interface ProjectRow {
   lastNoteDate: string | null
 }
 
-function toProject(row: ProjectRow): Project {
+export function toProject(row: ProjectRow): Project {
   return {
     id: row.id,
     name: row.name,
@@ -28,13 +28,13 @@ function toProject(row: ProjectRow): Project {
 }
 
 /**
- * `GET /api/projects` — the account's projects, in creation order (the first
- * one is the one sign-up offers by default), active and archived alike —
- * it's up to the client to distinguish them in the display. Each one carries
- * its note count and the date of the latest one: what the cards on the
- * selection screen display, with no separate query per project.
+ * The account's projects, in creation order (the first one is the one
+ * sign-up offers by default), active and archived alike — it's up to the
+ * caller to distinguish them in the display. Each one carries its note count
+ * and the date of the latest one, with no separate query per project.
+ * Shared between `GET /api/projects` and the MCP `list_projects` tool.
  */
-projects.get('/', async (c) => {
+export async function listProjects(userId: string): Promise<Project[]> {
   const rows = await db
     .selectFrom('projects')
     .leftJoin('dailyNotes', 'dailyNotes.projectId', 'projects.id')
@@ -46,27 +46,27 @@ projects.get('/', async (c) => {
       eb.fn.count<string>('dailyNotes.id').as('noteCount'),
       eb.fn.max<string | null>('dailyNotes.noteDate').as('lastNoteDate'),
     ])
-    .where('projects.userId', '=', c.get('userId'))
+    .where('projects.userId', '=', userId)
     .groupBy(['projects.id', 'projects.name', 'projects.createdAt', 'projects.archivedAt'])
     .orderBy('projects.createdAt', 'asc')
     .execute()
 
-  return c.json(rows.map(toProject))
-})
+  return rows.map(toProject)
+}
 
-/** `POST /api/projects` — creates a project, empty and active. */
-projects.post('/', async (c) => {
-  const body = (await c.req.json().catch(() => null)) as ProjectDraft | null
-  const name = typeof body?.name === 'string' ? body.name.trim() : ''
-  if (!name) return c.json({ error: 'invalid name, expected a non-empty string' }, 400)
-
+/**
+ * Inserts a new, empty, active project. No validation here — trimming and
+ * the empty-name check are each caller's job (REST route, MCP tool), since
+ * they report failure differently.
+ */
+export async function insertProject(userId: string, name: string): Promise<Project> {
   const row = await db
     .insertInto('projects')
-    .values({ userId: c.get('userId'), name })
+    .values({ userId, name })
     .returning(['id', 'name', 'createdAt'])
     .executeTakeFirstOrThrow()
 
-  const project: Project = {
+  return {
     id: row.id,
     name: row.name,
     createdAt: row.createdAt.toISOString(),
@@ -74,6 +74,18 @@ projects.post('/', async (c) => {
     noteCount: 0,
     lastNoteDate: null,
   }
+}
+
+/** `GET /api/projects` */
+projects.get('/', async (c) => c.json(await listProjects(c.get('userId'))))
+
+/** `POST /api/projects` — creates a project, empty and active. */
+projects.post('/', async (c) => {
+  const body = (await c.req.json().catch(() => null)) as ProjectDraft | null
+  const name = typeof body?.name === 'string' ? body.name.trim() : ''
+  if (!name) return c.json({ error: 'invalid name, expected a non-empty string' }, 400)
+
+  const project = await insertProject(c.get('userId'), name)
   return c.json(project, 201)
 })
 
